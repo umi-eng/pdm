@@ -1,0 +1,6 @@
+debug/
+target/
+
+# system files
+**.DS_Store
+**.tmp
