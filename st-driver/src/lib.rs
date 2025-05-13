@@ -137,7 +137,7 @@ impl From<OperatingCode> for u8 {
 }
 
 /// Global status byte
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GlobalStatus(u8);
 
 #[cfg(feature = "defmt")]
@@ -155,12 +155,6 @@ impl defmt::Format for GlobalStatus {
             self.rstb(),
             self.gsbn(),
         )
-    }
-}
-
-impl Default for GlobalStatus {
-    fn default() -> Self {
-        Self(0)
     }
 }
 
