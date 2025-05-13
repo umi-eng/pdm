@@ -45,7 +45,7 @@ where
     }
 }
 
-impl<'a, BUS, CS, D> AsyncRegisterInterface for DriverInterface<'a, BUS, CS, D>
+impl<BUS, CS, D> AsyncRegisterInterface for DriverInterface<'_, BUS, CS, D>
 where
     BUS: SpiBus<u8>,
     CS: OutputPin,
