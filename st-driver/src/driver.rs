@@ -125,7 +125,11 @@ where
             .await
     }
 
-    /// Control an output state and duty cycle.
+    /// Control an output.
+    ///
+    /// # Panics
+    /// - `num` must be less than the number of channels.
+    /// - `duty` must be less than 1024.
     pub async fn output(
         &mut self,
         num: usize,
