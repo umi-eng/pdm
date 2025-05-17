@@ -155,7 +155,9 @@ where
         self.dev
             .out_ctr_cr(num)
             .write_async(|w| w.set_duty(duty))
-            .await
+            .await?;
+
+        Ok(())
     }
 
     pub async fn output_enabled(&mut self, num: usize) -> Result<bool, DeviceError<BUS, CS>> {
