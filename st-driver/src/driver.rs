@@ -154,7 +154,7 @@ where
 
         self.dev
             .out_ctr_cr(num)
-            .write_async(|w| w.set_duty(duty))
+            .modify_async(|w| w.set_duty(duty))
             .await?;
 
         Ok(())
