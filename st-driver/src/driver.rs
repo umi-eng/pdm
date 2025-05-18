@@ -141,13 +141,13 @@ where
 
         self.dev
             .socr()
-            .modify_async(|w| match num {
-                0 => w.set_socr_0(on),
-                1 => w.set_socr_1(on),
-                2 => w.set_socr_2(on),
-                3 => w.set_socr_3(on),
-                4 => w.set_socr_4(on),
-                5 => w.set_socr_5(on),
+            .modify_async(|r| match num {
+                0 => r.set_socr_0(on),
+                1 => r.set_socr_1(on),
+                2 => r.set_socr_2(on),
+                3 => r.set_socr_3(on),
+                4 => r.set_socr_4(on),
+                5 => r.set_socr_5(on),
                 _ => unreachable!(),
             })
             .await?;
