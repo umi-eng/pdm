@@ -1,6 +1,6 @@
 use crate::{
     DriverInterface, GlobalStatus,
-    vn9e30f::{ChannelKind, CurrentSamplePoint, PwmFreq, SlopeControl, Vn9e30f},
+    vn9e30f::{ChannelKind, CurrentSamplePoint, PwmFreq, PwmTrigger, SlopeControl, Vn9e30f},
 };
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::{
@@ -307,6 +307,21 @@ where
         let read = self.dev.adc_sr(num).read_async().await?;
 
         Ok((read.adcsr(), read.updtsr()))
+    }
+
+    /// PWM triggering mode.
+    pub async fn pwm_trig(&mut self, trig: PwmTrigger) -> Result<(), DeviceError<BUS, CS>> {
+        self.dev
+            .ctrl()
+            .modify_async(|r| r.set_pwm_trig(trig))
+            .await?;
+
+        Ok(())
+    }
+
+    /// Clear the internal PWM counter restarting the timing of all channels.
+    pub async fn pwm_sync(&mut self) -> Result<(), DeviceError<BUS, CS>> {
+        self.dev.ctrl().modify_async(|r| r.set_pwmsync(true)).await
     }
 }
 
