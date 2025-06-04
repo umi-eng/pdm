@@ -301,12 +301,27 @@ where
     }
 
     /// Current sense value.
-    pub async fn current_sense(&mut self, num: usize) -> Result<(u16, bool), DeviceError<BUS, CS>> {
+    pub async fn current_sense(&mut self, num: usize) -> Result<(f32, bool), DeviceError<BUS, CS>> {
         assert!(num < self.channels, "Channel number outside of bounds");
 
         let read = self.dev.adc_sr(num).read_async().await?;
 
-        Ok((read.adcsr(), read.updtsr()))
+        // gain values as per the datasheet
+        let gain = match self.channels {
+            // VN9D5D20F
+            4 => match num {
+                0 | 1 => 34.0,
+                2 | 3 => 83.0,
+                _ => unreachable!(),
+            },
+            // VN9E30F
+            6 => 107.0,
+            _ => unreachable!(),
+        };
+
+        let sense = read.adcsr() as f32 / gain;
+
+        Ok((sense, read.updtsr()))
     }
 
     /// PWM triggering mode.
