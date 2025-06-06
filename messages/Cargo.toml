@@ -1,0 +1,14 @@
+[package]
+name = "messages"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitvec = { version = "1.0", default-features = false }
+defmt = "1.0"
+embedded-can = "0.4"
+
+[build-dependencies]
+dbc-codegen = { version = "0.3.0", features = [
+    "std",
+], git = "https://github.com/technocreatives/dbc-codegen.git" }

@@ -1,0 +1,144 @@
+VERSION ""
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: PDM
+
+BO_ 2565821696 Output_Control: 6 Vector__XXX
+ SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ Output_1 m0 : 4|2@1+ (1,0) [0|3] "High-current output 1" Vector__XXX
+ SG_ Output_2 m0 : 6|2@1+ (1,0) [0|3] "Output 2" Vector__XXX
+ SG_ Output_3 m0 : 8|2@1+ (1,0) [0|3] "Output 3" Vector__XXX
+ SG_ Output_4 m0 : 10|2@1+ (1,0) [0|3] "High-current output 4" Vector__XXX
+ SG_ Output_5 m0 : 12|2@1+ (1,0) [0|3] "High-current output 5" Vector__XXX
+ SG_ Output_6 m0 : 14|2@1+ (1,0) [0|3] "Output 6" Vector__XXX
+ SG_ Output_7 m0 : 16|2@1+ (1,0) [0|3] "Output 7" Vector__XXX
+ SG_ Output_8 m0 : 18|2@1+ (1,0) [0|3] "High-current output 8" Vector__XXX
+ SG_ Output_9 m0 : 20|2@1+ (1,0) [0|3] "High-current output 9" Vector__XXX
+ SG_ Output_10 m0 : 22|2@1+ (1,0) [0|3] "Output 10" Vector__XXX
+ SG_ Output_11 m0 : 24|2@1+ (1,0) [0|3] "Output 11" Vector__XXX
+ SG_ Output_12 m0 : 26|2@1+ (1,0) [0|3] "High-current output 12" Vector__XXX
+ SG_ Output_13 m1 : 4|2@1+ (1,0) [0|3] "Output 13" Vector__XXX
+ SG_ Output_14 m1 : 6|2@1+ (1,0) [0|3] "Output 14" Vector__XXX
+ SG_ Output_15 m1 : 8|2@1+ (1,0) [0|3] "Output 15" Vector__XXX
+ SG_ Output_16 m1 : 10|2@1+ (1,0) [0|3] "Output 16" Vector__XXX
+ SG_ Output_17 m1 : 12|2@1+ (1,0) [0|3] "Output 17" Vector__XXX
+ SG_ Output_18 m1 : 14|2@1+ (1,0) [0|3] "Output 18" Vector__XXX
+ SG_ Output_19 m1 : 16|2@1+ (1,0) [0|3] "Output 19" Vector__XXX
+ SG_ Output_20 m1 : 18|2@1+ (1,0) [0|3] "Output 20" Vector__XXX
+ SG_ Output_21 m1 : 20|2@1+ (1,0) [0|3] "Output 21" Vector__XXX
+ SG_ Output_22 m1 : 22|2@1+ (1,0) [0|3] "Output 22" Vector__XXX
+ SG_ Output_23 m1 : 24|2@1+ (1,0) [0|3] "Output 23" Vector__XXX
+ SG_ Output_24 m1 : 26|2@1+ (1,0) [0|3] "Output 24" Vector__XXX
+ SG_ Output_25 m2 : 4|2@1+ (1,0) [0|3] "Output 25" Vector__XXX
+ SG_ Output_26 m2 : 6|2@1+ (1,0) [0|3] "Output 26" Vector__XXX
+ SG_ Output_27 m2 : 8|2@1+ (1,0) [0|3] "Output 27" Vector__XXX
+ SG_ Output_28 m2 : 10|2@1+ (1,0) [0|3] "Output 28" Vector__XXX
+ SG_ Output_29 m2 : 12|2@1+ (1,0) [0|3] "Output 29" Vector__XXX
+ SG_ Output_30 m2 : 14|2@1+ (1,0) [0|3] "Output 30" Vector__XXX
+ SG_ Output_31 m2 : 16|2@1+ (1,0) [0|3] "Output 31" Vector__XXX
+ SG_ Output_32 m2 : 18|2@1+ (1,0) [0|3] "Output 32" Vector__XXX
+ SG_ Output_33 m2 : 20|2@1+ (1,0) [0|3] "Output 33" Vector__XXX
+ SG_ Output_34 m2 : 22|2@1+ (1,0) [0|3] "Output 34" Vector__XXX
+ SG_ Output_35 m2 : 24|2@1+ (1,0) [0|3] "Output 35" Vector__XXX
+ SG_ Output_36 m2 : 26|2@1+ (1,0) [0|3] "Output 36" Vector__XXX
+ SG_ PWM_duty : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
+
+BO_ 435093589 Output_Configure: 8 Vector__XXX
+ SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ Channel_Mask : 4|12@1+ (1,0) [0|4095] "Output channel mask" Vector__XXX
+ SG_ Open_Load_Detection : 16|1@1+ (1,0) [0|1] "Output channel mask" Vector__XXX
+ SG_ Blanking_Window : 20|2@1+ (1,0) [0|16] "Blanking time. 0 for latch-off. Refer to datasheet for timing." Vector__XXX
+ SG_ Current_Limit : 24|8@1+ (1,0) [0|255] "Current limit - 100mA per bit" Vector__XXX
+ SG_ Economize_Duty : 32|8@1+ (1,0) [0|255] "Coil economization PWM duty" Vector__XXX
+ SG_ Economize_Delay : 40|4@1+ (1,0) [0|16] "Coil economization delay - 50ms per bit" Vector__XXX
+
+BO_ 419364949 Startup: 8 Vector__XXX
+ SG_ Hardware_Version_Major : 0|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Hardware_Version_Minor : 8|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Hardware_Version_Patch : 16|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Software_Major : 24|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Software_Minor : 32|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Software_Patch : 40|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Reset_Cause_Brownout : 48|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
+ SG_ Reset_Cause_Watchdog : 49|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
+ SG_ Reset_Cause_Software : 50|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
+
+BO_ 419365205 System_Status: 8 Vector__XXX
+ SG_ CAN_RX_Errors : 8|8@1+ (1,0) [0|255] "Count" Vector__XXX
+ SG_ CAN_TX_Errors : 16|8@1+ (1,0) [0|255] "Count" Vector__XXX
+ SG_ Temperature : 24|8@1+ (1,0) [0|255] "Celsius" Vector__XXX
+
+BO_ 419369045 Current_Sense: 8 Vector__XXX
+ SG_ mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ Current_Sense_1 m0 : 4|10@1+ (1,0) [0|1023] "Output 1 current sense" Vector__XXX
+ SG_ Current_Sense_2 m0 : 14|10@1+ (1,0) [0|1023] "Output 2 current sense" Vector__XXX
+ SG_ Current_Sense_3 m0 : 24|10@1+ (1,0) [0|1023] "Output 3 current sense" Vector__XXX
+ SG_ Current_Sense_4 m0 : 34|10@1+ (1,0) [0|1023] "Output 4 current sense" Vector__XXX
+ SG_ Current_Sense_5 m0 : 44|10@1+ (1,0) [0|1023] "Output 5 current sense" Vector__XXX
+ SG_ Current_Sense_6 m0 : 54|10@1+ (1,0) [0|1023] "Output 6 current sense" Vector__XXX
+ SG_ Current_Sense_7 m1 : 4|10@1+ (1,0) [0|1023] "Output 7 current sense" Vector__XXX
+ SG_ Current_Sense_8 m1 : 14|10@1+ (1,0) [0|1023] "Output 8 current sense" Vector__XXX
+ SG_ Current_Sense_9 m1 : 24|10@1+ (1,0) [0|1023] "Output 9 current sense" Vector__XXX
+ SG_ Current_Sense_10 m1 : 34|10@1+ (1,0) [0|1023] "Output 10 current sense" Vector__XXX
+ SG_ Current_Sense_11 m1 : 44|10@1+ (1,0) [0|1023] "Output 11 current sense" Vector__XXX
+ SG_ Current_Sense_12 m1 : 54|10@1+ (1,0) [0|1023] "Output 12 current sense" Vector__XXX
+ SG_ Current_Sense_13 m2 : 4|10@1+ (1,0) [0|1023] "Output 13 current sense" Vector__XXX
+ SG_ Current_Sense_14 m2 : 14|10@1+ (1,0) [0|1023] "Output 14 current sense" Vector__XXX
+ SG_ Current_Sense_15 m2 : 24|10@1+ (1,0) [0|1023] "Output 15 current sense" Vector__XXX
+ SG_ Current_Sense_16 m2 : 34|10@1+ (1,0) [0|1023] "Output 16 current sense" Vector__XXX
+ SG_ Current_Sense_17 m2 : 44|10@1+ (1,0) [0|1023] "Output 17 current sense" Vector__XXX
+ SG_ Current_Sense_18 m2 : 54|10@1+ (1,0) [0|1023] "Output 18 current sense" Vector__XXX
+ SG_ Current_Sense_19 m3 : 4|10@1+ (1,0) [0|1023] "Output 19 current sense" Vector__XXX
+ SG_ Current_Sense_20 m3 : 14|10@1+ (1,0) [0|1023] "Output 20 current sense" Vector__XXX
+ SG_ Current_Sense_21 m3 : 24|10@1+ (1,0) [0|1023] "Output 21 current sense" Vector__XXX
+ SG_ Current_Sense_22 m3 : 34|10@1+ (1,0) [0|1023] "Output 22 current sense" Vector__XXX
+ SG_ Current_Sense_23 m3 : 44|10@1+ (1,0) [0|1023] "Output 23 current sense" Vector__XXX
+ SG_ Current_Sense_24 m3 : 54|10@1+ (1,0) [0|1023] "Output 24 current sense" Vector__XXX
+ SG_ Current_Sense_25 m4 : 4|10@1+ (1,0) [0|1023] "Output 25 current sense" Vector__XXX
+ SG_ Current_Sense_26 m4 : 14|10@1+ (1,0) [0|1023] "Output 26 current sense" Vector__XXX
+ SG_ Current_Sense_27 m4 : 24|10@1+ (1,0) [0|1023] "Output 27 current sense" Vector__XXX
+ SG_ Current_Sense_28 m4 : 34|10@1+ (1,0) [0|1023] "Output 28 current sense" Vector__XXX
+ SG_ Current_Sense_29 m4 : 44|10@1+ (1,0) [0|1023] "Output 29 current sense" Vector__XXX
+ SG_ Current_Sense_30 m4 : 54|10@1+ (1,0) [0|1023] "Output 30 current sense" Vector__XXX
+ SG_ Current_Sense_31 m5 : 4|10@1+ (1,0) [0|1023] "Output 31 current sense" Vector__XXX
+ SG_ Current_Sense_32 m5 : 14|10@1+ (1,0) [0|1023] "Output 32 current sense" Vector__XXX
+ SG_ Current_Sense_33 m5 : 24|10@1+ (1,0) [0|1023] "Output 33 current sense" Vector__XXX
+ SG_ Current_Sense_34 m5 : 34|10@1+ (1,0) [0|1023] "Output 34 current sense" Vector__XXX
+ SG_ Current_Sense_35 m5 : 44|10@1+ (1,0) [0|1023] "Output 35 current sense" Vector__XXX
+ SG_ Current_Sense_36 m5 : 54|10@1+ (1,0) [0|1023] "Output 36 current sense" Vector__XXX
+
+BO_ 419369301 Analog_Inputs: 6 Vector__XXX
+ SG_ Input_1 : 0|16@1+ (1,0) [0|65535] "Analog input 1" Vector__XXX
+ SG_ Input_2 : 16|16@1+ (1,0) [0|65535] "Analog input 2" Vector__XXX
+ SG_ Input_3 : 32|16@1+ (1,0) [0|65535] "Analog input 3" Vector__XXX
