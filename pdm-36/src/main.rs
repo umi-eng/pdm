@@ -6,12 +6,14 @@ mod current;
 mod output;
 mod pgn;
 mod receive;
+mod startup;
 mod status;
 mod watchdog;
 
 use analog::*;
 use current::*;
 use receive::*;
+use startup::*;
 use status::*;
 use watchdog::*;
 
@@ -202,6 +204,7 @@ mod app {
         let ain_3 = p.PB14;
 
         watchdog::spawn().unwrap();
+        startup::spawn().unwrap();
         receive::spawn().unwrap();
         analog::spawn().unwrap();
         status::spawn().unwrap();
@@ -233,6 +236,9 @@ mod app {
     }
 
     extern "Rust" {
+        #[task(shared = [&can_tx, &source_address])]
+        async fn startup(cx: startup::Context);
+
         #[task(local = [wd, pwm], shared = [&drivers])]
         async fn watchdog(cx: watchdog::Context);
 
