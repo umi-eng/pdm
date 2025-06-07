@@ -7,7 +7,7 @@ pub const OUTPUT_CONTROL: Pgn = Pgn::ProprietaryA;
 pub const OUTPUT_CONFIGURE: Pgn = Pgn::ProprietaryA2;
 
 /// Power-on reset message.
-pub const POWER_ON_RESET: Pgn = Pgn::ProprietaryB(0x00);
+pub const STARTUP: Pgn = Pgn::ProprietaryB(0x00);
 
 /// System status message.
 pub const SYSTEM_STATUS: Pgn = Pgn::ProprietaryB(0x12);
