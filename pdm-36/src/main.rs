@@ -33,7 +33,6 @@ use hal::flash::Blocking;
 use hal::gpio::Level;
 use hal::gpio::Output;
 use hal::gpio::OutputType;
-use hal::gpio::Pull;
 use hal::gpio::Speed;
 use hal::mode::Async;
 use hal::peripherals::*;
