@@ -1,0 +1,26 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "probe-rs run --chip STM32G474CE --protocol swd --no-location"
+linker = "flip-link"
+rustflags = [
+    "-C",
+    "link-arg=-nmagic",
+    "-C",
+    "link-arg=-Tlink.x",
+    "-C",
+    "link-arg=-Tdefmt.x",
+]
+
+[build]
+target = "thumbv7em-none-eabihf"
+
+[env]
+DEFMT_LOG = "info"
+
+[profile.release]
+codegen-units = 1 # better optimizations
+debug = 2         # symbols are nice and they don't increase the size on Flash
+lto = true        # better optimizations
+opt-level = "z"   # smaller optimizations
+
+[profile.dev]
+opt-level = 1 # no optimizations was just too painful in terms of flash size
