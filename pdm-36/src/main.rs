@@ -124,7 +124,7 @@ mod app {
             config.rcc.mux.adc345sel = mux::Adcsel::SYS;
             config.rcc.sys = Sysclk::PLL1_R;
         }
-        let p = embassy_stm32::init(config);
+        let p = hal::init(config);
 
         Mono::start(cx.core.SYST, 160_000_000);
 
