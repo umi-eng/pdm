@@ -5,6 +5,7 @@ use crate::{
     pgn,
 };
 use j1939::id::{Id, IdBuilder, Pgn};
+use j1939::transfer::Transfer;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -35,7 +36,7 @@ pub async fn receive(cx: receive::Context<'_>) {
         match id.pgn() {
             Pgn::TransportProtocolConnectionManagement => {
                 if let Ok(rts) = j1939::message::RequestToSend::try_from(data) {
-                    transfer = Some(j1939::Transfer::<1024>::new(rts));
+                    transfer = Some(Transfer::<1024>::new(rts));
                 }
             }
             Pgn::TransportProtocolDataTransfer => {
