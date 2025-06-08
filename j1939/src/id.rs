@@ -46,6 +46,10 @@ impl Id {
         Self(raw & ID_MASK)
     }
 
+    pub fn builder() -> IdBuilder {
+        IdBuilder::new()
+    }
+
     /// Get the inner 29-bit value.
     pub fn as_raw(&self) -> u32 {
         self.0
