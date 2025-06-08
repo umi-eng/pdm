@@ -1,6 +1,13 @@
 [workspace]
 resolver = "2"
-members = ["j1939", "messages", "pdm-36", "pdm-36-bootloader", "st-driver"]
+members = [
+    "j1939",
+    "messages",
+    "pdm-36",
+    "pdm-36-bootloader",
+    "pdm-tool",
+    "st-driver",
+]
 
 [workspace.dependencies]
 messages = { path = "messages" }
