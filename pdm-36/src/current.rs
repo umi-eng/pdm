@@ -1,6 +1,6 @@
+use crate::hal;
 use crate::output::OUTPUT_MAP;
 use crate::{Mono, app::current};
-use crate::{hal, pgn};
 use core::array::from_fn;
 use hal::can::Frame;
 use j1939::signal::{Param8, Param10, Signal};
@@ -28,7 +28,7 @@ pub async fn current(cx: current::Context<'_>) {
 
     let id = j1939::Id::builder()
         .sa(*cx.shared.source_address)
-        .pgn(pgn::CURRENT_SENSE)
+        .pgn(messages::CURRENT_SENSE)
         .priority(6)
         .build();
 

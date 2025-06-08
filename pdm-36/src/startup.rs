@@ -1,6 +1,5 @@
 use crate::app::startup;
 use crate::hal;
-use crate::pgn;
 use hal::can::Frame;
 
 pub async fn startup(cx: startup::Context<'_>) {
@@ -30,7 +29,7 @@ pub async fn startup(cx: startup::Context<'_>) {
     .unwrap();
 
     let id = j1939::Id::builder()
-        .pgn(pgn::STARTUP)
+        .pgn(messages::STARTUP)
         .sa(source_address)
         .build();
     let frame = Frame::new_data(id, data.raw()).unwrap();

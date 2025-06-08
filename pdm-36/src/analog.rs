@@ -1,5 +1,5 @@
+use crate::hal;
 use crate::{Mono, app::analog};
-use crate::{hal, pgn};
 use hal::adc::{Resolution, SampleTime};
 use hal::can::Frame;
 use j1939::signal::Signal;
@@ -45,7 +45,7 @@ pub async fn analog(cx: analog::Context<'_>) {
 
     let id = j1939::Id::builder()
         .sa(*cx.shared.source_address)
-        .pgn(pgn::ANALOG_READINGS)
+        .pgn(messages::ANALOG_READINGS)
         .priority(6)
         .build();
 

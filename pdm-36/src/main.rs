@@ -4,7 +4,6 @@
 mod analog;
 mod current;
 mod output;
-mod pgn;
 mod receive;
 mod startup;
 mod status;

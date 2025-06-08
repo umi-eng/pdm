@@ -1072,6 +1072,7 @@ dependencies = [
  "dbc-codegen",
  "defmt 1.0.1",
  "embedded-can",
+ "j1939",
 ]
 
 [[package]]

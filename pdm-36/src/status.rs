@@ -1,7 +1,6 @@
 use crate::Mono;
 use crate::app::status;
 use crate::hal;
-use crate::pgn;
 use hal::can::Frame;
 use j1939::signal::Signal;
 use j1939::slot::SaeTP01;
@@ -16,7 +15,7 @@ pub async fn status(cx: status::Context<'_>) {
     let can_stats = cx.shared.can_properties;
 
     let id = j1939::Id::builder()
-        .pgn(pgn::SYSTEM_STATUS)
+        .pgn(messages::SYSTEM_STATUS)
         .priority(6)
         .sa(*cx.shared.source_address)
         .build();

@@ -2,7 +2,6 @@ use crate::{
     app::{activity, receive},
     hal::can,
     output::{self, OUTPUT_MAP},
-    pgn,
 };
 use j1939::transfer::Transfer;
 use j1939::{Id, IdBuilder, Pgn};
@@ -72,7 +71,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                     }
                 }
             }
-            pgn::OUTPUT_CONTROL => {
+            messages::OUTPUT_CONTROL => {
                 if let Ok(mut output) = messages::OutputControl::try_from(data) {
                     // convert 8bit to 10bit
                     let pwm_duty = output.pwm_duty() as u16 + 1;

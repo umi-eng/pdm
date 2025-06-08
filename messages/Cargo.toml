@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+j1939.workspace = true
 bitvec = { version = "1.0", default-features = false }
 defmt = "1.0"
 embedded-can = "0.4"
