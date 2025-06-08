@@ -1,5 +1,5 @@
 ///! PGNs used by J1939 identifiers.
-use j1939::id::Pgn;
+use j1939::Pgn;
 
 /// Output control message.
 pub const OUTPUT_CONTROL: Pgn = Pgn::ProprietaryA;

@@ -29,7 +29,7 @@ pub async fn startup(cx: startup::Context<'_>) {
     )
     .unwrap();
 
-    let id = j1939::id::IdBuilder::new()
+    let id = j1939::Id::builder()
         .pgn(pgn::STARTUP)
         .sa(source_address)
         .build();

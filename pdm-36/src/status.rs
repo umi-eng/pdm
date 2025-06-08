@@ -15,7 +15,7 @@ pub async fn status(cx: status::Context<'_>) {
     let can = cx.shared.can_tx;
     let can_stats = cx.shared.can_properties;
 
-    let id = j1939::id::IdBuilder::new()
+    let id = j1939::Id::builder()
         .pgn(pgn::SYSTEM_STATUS)
         .priority(6)
         .sa(*cx.shared.source_address)

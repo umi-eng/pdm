@@ -4,8 +4,8 @@ use crate::{
     output::{self, OUTPUT_MAP},
     pgn,
 };
-use j1939::id::{Id, IdBuilder, Pgn};
 use j1939::transfer::Transfer;
+use j1939::{Id, IdBuilder, Pgn};
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {

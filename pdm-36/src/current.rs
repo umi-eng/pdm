@@ -26,7 +26,7 @@ pub async fn current(cx: current::Context<'_>) {
     let can = cx.shared.can_tx;
     let drivers = cx.shared.drivers;
 
-    let id = j1939::id::IdBuilder::new()
+    let id = j1939::Id::builder()
         .sa(*cx.shared.source_address)
         .pgn(pgn::CURRENT_SENSE)
         .priority(6)

@@ -43,7 +43,7 @@ pub async fn analog(cx: analog::Context<'_>) {
     adc_3.set_resolution(resolution);
     adc_4.set_resolution(resolution);
 
-    let id = j1939::id::IdBuilder::new()
+    let id = j1939::Id::builder()
         .sa(*cx.shared.source_address)
         .pgn(pgn::ANALOG_READINGS)
         .priority(6)
