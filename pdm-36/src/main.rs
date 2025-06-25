@@ -150,7 +150,7 @@ mod app {
             can::filter::ExtendedFilter::accept_all_into_fifo0(),
         );
         can.set_bitrate(500_000);
-        let (can_tx, can_rx, can_properties) = can.into_external_loopback_mode().split();
+        let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
         let can_tx = Arbiter::new(can_tx);
 
         // J1939 source address.
