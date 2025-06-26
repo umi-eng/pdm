@@ -42,8 +42,6 @@ impl<'f> Config<'f> {
     pub fn new(flash: &'f Flash) -> Self {
         let cache = KeyPointerCache::new();
 
-        defmt::info!("Regions: {}", flash::get_flash_regions());
-
         Self {
             flash,
             cache,
