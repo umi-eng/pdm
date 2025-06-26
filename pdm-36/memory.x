@@ -14,3 +14,6 @@ __bootloader_state_end = ORIGIN(BOOTLOADER_STATE) + LENGTH(BOOTLOADER_STATE) - O
 
 __bootloader_dfu_start = ORIGIN(DFU) - ORIGIN(BOOTLOADER);
 __bootloader_dfu_end = ORIGIN(DFU) + LENGTH(DFU) - ORIGIN(BOOTLOADER);
+
+__cfg_start = ORIGIN(CFG) - 0x08000000;
+__cfg_end = ORIGIN(CFG) + LENGTH(CFG) - 0x08000000;

@@ -2,6 +2,7 @@
 #![no_main]
 
 mod analog;
+mod config;
 mod current;
 mod output;
 mod receive;
@@ -74,6 +75,7 @@ mod app {
 
     #[shared]
     struct Shared {
+        config: Arbiter<config::Config<'static>>,
         drivers: [Arbiter<StDriver>; 7],
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
@@ -139,6 +141,10 @@ mod app {
         let flash = cx.local.flash.write(Mutex::new(BlockingAsync::new(flash)));
         let config = FirmwareUpdaterConfig::from_linkerfile(flash, flash);
         let updater = FirmwareUpdater::new(config, &mut cx.local.aligned_buffer.0);
+
+        // configuration store
+        let config = config::Config::new(flash);
+        let config = Arbiter::new(config);
 
         // indicator leds
         let led_err = Output::new(p.PA0, Level::Low, Speed::Low);
@@ -214,6 +220,7 @@ mod app {
 
         (
             Shared {
+                config,
                 drivers: [drv_a, drv_b, drv_c, drv_d, drv_e, drv_f, drv_g],
                 can_tx,
                 can_properties,

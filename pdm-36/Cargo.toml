@@ -36,6 +36,7 @@ embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy.git" }
 embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "defmt",
 ] }
+sequential-storage = { version = "4.0.3", features = ["defmt-03"] }
 
 [features]
 disable-watchdog = []
