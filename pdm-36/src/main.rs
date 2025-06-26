@@ -131,6 +131,7 @@ mod app {
 
         // setup and start watchdog
         let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 100000);
+        #[cfg(not(feature = "disable-watchdog"))]
         wd.unleash();
 
         // flash and firmware update

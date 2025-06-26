@@ -36,3 +36,6 @@ embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy.git" }
 embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "defmt",
 ] }
+
+[features]
+disable-watchdog = []
