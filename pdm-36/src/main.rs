@@ -75,7 +75,7 @@ mod app {
 
     #[shared]
     struct Shared {
-        config: Arbiter<config::Config<'static>>,
+        config: config::Config<'static>,
         drivers: [Arbiter<StDriver>; 7],
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
@@ -144,7 +144,6 @@ mod app {
 
         // configuration store
         let config = config::Config::new(flash);
-        let config = Arbiter::new(config);
 
         // indicator leds
         let led_err = Output::new(p.PA0, Level::Low, Speed::Low);

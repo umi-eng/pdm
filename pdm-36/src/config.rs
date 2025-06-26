@@ -4,6 +4,7 @@ use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_stm32::flash::Blocking;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
 use hal::flash;
+use rtic_sync::arbiter::Arbiter;
 use sequential_storage::{
     Error,
     cache::KeyPointerCache,
@@ -31,13 +32,13 @@ type Flash = Mutex<NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>
 type Key = [u8; 4];
 
 /// Configuration store.
-pub struct Config<'f> {
+pub struct Store<'f> {
     flash: &'f Flash,
     cache: KeyPointerCache<32, Key, 32>,
     buffer: [u8; 128],
 }
 
-impl<'f> Config<'f> {
+impl<'f> Store<'f> {
     /// Create a new configuration store.
     pub fn new(flash: &'f Flash) -> Self {
         let cache = KeyPointerCache::new();
@@ -87,4 +88,40 @@ impl<'f> Config<'f> {
     pub async fn erase_all(&mut self) -> Result<(), Error<flash::Error>> {
         erase_all(&mut *self.flash.lock().await, range()).await
     }
+}
+
+/// Generator for gettter and setter functions.
+#[macro_export]
+macro_rules! config_key {
+    ($fn_name:ident, $key:expr, $type:ty, $default:expr) => {
+        pub async fn $fn_name(&self) -> Result<u8, Error<flash::Error>> {
+            let mut store = self.store.access().await;
+            store.fetch_item($key).await.map(|r| r.unwrap_or($default))
+        }
+
+        paste::paste! {
+            pub async fn [<store_ $fn_name>](&self, value: &$type) -> Result<(), Error<flash::Error>> {
+                self.store
+                    .access()
+                    .await
+                    .store_item($key, value)
+                    .await
+            }
+        }
+    };
+}
+
+/// Configuration store that can be shared.
+pub struct Config<'f> {
+    store: Arbiter<Store<'f>>,
+}
+
+impl<'f> Config<'f> {
+    pub fn new(flash: &'f Flash) -> Self {
+        Self {
+            store: Arbiter::new(Store::new(flash)),
+        }
+    }
+
+    config_key!(j1939_sa, b"ADDR", u8, 0x55);
 }
