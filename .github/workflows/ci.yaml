@@ -61,14 +61,16 @@ jobs:
         run: cargo clippy
       - name: std crates
         run: |
-          cargo clippy --all-features --locked -- -D warnings \
+          cargo clippy --all-features --locked \
             -p j1939 \
             -p messages \
             -p pdm \
             -p pdm-tool \
             -p st-driver \
+            -- -D warnings
       - name: no_std crates
         run: |
-          cargo clippy --all-features --locked -- -D warnings --target thumbv7em-none-eabihf \
+          cargo clippy --all-features --locked \
           -p pdm-36 \
           -p pdm-36-bootloader \
+          -- -D warnings --target thumbv7em-none-eabihf
