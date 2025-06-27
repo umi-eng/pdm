@@ -57,8 +57,6 @@ jobs:
           toolchain: nightly
           targets: thumbv7em-none-eabihf
           components: clippy
-      - name: Check clippy
-        run: cargo clippy
       - name: std crates
         run: |
           cargo clippy --all-features --locked \
