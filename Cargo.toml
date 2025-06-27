@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "j1939",
     "messages",
+    "pdm",
     "pdm-36",
     "pdm-36-bootloader",
     "pdm-tool",

@@ -1,0 +1,13 @@
+[package]
+name = "pdm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+embedded-can = "0.4.1"
+j1939.workspace = true
+messages.workspace = true
+thiserror = "2.0.12"
+
+[dev-dependencies]
+tokio = { version = "1.45.1", features = ["full"] }
