@@ -31,7 +31,19 @@ jobs:
         with:
           targets: thumbv7em-none-eabihf
       - run: cargo install flip-link --version 0.1.10
-      - run: cargo check
+      - name: std crates
+        run: |
+          cargo check \
+            -p j1939 \
+            -p messages \
+            -p pdm \
+            -p pdm-tool \
+            -p st-driver \
+      - name: no_std crates
+        run: |
+          cargo check --target thumbv7em-none-eabihf \
+          -p pdm-36 \
+          -p pdm-36-bootloader \
 
   clippy:
     name: Clippy
@@ -46,4 +58,17 @@ jobs:
           targets: thumbv7em-none-eabihf
           components: clippy
       - name: Check clippy
-        run: cargo clippy --all-features --locked -- -D warnings
+        run: cargo clippy
+      - name: std crates
+        run: |
+          cargo clippy --all-features --locked -- -D warnings \
+            -p j1939 \
+            -p messages \
+            -p pdm \
+            -p pdm-tool \
+            -p st-driver \
+      - name: no_std crates
+        run: |
+          cargo clippy --all-features --locked -- -D warnings --target thumbv7em-none-eabihf \
+          -p pdm-36 \
+          -p pdm-36-bootloader \
