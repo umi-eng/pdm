@@ -1,0 +1,16 @@
+[package]
+name = "vpd"
+description = "Vital product data"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+defmt = { version = "1.0.1", optional = true }
+tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
+zerocopy = { version = "0.8.26", features = ["derive"] }
+
+[dev-dependencies]
+tlvc-text = { git = "https://github.com/oxidecomputer/tlvc.git" }
+
+[features]
+defmt-1 = ["dep:defmt"]
