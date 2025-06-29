@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), no_std)]
+
 pub mod items;
 
 use tlvc::{ChunkHandle, TlvcRead, TlvcReadError, TlvcReader};
