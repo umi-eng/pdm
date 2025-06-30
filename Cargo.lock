@@ -39,6 +39,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "analog"
+version = "0.1.0"
+dependencies = [
+ "heapless",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1325,6 +1332,7 @@ dependencies = [
 name = "pdm-36"
 version = "0.1.0"
 dependencies = [
+ "analog",
  "cortex-m",
  "defmt 1.0.1",
  "defmt-rtt",
