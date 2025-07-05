@@ -76,16 +76,6 @@ BO_ 2565821696 Control: 6 Vector__XXX
  SG_ PWM_duty_m1 m1 : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
  SG_ PWM_duty_m2 m2 : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
 
-
-BO_ 435093589 Configure: 8 Vector__XXX
- SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
- SG_ Channel_Mask : 4|12@1+ (1,0) [0|4095] "Output channel mask" Vector__XXX
- SG_ Open_Load_Detection : 16|1@1+ (1,0) [0|1] "Output channel mask" Vector__XXX
- SG_ Blanking_Window : 20|2@1+ (1,0) [0|16] "Blanking time. 0 for latch-off. Refer to datasheet for timing." Vector__XXX
- SG_ Current_Limit : 24|8@1+ (1,0) [0|255] "Current limit - 100mA per bit" Vector__XXX
- SG_ Economize_Duty : 32|8@1+ (1,0) [0|255] "Coil economization PWM duty" Vector__XXX
- SG_ Economize_Delay : 40|4@1+ (1,0) [0|16] "Coil economization delay - 50ms per bit" Vector__XXX
-
 BO_ 419364949 Startup: 8 Vector__XXX
  SG_ Hardware_Version_Major : 0|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
  SG_ Hardware_Version_Minor : 8|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
