@@ -49,10 +49,10 @@ impl Messages {
 /// Control
 ///
 /// - Extended ID: 418338048 (0x18ef5500)
-/// - Size: 6 bytes
+/// - Size: 8 bytes
 #[derive(Clone, Copy)]
 pub struct Control {
-    raw: [u8; 6],
+    raw: [u8; 8],
 }
 
 impl Control {
@@ -141,13 +141,13 @@ impl Control {
     
     /// Construct new Control from values
     pub fn new(mux: u8) -> Result<Self, CanError> {
-        let mut res = Self { raw: [0u8; 6] };
+        let mut res = Self { raw: [0u8; 8] };
         res.set_mux(mux)?;
         Ok(res)
     }
     
     /// Access message payload raw value
-    pub fn raw(&self) -> &[u8; 6] {
+    pub fn raw(&self) -> &[u8; 8] {
         &self.raw
     }
     
@@ -227,9 +227,9 @@ impl core::convert::TryFrom<&[u8]> for Control {
     
     #[inline(always)]
     fn try_from(payload: &[u8]) -> Result<Self, Self::Error> {
-        if payload.len() != 6 { return Err(CanError::InvalidPayloadSize); }
-        let mut raw = [0u8; 6];
-        raw.copy_from_slice(&payload[..6]);
+        if payload.len() != 8 { return Err(CanError::InvalidPayloadSize); }
+        let mut raw = [0u8; 8];
+        raw.copy_from_slice(&payload[..8]);
         Ok(Self { raw })
     }
 }
@@ -288,10 +288,10 @@ pub enum ControlMuxIndex {
 
 #[derive(defmt::Format)]
 #[derive(Default)]
-pub struct ControlMuxM0 { raw: [u8; 6] }
+pub struct ControlMuxM0 { raw: [u8; 8] }
 
 impl ControlMuxM0 {
-pub fn new() -> Self { Self { raw: [0u8; 6] } }
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
 /// Output_1
 ///
 /// - Min: 0
@@ -842,10 +842,10 @@ pub fn set_pwm_duty_m0(&mut self, value: u8) -> Result<(), CanError> {
 
 #[derive(defmt::Format)]
 #[derive(Default)]
-pub struct ControlMuxM1 { raw: [u8; 6] }
+pub struct ControlMuxM1 { raw: [u8; 8] }
 
 impl ControlMuxM1 {
-pub fn new() -> Self { Self { raw: [0u8; 6] } }
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
 /// Output_13
 ///
 /// - Min: 0
@@ -1396,10 +1396,10 @@ pub fn set_pwm_duty_m1(&mut self, value: u8) -> Result<(), CanError> {
 
 #[derive(defmt::Format)]
 #[derive(Default)]
-pub struct ControlMuxM2 { raw: [u8; 6] }
+pub struct ControlMuxM2 { raw: [u8; 8] }
 
 impl ControlMuxM2 {
-pub fn new() -> Self { Self { raw: [0u8; 6] } }
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
 /// Output_25
 ///
 /// - Min: 0

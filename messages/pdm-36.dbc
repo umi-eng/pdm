@@ -34,7 +34,7 @@ BS_:
 
 BU_: PDM
 
-BO_ 2565821696 Control: 6 Vector__XXX
+BO_ 2565821696 Control: 8 Vector__XXX
  SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ Output_1 m0 : 4|2@1+ (1,0) [0|3] "High-current output 1" Vector__XXX
  SG_ Output_2 m0 : 6|2@1+ (1,0) [0|3] "Output 2" Vector__XXX
