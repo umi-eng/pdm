@@ -72,7 +72,10 @@ BO_ 2565821696 Control: 6 Vector__XXX
  SG_ Output_34 m2 : 22|2@1+ (1,0) [0|3] "Output 34" Vector__XXX
  SG_ Output_35 m2 : 24|2@1+ (1,0) [0|3] "Output 35" Vector__XXX
  SG_ Output_36 m2 : 26|2@1+ (1,0) [0|3] "Output 36" Vector__XXX
- SG_ PWM_duty : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
+ SG_ PWM_duty_m0 m0 : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
+ SG_ PWM_duty_m1 m1 : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
+ SG_ PWM_duty_m2 m2 : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
+
 
 BO_ 435093589 Configure: 8 Vector__XXX
  SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX

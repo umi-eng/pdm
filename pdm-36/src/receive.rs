@@ -73,12 +73,10 @@ pub async fn receive(cx: receive::Context<'_>) {
             }
             messages::CONTROL => {
                 if let Ok(mut output) = messages::Control::try_from(data) {
-                    // convert 8bit to 10bit
-                    let pwm_duty = output.pwm_duty() as u16 + 1;
-                    let pwm_duty = (pwm_duty << 2) - 1;
-
                     match output.mux() {
                         Ok(messages::ControlMuxIndex::M0(m)) => {
+                            let duty = scale_pwm(m.pwm_duty_m0());
+
                             let states = [
                                 output_state(m.output_1_raw()),
                                 output_state(m.output_2_raw()),
@@ -108,7 +106,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 };
 
                                 drivers[*driver as usize]
-                                    .output(*channel, on, pwm_duty)
+                                    .output(*channel, on, duty)
                                     .await
                                     .ok();
                             }
@@ -119,6 +117,8 @@ pub async fn receive(cx: receive::Context<'_>) {
                             }
                         }
                         Ok(messages::ControlMuxIndex::M1(m)) => {
+                            let duty = scale_pwm(m.pwm_duty_m1());
+
                             let states = [
                                 output_state(m.output_13_raw()),
                                 output_state(m.output_14_raw()),
@@ -145,7 +145,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 };
 
                                 drivers[*driver as usize - 3]
-                                    .output(*channel, on, pwm_duty)
+                                    .output(*channel, on, duty)
                                     .await
                                     .ok();
                             }
@@ -156,6 +156,8 @@ pub async fn receive(cx: receive::Context<'_>) {
                             }
                         }
                         Ok(messages::ControlMuxIndex::M2(m)) => {
+                            let duty = scale_pwm(m.pwm_duty_m2());
+
                             let states = [
                                 output_state(m.output_25_raw()),
                                 output_state(m.output_26_raw()),
@@ -182,7 +184,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 };
 
                                 drivers[*driver as usize - 5]
-                                    .output(*channel, on, pwm_duty)
+                                    .output(*channel, on, duty)
                                     .await
                                     .ok();
                             }
@@ -203,4 +205,10 @@ pub async fn receive(cx: receive::Context<'_>) {
 
 fn output_state(raw: u8) -> output::State {
     output::State::try_from(raw).unwrap_or(output::State::NoChange)
+}
+
+/// Scale the 8bit value given in the message to 10bits.
+fn scale_pwm(byte: u8) -> u16 {
+    let pwm = byte as u16 + 1;
+    (pwm << 2) - 1
 }

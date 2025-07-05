@@ -135,14 +135,17 @@ impl Control {
     pub const OUTPUT_35_MAX: u8 = 3_u8;
     pub const OUTPUT_36_MIN: u8 = 0_u8;
     pub const OUTPUT_36_MAX: u8 = 3_u8;
-    pub const PWM_DUTY_MIN: u8 = 0_u8;
-    pub const PWM_DUTY_MAX: u8 = 255_u8;
+    pub const PWM_DUTY_M0_MIN: u8 = 0_u8;
+    pub const PWM_DUTY_M0_MAX: u8 = 255_u8;
+    pub const PWM_DUTY_M1_MIN: u8 = 0_u8;
+    pub const PWM_DUTY_M1_MAX: u8 = 255_u8;
+    pub const PWM_DUTY_M2_MIN: u8 = 0_u8;
+    pub const PWM_DUTY_M2_MAX: u8 = 255_u8;
     
     /// Construct new Control from values
-    pub fn new(mux: u8, pwm_duty: u8) -> Result<Self, CanError> {
+    pub fn new(mux: u8) -> Result<Self, CanError> {
         let mut res = Self { raw: [0u8; 6] };
         res.set_mux(mux)?;
-        res.set_pwm_duty(pwm_duty)?;
         Ok(res)
     }
     
@@ -220,48 +223,6 @@ impl Control {
         Ok(())
     }
     
-    /// PWM_duty
-    ///
-    /// - Min: 0
-    /// - Max: 255
-    /// - Unit: "PWM duty"
-    /// - Receivers: Vector__XXX
-    #[inline(always)]
-    pub fn pwm_duty(&self) -> u8 {
-        self.pwm_duty_raw()
-    }
-    
-    /// Get raw value of PWM_duty
-    ///
-    /// - Start bit: 28
-    /// - Signal size: 8 bits
-    /// - Factor: 1
-    /// - Offset: 0
-    /// - Byte order: LittleEndian
-    /// - Value type: Unsigned
-    #[inline(always)]
-    pub fn pwm_duty_raw(&self) -> u8 {
-        let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
-        
-        let factor = 1;
-        u8::from(signal).saturating_mul(factor).saturating_add(0)
-    }
-    
-    /// Set value of PWM_duty
-    #[inline(always)]
-    pub fn set_pwm_duty(&mut self, value: u8) -> Result<(), CanError> {
-        if value < 0_u8 || 255_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
-        }
-        let factor = 1;
-        let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
-        let value = (value / factor) as u8;
-        
-        self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
-        Ok(())
-    }
-    
 }
 
 impl core::convert::TryFrom<&[u8]> for Control {
@@ -315,8 +276,7 @@ impl embedded_can::Frame for Control {
 impl defmt::Format for Control {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
-            "Control {{ PWM_duty={:?} }}",
-            self.pwm_duty(),
+            "Control {{ }}",
             );
         }
 }
@@ -839,6 +799,48 @@ pub fn set_output_12(&mut self, value: u8) -> Result<(), CanError> {
     Ok(())
 }
 
+/// PWM_duty_m0
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "PWM duty"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn pwm_duty_m0(&self) -> u8 {
+    self.pwm_duty_m0_raw()
+}
+
+/// Get raw value of PWM_duty_m0
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn pwm_duty_m0_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of PWM_duty_m0
+#[inline(always)]
+pub fn set_pwm_duty_m0(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
+    Ok(())
+}
+
 }
 
 #[derive(defmt::Format)]
@@ -1351,6 +1353,48 @@ pub fn set_output_24(&mut self, value: u8) -> Result<(), CanError> {
     Ok(())
 }
 
+/// PWM_duty_m1
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "PWM duty"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn pwm_duty_m1(&self) -> u8 {
+    self.pwm_duty_m1_raw()
+}
+
+/// Get raw value of PWM_duty_m1
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn pwm_duty_m1_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of PWM_duty_m1
+#[inline(always)]
+pub fn set_pwm_duty_m1(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
+    Ok(())
+}
+
 }
 
 #[derive(defmt::Format)]
@@ -1860,6 +1904,48 @@ pub fn set_output_36(&mut self, value: u8) -> Result<(), CanError> {
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[26..28].store_le(value);
+    Ok(())
+}
+
+/// PWM_duty_m2
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "PWM duty"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn pwm_duty_m2(&self) -> u8 {
+    self.pwm_duty_m2_raw()
+}
+
+/// Get raw value of PWM_duty_m2
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn pwm_duty_m2_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of PWM_duty_m2
+#[inline(always)]
+pub fn set_pwm_duty_m2(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
     Ok(())
 }
 
