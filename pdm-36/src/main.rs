@@ -32,9 +32,11 @@ use hal::adc;
 use hal::can;
 use hal::flash;
 use hal::flash::Blocking;
+use hal::gpio::Input;
 use hal::gpio::Level;
 use hal::gpio::Output;
 use hal::gpio::OutputType;
+use hal::gpio::Pull;
 use hal::gpio::Speed;
 use hal::mode::Async;
 use hal::peripherals::*;
@@ -159,10 +161,6 @@ mod app {
         let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
         let can_tx = Arbiter::new(can_tx);
 
-        // J1939 source address.
-        // todo: make this a stored configuration value.
-        let source_address = 0x55;
-
         // spi bus
         let spi = {
             let mut config = spi::Config::default();
@@ -207,6 +205,12 @@ mod app {
         let ain_1 = p.PB12;
         let ain_2 = p.PB13;
         let ain_3 = p.PB14;
+
+        // Addressing inputs
+        let adr0 = Input::new(p.PB0, Pull::Up).is_low();
+        let adr1 = Input::new(p.PB1, Pull::Up).is_low();
+        let source_address = (adr0 as u8) | ((adr1 as u8) << 1);
+        let source_address = source_address + 0x55;
 
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
