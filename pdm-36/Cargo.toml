@@ -8,6 +8,7 @@ messages.workspace = true
 j1939.workspace = true
 st-driver.workspace = true
 analog.workspace = true
+vpd.workspace = true
 
 defmt = "1.0.1"
 defmt-rtt = "1.0.0"

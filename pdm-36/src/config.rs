@@ -18,6 +18,11 @@ unsafe extern "C" {
     static __cfg_end: u32;
 }
 
+/// OTP memory as a slice.
+pub fn otp_slice() -> &'static [u8] {
+    unsafe { core::slice::from_raw_parts(0x1FFF7000 as *const u8, 1024) }
+}
+
 /// Get the address range for the configuration space.
 fn range() -> Range<u32> {
     let start = unsafe { &__cfg_start as *const _ as u32 };

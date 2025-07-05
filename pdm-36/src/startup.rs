@@ -1,6 +1,8 @@
 use crate::app::startup;
+use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
+use vpd::items::HardwareVersion;
 
 pub async fn startup(cx: startup::Context<'_>) {
     let can = cx.shared.can_tx;
@@ -15,10 +17,16 @@ pub async fn startup(cx: startup::Context<'_>) {
     // clear reset flags
     hal::pac::RCC.csr().modify(|f| f.set_rmvf(true));
 
+    let hw: HardwareVersion = vpd::read_from_slice(otp_slice()).unwrap_or(HardwareVersion {
+        major: 0,
+        minor: 0,
+        patch: 0,
+    });
+
     let data = messages::Startup::new(
-        0, // tood: read from otp
-        0,
-        0,
+        hw.major,
+        hw.minor,
+        hw.patch,
         env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
         env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
         env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
