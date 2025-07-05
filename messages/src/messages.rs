@@ -17,10 +17,10 @@ use embedded_can::{Id, StandardId, ExtendedId};
 #[derive(Clone)]
 #[derive(defmt::Format)]
 pub enum Messages {
-    /// Output_Control
-    OutputControl(OutputControl),
-    /// Output_Configure
-    OutputConfigure(OutputConfigure),
+    /// Control
+    Control(Control),
+    /// Configure
+    Configure(Configure),
     /// Startup
     Startup(Startup),
     /// System_Status
@@ -37,8 +37,8 @@ impl Messages {
     pub fn from_can_message(id: Id, payload: &[u8]) -> Result<Self, CanError> {
         
         let res = match id {
-            OutputControl::MESSAGE_ID => Messages::OutputControl(OutputControl::try_from(payload)?),
-            OutputConfigure::MESSAGE_ID => Messages::OutputConfigure(OutputConfigure::try_from(payload)?),
+            Control::MESSAGE_ID => Messages::Control(Control::try_from(payload)?),
+            Configure::MESSAGE_ID => Messages::Configure(Configure::try_from(payload)?),
             Startup::MESSAGE_ID => Messages::Startup(Startup::try_from(payload)?),
             SystemStatus::MESSAGE_ID => Messages::SystemStatus(SystemStatus::try_from(payload)?),
             CurrentSense::MESSAGE_ID => Messages::CurrentSense(CurrentSense::try_from(payload)?),
@@ -49,16 +49,16 @@ impl Messages {
     }
 }
 
-/// Output_Control
+/// Control
 ///
 /// - Extended ID: 418338048 (0x18ef5500)
 /// - Size: 6 bytes
 #[derive(Clone, Copy)]
-pub struct OutputControl {
+pub struct Control {
     raw: [u8; 6],
 }
 
-impl OutputControl {
+impl Control {
     pub const MESSAGE_ID: embedded_can::Id = Id::Extended(unsafe { ExtendedId::new_unchecked(0x18ef5500)});
     
     pub const MUX_MIN: u8 = 0_u8;
@@ -138,7 +138,7 @@ impl OutputControl {
     pub const PWM_DUTY_MIN: u8 = 0_u8;
     pub const PWM_DUTY_MAX: u8 = 255_u8;
     
-    /// Construct new Output_Control from values
+    /// Construct new Control from values
     pub fn new(mux: u8, pwm_duty: u8) -> Result<Self, CanError> {
         let mut res = Self { raw: [0u8; 6] };
         res.set_mux(mux)?;
@@ -167,23 +167,23 @@ impl OutputControl {
         u8::from(signal).saturating_mul(factor).saturating_add(0)
     }
     
-    pub fn mux(&mut self) -> Result<OutputControlMuxIndex, CanError> {
+    pub fn mux(&mut self) -> Result<ControlMuxIndex, CanError> {
         match self.mux_raw() {
-            0 => Ok(OutputControlMuxIndex::M0(OutputControlMuxM0{ raw: self.raw })),
-            1 => Ok(OutputControlMuxIndex::M1(OutputControlMuxM1{ raw: self.raw })),
-            2 => Ok(OutputControlMuxIndex::M2(OutputControlMuxM2{ raw: self.raw })),
-            multiplexor => Err(CanError::InvalidMultiplexor { message_id: OutputControl::MESSAGE_ID, multiplexor: multiplexor.into() }),
+            0 => Ok(ControlMuxIndex::M0(ControlMuxM0{ raw: self.raw })),
+            1 => Ok(ControlMuxIndex::M1(ControlMuxM1{ raw: self.raw })),
+            2 => Ok(ControlMuxIndex::M2(ControlMuxM2{ raw: self.raw })),
+            multiplexor => Err(CanError::InvalidMultiplexor { message_id: Control::MESSAGE_ID, multiplexor: multiplexor.into() }),
         }
     }
     /// Set value of Mux
     #[inline(always)]
     fn set_mux(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 15_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[0..4].store_le(value);
@@ -192,7 +192,7 @@ impl OutputControl {
     
     /// Set value of Mux
     #[inline(always)]
-    pub fn set_m0(&mut self, value: OutputControlMuxM0) -> Result<(), CanError> {
+    pub fn set_m0(&mut self, value: ControlMuxM0) -> Result<(), CanError> {
         let b0 = BitArray::<_, LocalBits>::new(self.raw);
         let b1 = BitArray::<_, LocalBits>::new(value.raw);
         self.raw = b0.bitor(b1).into_inner();
@@ -202,7 +202,7 @@ impl OutputControl {
     
     /// Set value of Mux
     #[inline(always)]
-    pub fn set_m1(&mut self, value: OutputControlMuxM1) -> Result<(), CanError> {
+    pub fn set_m1(&mut self, value: ControlMuxM1) -> Result<(), CanError> {
         let b0 = BitArray::<_, LocalBits>::new(self.raw);
         let b1 = BitArray::<_, LocalBits>::new(value.raw);
         self.raw = b0.bitor(b1).into_inner();
@@ -212,7 +212,7 @@ impl OutputControl {
     
     /// Set value of Mux
     #[inline(always)]
-    pub fn set_m2(&mut self, value: OutputControlMuxM2) -> Result<(), CanError> {
+    pub fn set_m2(&mut self, value: ControlMuxM2) -> Result<(), CanError> {
         let b0 = BitArray::<_, LocalBits>::new(self.raw);
         let b1 = BitArray::<_, LocalBits>::new(value.raw);
         self.raw = b0.bitor(b1).into_inner();
@@ -251,11 +251,11 @@ impl OutputControl {
     #[inline(always)]
     pub fn set_pwm_duty(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 255_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
@@ -264,7 +264,7 @@ impl OutputControl {
     
 }
 
-impl core::convert::TryFrom<&[u8]> for OutputControl {
+impl core::convert::TryFrom<&[u8]> for Control {
     type Error = CanError;
     
     #[inline(always)]
@@ -276,7 +276,7 @@ impl core::convert::TryFrom<&[u8]> for OutputControl {
     }
 }
 
-impl embedded_can::Frame for OutputControl {
+impl embedded_can::Frame for Control {
     fn new(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
         if id.into() != Self::MESSAGE_ID {
             None
@@ -312,28 +312,28 @@ impl embedded_can::Frame for OutputControl {
         &self.raw
     }
 }
-impl defmt::Format for OutputControl {
+impl defmt::Format for Control {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
-            "OutputControl {{ PWM_duty={:?} }}",
+            "Control {{ PWM_duty={:?} }}",
             self.pwm_duty(),
             );
         }
 }
 
-/// Defined values for multiplexed signal Output_Control
+/// Defined values for multiplexed signal Control
 #[derive(defmt::Format)]
-pub enum OutputControlMuxIndex {
-    M0(OutputControlMuxM0),
-    M1(OutputControlMuxM1),
-    M2(OutputControlMuxM2),
+pub enum ControlMuxIndex {
+    M0(ControlMuxM0),
+    M1(ControlMuxM1),
+    M2(ControlMuxM2),
 }
 
 #[derive(defmt::Format)]
 #[derive(Default)]
-pub struct OutputControlMuxM0 { raw: [u8; 6] }
+pub struct ControlMuxM0 { raw: [u8; 6] }
 
-impl OutputControlMuxM0 {
+impl ControlMuxM0 {
 pub fn new() -> Self { Self { raw: [0u8; 6] } }
 /// Output_1
 ///
@@ -366,11 +366,11 @@ pub fn output_1_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_1(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[4..6].store_le(value);
@@ -408,11 +408,11 @@ pub fn output_2_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_2(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[6..8].store_le(value);
@@ -450,11 +450,11 @@ pub fn output_3_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_3(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[8..10].store_le(value);
@@ -492,11 +492,11 @@ pub fn output_4_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_4(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[10..12].store_le(value);
@@ -534,11 +534,11 @@ pub fn output_5_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_5(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[12..14].store_le(value);
@@ -576,11 +576,11 @@ pub fn output_6_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_6(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[14..16].store_le(value);
@@ -618,11 +618,11 @@ pub fn output_7_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_7(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[16..18].store_le(value);
@@ -660,11 +660,11 @@ pub fn output_8_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_8(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[18..20].store_le(value);
@@ -702,11 +702,11 @@ pub fn output_9_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_9(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[20..22].store_le(value);
@@ -744,11 +744,11 @@ pub fn output_10_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_10(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[22..24].store_le(value);
@@ -786,11 +786,11 @@ pub fn output_11_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_11(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[24..26].store_le(value);
@@ -828,11 +828,11 @@ pub fn output_12_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_12(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[26..28].store_le(value);
@@ -843,9 +843,9 @@ pub fn set_output_12(&mut self, value: u8) -> Result<(), CanError> {
 
 #[derive(defmt::Format)]
 #[derive(Default)]
-pub struct OutputControlMuxM1 { raw: [u8; 6] }
+pub struct ControlMuxM1 { raw: [u8; 6] }
 
-impl OutputControlMuxM1 {
+impl ControlMuxM1 {
 pub fn new() -> Self { Self { raw: [0u8; 6] } }
 /// Output_13
 ///
@@ -878,11 +878,11 @@ pub fn output_13_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_13(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[4..6].store_le(value);
@@ -920,11 +920,11 @@ pub fn output_14_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_14(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[6..8].store_le(value);
@@ -962,11 +962,11 @@ pub fn output_15_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_15(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[8..10].store_le(value);
@@ -1004,11 +1004,11 @@ pub fn output_16_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_16(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[10..12].store_le(value);
@@ -1046,11 +1046,11 @@ pub fn output_17_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_17(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[12..14].store_le(value);
@@ -1088,11 +1088,11 @@ pub fn output_18_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_18(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[14..16].store_le(value);
@@ -1130,11 +1130,11 @@ pub fn output_19_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_19(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[16..18].store_le(value);
@@ -1172,11 +1172,11 @@ pub fn output_20_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_20(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[18..20].store_le(value);
@@ -1214,11 +1214,11 @@ pub fn output_21_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_21(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[20..22].store_le(value);
@@ -1256,11 +1256,11 @@ pub fn output_22_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_22(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[22..24].store_le(value);
@@ -1298,11 +1298,11 @@ pub fn output_23_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_23(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[24..26].store_le(value);
@@ -1340,11 +1340,11 @@ pub fn output_24_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_24(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[26..28].store_le(value);
@@ -1355,9 +1355,9 @@ pub fn set_output_24(&mut self, value: u8) -> Result<(), CanError> {
 
 #[derive(defmt::Format)]
 #[derive(Default)]
-pub struct OutputControlMuxM2 { raw: [u8; 6] }
+pub struct ControlMuxM2 { raw: [u8; 6] }
 
-impl OutputControlMuxM2 {
+impl ControlMuxM2 {
 pub fn new() -> Self { Self { raw: [0u8; 6] } }
 /// Output_25
 ///
@@ -1390,11 +1390,11 @@ pub fn output_25_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_25(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[4..6].store_le(value);
@@ -1432,11 +1432,11 @@ pub fn output_26_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_26(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[6..8].store_le(value);
@@ -1474,11 +1474,11 @@ pub fn output_27_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_27(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[8..10].store_le(value);
@@ -1516,11 +1516,11 @@ pub fn output_28_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_28(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[10..12].store_le(value);
@@ -1558,11 +1558,11 @@ pub fn output_29_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_29(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[12..14].store_le(value);
@@ -1600,11 +1600,11 @@ pub fn output_30_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_30(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[14..16].store_le(value);
@@ -1642,11 +1642,11 @@ pub fn output_31_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_31(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[16..18].store_le(value);
@@ -1684,11 +1684,11 @@ pub fn output_32_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_32(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[18..20].store_le(value);
@@ -1726,11 +1726,11 @@ pub fn output_33_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_33(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[20..22].store_le(value);
@@ -1768,11 +1768,11 @@ pub fn output_34_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_34(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[22..24].store_le(value);
@@ -1810,11 +1810,11 @@ pub fn output_35_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_35(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[24..26].store_le(value);
@@ -1852,11 +1852,11 @@ pub fn output_36_raw(&self) -> u8 {
 #[inline(always)]
 pub fn set_output_36(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
-        return Err(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID });
+        return Err(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID });
     }
     let factor = 1;
     let value = value.checked_sub(0)
-        .ok_or(CanError::ParameterOutOfRange { message_id: OutputControl::MESSAGE_ID })?;
+        .ok_or(CanError::ParameterOutOfRange { message_id: Control::MESSAGE_ID })?;
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[26..28].store_le(value);
@@ -1866,16 +1866,16 @@ pub fn set_output_36(&mut self, value: u8) -> Result<(), CanError> {
 }
 
 
-/// Output_Configure
+/// Configure
 ///
 /// - Standard ID: 85 (0x55)
 /// - Size: 8 bytes
 #[derive(Clone, Copy)]
-pub struct OutputConfigure {
+pub struct Configure {
     raw: [u8; 8],
 }
 
-impl OutputConfigure {
+impl Configure {
     pub const MESSAGE_ID: embedded_can::Id = Id::Standard(unsafe { StandardId::new_unchecked(0x55)});
     
     pub const MUX_MIN: u8 = 0_u8;
@@ -1891,7 +1891,7 @@ impl OutputConfigure {
     pub const ECONOMIZE_DELAY_MIN: u8 = 0_u8;
     pub const ECONOMIZE_DELAY_MAX: u8 = 16_u8;
     
-    /// Construct new Output_Configure from values
+    /// Construct new Configure from values
     pub fn new(mux: u8, channel_mask: u16, open_load_detection: bool, blanking_window: u8, current_limit: u8, economize_duty: u8, economize_delay: u8) -> Result<Self, CanError> {
         let mut res = Self { raw: [0u8; 8] };
         res.set_mux(mux)?;
@@ -1925,20 +1925,20 @@ impl OutputConfigure {
         u8::from(signal).saturating_mul(factor).saturating_add(0)
     }
     
-    pub fn mux(&mut self) -> Result<OutputConfigureMuxIndex, CanError> {
+    pub fn mux(&mut self) -> Result<ConfigureMuxIndex, CanError> {
         match self.mux_raw() {
-            multiplexor => Err(CanError::InvalidMultiplexor { message_id: OutputConfigure::MESSAGE_ID, multiplexor: multiplexor.into() }),
+            multiplexor => Err(CanError::InvalidMultiplexor { message_id: Configure::MESSAGE_ID, multiplexor: multiplexor.into() }),
         }
     }
     /// Set value of Mux
     #[inline(always)]
     fn set_mux(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 15_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[0..4].store_le(value);
@@ -1976,11 +1976,11 @@ impl OutputConfigure {
     #[inline(always)]
     pub fn set_channel_mask(&mut self, value: u16) -> Result<(), CanError> {
         if value < 0_u16 || 4095_u16 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
         let value = (value / factor) as u16;
         
         self.raw.view_bits_mut::<Lsb0>()[4..16].store_le(value);
@@ -2052,11 +2052,11 @@ impl OutputConfigure {
     #[inline(always)]
     pub fn set_blanking_window(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 16_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[20..22].store_le(value);
@@ -2094,11 +2094,11 @@ impl OutputConfigure {
     #[inline(always)]
     pub fn set_current_limit(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 255_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[24..32].store_le(value);
@@ -2136,11 +2136,11 @@ impl OutputConfigure {
     #[inline(always)]
     pub fn set_economize_duty(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 255_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[32..40].store_le(value);
@@ -2178,11 +2178,11 @@ impl OutputConfigure {
     #[inline(always)]
     pub fn set_economize_delay(&mut self, value: u8) -> Result<(), CanError> {
         if value < 0_u8 || 16_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID });
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
         }
         let factor = 1;
         let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: OutputConfigure::MESSAGE_ID })?;
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[40..44].store_le(value);
@@ -2191,7 +2191,7 @@ impl OutputConfigure {
     
 }
 
-impl core::convert::TryFrom<&[u8]> for OutputConfigure {
+impl core::convert::TryFrom<&[u8]> for Configure {
     type Error = CanError;
     
     #[inline(always)]
@@ -2203,7 +2203,7 @@ impl core::convert::TryFrom<&[u8]> for OutputConfigure {
     }
 }
 
-impl embedded_can::Frame for OutputConfigure {
+impl embedded_can::Frame for Configure {
     fn new(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
         if id.into() != Self::MESSAGE_ID {
             None
@@ -2239,10 +2239,10 @@ impl embedded_can::Frame for OutputConfigure {
         &self.raw
     }
 }
-impl defmt::Format for OutputConfigure {
+impl defmt::Format for Configure {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
-            "OutputConfigure {{ Channel_Mask={:?} Open_Load_Detection={:?} Blanking_Window={:?} Current_Limit={:?} Economize_Duty={:?} Economize_Delay={:?} }}",
+            "Configure {{ Channel_Mask={:?} Open_Load_Detection={:?} Blanking_Window={:?} Current_Limit={:?} Economize_Duty={:?} Economize_Delay={:?} }}",
             self.channel_mask(),
             self.open_load_detection(),
             self.blanking_window(),
@@ -2253,9 +2253,9 @@ impl defmt::Format for OutputConfigure {
         }
 }
 
-/// Defined values for multiplexed signal Output_Configure
+/// Defined values for multiplexed signal Configure
 #[derive(defmt::Format)]
-pub enum OutputConfigureMuxIndex {
+pub enum ConfigureMuxIndex {
 }
 
 

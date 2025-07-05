@@ -6,10 +6,11 @@ pub use messages::*;
 
 use j1939::Pgn;
 
-/// Output control message.
-pub const OUTPUT_CONTROL: Pgn = Pgn::ProprietaryA;
+/// Output control messages.
+pub const CONTROL: Pgn = Pgn::ProprietaryA;
 
-pub const OUTPUT_CONFIGURE: Pgn = Pgn::ProprietaryA2;
+/// Configuration messages.
+pub const CONFIGURE: Pgn = Pgn::ProprietaryA2;
 
 /// Power-on reset message.
 pub const STARTUP: Pgn = Pgn::ProprietaryB(0x00);

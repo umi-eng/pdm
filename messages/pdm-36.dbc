@@ -34,7 +34,7 @@ BS_:
 
 BU_: PDM
 
-BO_ 2565821696 Output_Control: 6 Vector__XXX
+BO_ 2565821696 Control: 6 Vector__XXX
  SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ Output_1 m0 : 4|2@1+ (1,0) [0|3] "High-current output 1" Vector__XXX
  SG_ Output_2 m0 : 6|2@1+ (1,0) [0|3] "Output 2" Vector__XXX
@@ -74,7 +74,7 @@ BO_ 2565821696 Output_Control: 6 Vector__XXX
  SG_ Output_36 m2 : 26|2@1+ (1,0) [0|3] "Output 36" Vector__XXX
  SG_ PWM_duty : 28|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
 
-BO_ 435093589 Output_Configure: 8 Vector__XXX
+BO_ 435093589 Configure: 8 Vector__XXX
  SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ Channel_Mask : 4|12@1+ (1,0) [0|4095] "Output channel mask" Vector__XXX
  SG_ Open_Load_Detection : 16|1@1+ (1,0) [0|1] "Output channel mask" Vector__XXX

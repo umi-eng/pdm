@@ -71,14 +71,14 @@ pub async fn receive(cx: receive::Context<'_>) {
                     }
                 }
             }
-            messages::OUTPUT_CONTROL => {
-                if let Ok(mut output) = messages::OutputControl::try_from(data) {
+            messages::CONTROL => {
+                if let Ok(mut output) = messages::Control::try_from(data) {
                     // convert 8bit to 10bit
                     let pwm_duty = output.pwm_duty() as u16 + 1;
                     let pwm_duty = (pwm_duty << 2) - 1;
 
                     match output.mux() {
-                        Ok(messages::OutputControlMuxIndex::M0(m)) => {
+                        Ok(messages::ControlMuxIndex::M0(m)) => {
                             let states = [
                                 output_state(m.output_1_raw()),
                                 output_state(m.output_2_raw()),
@@ -118,7 +118,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 driver.pwm_sync().await.ok();
                             }
                         }
-                        Ok(messages::OutputControlMuxIndex::M1(m)) => {
+                        Ok(messages::ControlMuxIndex::M1(m)) => {
                             let states = [
                                 output_state(m.output_13_raw()),
                                 output_state(m.output_14_raw()),
@@ -155,7 +155,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 driver.pwm_sync().await.ok();
                             }
                         }
-                        Ok(messages::OutputControlMuxIndex::M2(m)) => {
+                        Ok(messages::ControlMuxIndex::M2(m)) => {
                             let states = [
                                 output_state(m.output_25_raw()),
                                 output_state(m.output_26_raw()),
