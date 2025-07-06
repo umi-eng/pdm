@@ -157,8 +157,8 @@ impl Pdm36 {
 
         for chunk in data.chunks(7) {
             // send data
-            data.clone_from_slice(chunk);
             let mut data = [0xFF; 7];
+            data[..chunk.len()].clone_from_slice(chunk);
             let dt = DataTransfer::new(sequence, data);
             self.interface
                 .write_frame(CanFrame::new(id, &<[u8; 8]>::from(&dt)).unwrap())
