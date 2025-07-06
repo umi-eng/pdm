@@ -18,9 +18,7 @@ pub async fn receive(cx: receive::Context<'_>) {
     loop {
         let envelope = can_rx.read().await.unwrap();
 
-        activity::spawn().ok();
-
-        let id = match envelope.frame.header().id() {
+        let id = match envelope.frame.id() {
             embedded_can::Id::Extended(id) => Id::new(id.as_raw()),
             _ => continue,
         };
@@ -29,6 +27,8 @@ pub async fn receive(cx: receive::Context<'_>) {
         if id.da() != Some(source_address) {
             continue;
         }
+
+        activity::spawn().ok();
 
         let data = envelope.frame.data();
 
