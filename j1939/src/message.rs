@@ -115,14 +115,14 @@ impl<'a> TryFrom<&'a [u8]> for RequestToSend {
 /// Clear to send (TP.CM_CTS) message.
 #[derive(Debug, Clone)]
 pub struct ClearToSend {
-    max_packets_per_response: u8,
+    max_packets_per_response: Option<u8>,
     next_sequence: u8,
     pgn: Pgn,
 }
 
 impl ClearToSend {
     /// Create a new CTS message.
-    pub fn new(max_packets_per_response: u8, next_sequence: u8, pgn: Pgn) -> Self {
+    pub fn new(max_packets_per_response: Option<u8>, next_sequence: u8, pgn: Pgn) -> Self {
         Self {
             max_packets_per_response,
             next_sequence,
@@ -131,7 +131,7 @@ impl ClearToSend {
     }
 
     /// Number of packets that can be sent sent.
-    pub fn max_packets_per_response(&self) -> u8 {
+    pub fn max_packets_per_response(&self) -> Option<u8> {
         self.max_packets_per_response
     }
 
@@ -151,7 +151,7 @@ impl From<&ClearToSend> for [u8; 8] {
 
         [
             ClearToSend::MUX_VALUE,
-            value.max_packets_per_response,
+            value.max_packets_per_response.unwrap_or(255),
             value.next_sequence,
             0xFF, // reserved
             0xFF, // reserved
@@ -177,7 +177,10 @@ impl<'a> TryFrom<&'a [u8]> for ClearToSend {
         let pgn = Pgn::from(u32::from_be_bytes([value[5], value[6], value[7], 0xFF]));
 
         Ok(Self {
-            max_packets_per_response: value[1],
+            max_packets_per_response: match value[1] {
+                0..255 => Some(value[1]),
+                255 => None,
+            },
             next_sequence: value[2],
             pgn,
         })
