@@ -3,7 +3,7 @@ use dbc_codegen::FeatureConfig;
 fn main() {
     let dbc_path = "pdm-36.dbc";
     let dbc_file = std::fs::read(dbc_path).unwrap();
-    println!("cargo:rerun-if-changed={}", dbc_path);
+    println!("cargo:rerun-if-changed={dbc_path}");
 
     let config = dbc_codegen::Config::builder()
         .dbc_name("pdm-36.dbc")
