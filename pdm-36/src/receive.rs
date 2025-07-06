@@ -219,6 +219,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 }
                                 Ok(None) => {}
                                 Err(abort) => {
+                                    defmt::error!("Transfer aborted: {}", abort.reason());
                                     let data: [u8; 8] = (&abort).into();
                                     let frame = can::Frame::new_data(response_id, &data).unwrap();
                                     can_tx.access().await.write(&frame).await;

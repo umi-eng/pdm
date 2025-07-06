@@ -345,7 +345,7 @@ impl From<&ConnectionAbort> for [u8; 8] {
 /// Abort reason.
 ///
 /// See J1939™-21 table 6.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, defmt::Format)]
 pub enum AbortReason {
     /// Already in one or more connection managed sessions and cannot support another.
     MaxConnections = 1,
