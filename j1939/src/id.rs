@@ -194,6 +194,12 @@ impl IdBuilder {
     }
 }
 
+impl Default for IdBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Parameter group number (PGN)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Pgn {

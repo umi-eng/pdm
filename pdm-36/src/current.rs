@@ -53,7 +53,7 @@ pub async fn current(cx: current::Context<'_>) {
 
             // current measurements are only captured by the drive whilst the
             // output is turned on.
-            if driver.output_enabled(*output).await.unwrap_or(false) || true {
+            if driver.output_enabled(*output).await.unwrap_or(false) {
                 results[n] = sense;
             }
         }

@@ -70,16 +70,16 @@ impl Mux<u8> for RequestToSend {
     const MUX_VALUE: u8 = 16;
 }
 
-impl Into<[u8; 8]> for RequestToSend {
-    fn into(self) -> [u8; 8] {
-        let total_size = self.total_size.to_le_bytes();
-        let pgn = u32::from(self.pgn).to_le_bytes();
+impl From<RequestToSend> for [u8; 8] {
+    fn from(val: RequestToSend) -> Self {
+        let total_size = val.total_size.to_le_bytes();
+        let pgn = u32::from(val.pgn).to_le_bytes();
         [
-            Self::MUX_VALUE,
+            RequestToSend::MUX_VALUE,
             total_size[0],
             total_size[1],
-            self.total_packets,
-            self.max_packets_per_response.unwrap_or(255),
+            val.total_packets,
+            val.max_packets_per_response.unwrap_or(255),
             pgn[0],
             pgn[1],
             pgn[2],
@@ -391,7 +391,7 @@ impl TryFrom<u8> for AbortReason {
 
 impl From<&AbortReason> for u8 {
     fn from(value: &AbortReason) -> Self {
-        value.clone() as u8
+        *value as u8
     }
 }
 
@@ -419,7 +419,7 @@ impl TryFrom<u8> for AbortSenderRole {
 
 impl From<&AbortSenderRole> for u8 {
     fn from(value: &AbortSenderRole) -> Self {
-        value.clone() as u8
+        *value as u8
     }
 }
 

@@ -41,15 +41,21 @@ impl<const N: usize> Channels<N> {
     }
 }
 
-impl<const T: usize> From<usize> for Channels<T> {
+impl<const N: usize> Default for Channels<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const N: usize> From<usize> for Channels<N> {
     fn from(value: usize) -> Self {
         Self::new().ch(value)
     }
 }
 
-impl<const T: usize> IntoIterator for Channels<T> {
+impl<const N: usize> IntoIterator for Channels<N> {
     type Item = usize;
-    type IntoIter = ChannelsIterator<T>;
+    type IntoIter = ChannelsIterator<N>;
 
     fn into_iter(self) -> Self::IntoIter {
         ChannelsIterator {

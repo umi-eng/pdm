@@ -44,7 +44,7 @@ impl Channel {
 
 impl From<Channel> for usize {
     fn from(value: Channel) -> Self {
-        value.0 as usize
+        value.0
     }
 }
 

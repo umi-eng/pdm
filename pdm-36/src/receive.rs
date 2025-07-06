@@ -159,41 +159,38 @@ pub async fn receive(cx: receive::Context<'_>) {
                                             .unwrap();
                                     can_tx.access().await.write(&frame).await;
 
-                                    match cts {
-                                        TransferResponse::End(_) => {
-                                            defmt::info!("Writing firmware block.");
-                                            updater
-                                                .write_firmware(
-                                                    write.offset as usize,
-                                                    transfer.buffer(),
-                                                )
-                                                .await
-                                                .unwrap();
+                                    if let TransferResponse::End(_) = cts {
+                                        defmt::info!("Writing firmware block.");
+                                        updater
+                                            .write_firmware(
+                                                write.offset as usize,
+                                                transfer.buffer(),
+                                            )
+                                            .await
+                                            .unwrap();
 
-                                            let response = MemoryAccessResponse::new(
-                                                Status::OperationCompleted,
-                                                ErrorIndicator::None,
-                                                transfer.buffer().len() as u16,
-                                                0xFFFF,
-                                            );
-                                            let response_id = IdBuilder::new()
-                                                .pgn(Pgn::MemoryAccessResponse)
-                                                .sa(source_address)
-                                                .da(id.sa())
-                                                .build();
-                                            can_tx
-                                                .access()
-                                                .await
-                                                .write(
-                                                    &can::Frame::new_data(
-                                                        response_id,
-                                                        &<[u8; 8]>::from(&response),
-                                                    )
-                                                    .unwrap(),
+                                        let response = MemoryAccessResponse::new(
+                                            Status::OperationCompleted,
+                                            ErrorIndicator::None,
+                                            transfer.buffer().len() as u16,
+                                            0xFFFF,
+                                        );
+                                        let response_id = IdBuilder::new()
+                                            .pgn(Pgn::MemoryAccessResponse)
+                                            .sa(source_address)
+                                            .da(id.sa())
+                                            .build();
+                                        can_tx
+                                            .access()
+                                            .await
+                                            .write(
+                                                &can::Frame::new_data(
+                                                    response_id,
+                                                    &<[u8; 8]>::from(&response),
                                                 )
-                                                .await;
-                                        }
-                                        _ => {}
+                                                .unwrap(),
+                                            )
+                                            .await;
                                     }
                                 }
                                 Ok(None) => {}

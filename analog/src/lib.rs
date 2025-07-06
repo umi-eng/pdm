@@ -58,6 +58,12 @@ impl<const N: usize> MovingAvg<f32, N> {
     }
 }
 
+impl<const N: usize> Default for MovingAvg<f32, N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
