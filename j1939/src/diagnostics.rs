@@ -470,7 +470,7 @@ mod tests {
         assert_eq!(rq.pointer(), Pointer::Direct(0x012345));
 
         // check we get the same result when we serialize back into bytes.
-        let bytes: [u8; 8] = rq.into();
+        let bytes: [u8; 8] = (&rq).into();
         assert_eq!(raw, bytes);
     }
 }
