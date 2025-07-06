@@ -72,8 +72,8 @@ impl Mux<u8> for RequestToSend {
 
 impl Into<[u8; 8]> for RequestToSend {
     fn into(self) -> [u8; 8] {
-        let total_size = self.total_size.to_be_bytes();
-        let pgn = u32::from(self.pgn).to_be_bytes();
+        let total_size = self.total_size.to_le_bytes();
+        let pgn = u32::from(self.pgn).to_le_bytes();
         [
             Self::MUX_VALUE,
             total_size[0],
@@ -100,13 +100,13 @@ impl<'a> TryFrom<&'a [u8]> for RequestToSend {
         }
 
         Ok(Self {
-            total_size: u16::from_be_bytes([value[1], value[2]]),
+            total_size: u16::from_le_bytes([value[1], value[2]]),
             total_packets: value[3],
             max_packets_per_response: match value[4] {
                 0..255 => Some(value[4]),
                 255 => None,
             },
-            pgn: Pgn::from(u32::from_be_bytes([value[5], value[6], value[7], 0xFF])),
+            pgn: Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0xFF])),
         })
     }
 }
@@ -146,7 +146,7 @@ impl Mux<u8> for ClearToSend {
 
 impl From<&ClearToSend> for [u8; 8] {
     fn from(value: &ClearToSend) -> Self {
-        let pgn = u32::from(value.pgn).to_be_bytes();
+        let pgn = u32::from(value.pgn).to_le_bytes();
 
         [
             ClearToSend::MUX_VALUE,
@@ -173,7 +173,7 @@ impl<'a> TryFrom<&'a [u8]> for ClearToSend {
             return Err(value);
         }
 
-        let pgn = Pgn::from(u32::from_be_bytes([value[5], value[6], value[7], 0xFF]));
+        let pgn = Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0xFF]));
 
         Ok(Self {
             max_packets_per_response: match value[1] {
@@ -226,8 +226,8 @@ impl Mux<u8> for EndOfMessageAck {
 
 impl From<&EndOfMessageAck> for [u8; 8] {
     fn from(value: &EndOfMessageAck) -> Self {
-        let total_size = value.total_size.to_be_bytes();
-        let pgn = u32::from(value.pgn).to_be_bytes();
+        let total_size = value.total_size.to_le_bytes();
+        let pgn = u32::from(value.pgn).to_le_bytes();
 
         [
             EndOfMessageAck::MUX_VALUE,
@@ -294,14 +294,14 @@ impl<'a> TryFrom<&'a [u8]> for ConnectionAbort {
         Ok(Self {
             reason: AbortReason::try_from(value[1]).unwrap_or(AbortReason::Custom),
             sender_role: AbortSenderRole::try_from(value[2] & 0b00000011).unwrap(),
-            pgn: Pgn::from(u32::from_be_bytes([value[5], value[6], value[7], 0xFF])),
+            pgn: Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0xFF])),
         })
     }
 }
 
 impl From<&ConnectionAbort> for [u8; 8] {
     fn from(value: &ConnectionAbort) -> Self {
-        let pgn = u32::from(value.pgn).to_be_bytes();
+        let pgn = u32::from(value.pgn).to_le_bytes();
 
         [
             ConnectionAbort::MUX_VALUE,
