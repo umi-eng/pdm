@@ -42,6 +42,13 @@ impl<const N: usize> Transfer<N> {
         }
     }
 
+    /// Return read-only acess to the internal buffer.
+    ///
+    /// The contents of this buffer are only valid after the transfer is complete.
+    pub fn buffer(&self) -> &Vec<u8, N> {
+        &self.buffer
+    }
+
     pub fn data_transfer(
         &mut self,
         msg: DataTransfer,
