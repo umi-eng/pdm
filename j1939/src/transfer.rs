@@ -73,7 +73,7 @@ impl<const N: usize> Transfer<N> {
         self.buffer.extend_from_slice(data).unwrap();
         self.rx_packets += 1;
 
-        if self.buffer.is_full() {
+        if self.buffer.len() == self.rts.total_size() as usize {
             return Ok(Some(TransferResponse::End(EndOfMessageAck::new(
                 self.rts.total_size(),
                 self.rts.total_packets(),
