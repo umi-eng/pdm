@@ -4,6 +4,8 @@ use std::io::{self, Read};
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
+    tracing_subscriber::fmt::init();
+
     let args: Vec<String> = std::env::args().collect();
 
     let socket = CanSocket::open(&args[1])?;

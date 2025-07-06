@@ -59,6 +59,11 @@ impl Pdm36 {
                 chunk.len() as u16,
                 0,
             );
+            log::debug!(
+                "Requesting memory access write with offset: {}, length: {}",
+                offset,
+                chunk.len()
+            );
             self.interface
                 .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
                 .await?;
@@ -104,6 +109,8 @@ impl Pdm36 {
 
     /// Wait for a message with a given PGN that is addressed to us.
     async fn wait_for_message(&self, pgn: Pgn) -> Result<CanFrame, io::Error> {
+        log::debug!("Waiting for response with PGN: {:?}.", pgn);
+
         loop {
             let frame = self.interface.read_frame().await?;
 
@@ -120,6 +127,8 @@ impl Pdm36 {
 
     /// Do a TP transfer to the PDM.
     async fn transfer(&self, data: &[u8]) -> Result<(), io::Error> {
+        log::debug!("Starting transfer with length {}.", data.len());
+
         // send request-to-send
         let id = j1939::Id::builder()
             .sa(0)

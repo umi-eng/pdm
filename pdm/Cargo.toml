@@ -6,8 +6,10 @@ edition = "2024"
 [dependencies]
 embedded-can = "0.4.1"
 j1939.workspace = true
+log = "0.4.27"
 messages.workspace = true
 socketcan = { version = "3.5.0", features = ["tokio"] }
 
 [dev-dependencies]
 tokio = { version = "1.45.1", features = ["full"] }
+tracing-subscriber = "0.3.19"
