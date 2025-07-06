@@ -16,8 +16,8 @@ pub struct Pdm36 {
 
 impl Pdm36 {
     /// Connect to a PDM36.
-    pub fn new(interface: CanSocket, address: u8) -> Result<Self, ()> {
-        Ok(Self { interface, address })
+    pub fn new(interface: CanSocket, address: u8) -> Self {
+        Self { interface, address }
     }
 
     /// Perform the firmware update process.
