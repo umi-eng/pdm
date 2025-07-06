@@ -175,7 +175,7 @@ impl Pdm36 {
                 .wait_for_message(Pgn::TransportProtocolConnectionManagement)
                 .await?;
             let Ok(cts) = ClearToSend::try_from(res.data()) else {
-                let Ok(ack) = EndOfMessageAck::try_from(res.data()) else {
+                let Ok(_) = EndOfMessageAck::try_from(res.data()) else {
                     return Err(io::Error::other("Did not get clear to send response"));
                 };
 
