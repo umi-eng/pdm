@@ -165,7 +165,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                 if let Some(write) = &mut ongoing_write {
                     if let Some(transfer) = &mut write.transfer {
                         if let Ok(dt) = j1939::message::DataTransfer::try_from(data) {
-                            let id = IdBuilder::new()
+                            let response_id = IdBuilder::new()
                                 .pgn(Pgn::TransportProtocolConnectionManagement)
                                 .sa(source_address)
                                 .da(id.sa())
@@ -174,7 +174,8 @@ pub async fn receive(cx: receive::Context<'_>) {
                             match transfer.data_transfer(dt) {
                                 Ok(Some(cts)) => {
                                     let frame =
-                                        can::Frame::new_data(id, &cts.to_frame_data()).unwrap();
+                                        can::Frame::new_data(response_id, &cts.to_frame_data())
+                                            .unwrap();
                                     can_tx.access().await.write(&frame).await;
 
                                     match cts {
@@ -194,19 +195,17 @@ pub async fn receive(cx: receive::Context<'_>) {
                                                 transfer.buffer().len() as u16,
                                                 0xFFFF,
                                             );
-
-                                            let id = IdBuilder::new()
+                                            let response_id = IdBuilder::new()
                                                 .pgn(Pgn::MemoryAccessResponse)
                                                 .sa(source_address)
                                                 .da(id.sa())
                                                 .build();
-
                                             can_tx
                                                 .access()
                                                 .await
                                                 .write(
                                                     &can::Frame::new_data(
-                                                        id,
+                                                        response_id,
                                                         &<[u8; 8]>::from(&response),
                                                     )
                                                     .unwrap(),
@@ -219,9 +218,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 Ok(None) => {}
                                 Err(abort) => {
                                     let data: [u8; 8] = (&abort).into();
-
-                                    let id = embedded_can::ExtendedId::new(id.as_raw()).unwrap();
-                                    let frame = can::Frame::new_data(id, &data).unwrap();
+                                    let frame = can::Frame::new_data(response_id, &data).unwrap();
                                     can_tx.access().await.write(&frame).await;
                                 }
                             }
