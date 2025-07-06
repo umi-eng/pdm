@@ -126,8 +126,8 @@ impl Pdm36 {
     }
 
     /// Do a TP transfer to the PDM.
-    async fn transfer(&self, data: &[u8]) -> Result<(), io::Error> {
-        log::debug!("Starting transfer with length {}.", data.len());
+    async fn transfer(&self, payload: &[u8]) -> Result<(), io::Error> {
+        log::debug!("Starting transfer with length {}.", payload.len());
 
         // send request-to-send
         let id = j1939::Id::builder()
@@ -135,7 +135,7 @@ impl Pdm36 {
             .da(self.address)
             .pgn(Pgn::TransportProtocolConnectionManagement)
             .build();
-        let rts = RequestToSend::new(data.len() as u16, Some(1), Pgn::BinaryDataTransfer);
+        let rts = RequestToSend::new(payload.len() as u16, Some(1), Pgn::BinaryDataTransfer);
         let data: [u8; 8] = rts.into();
         self.interface
             .write_frame(CanFrame::new(id, &data).unwrap())
@@ -155,7 +155,7 @@ impl Pdm36 {
             .build();
         let mut sequence = 1;
 
-        for chunk in data.chunks(7) {
+        for chunk in payload.chunks(7) {
             // send data
             let mut data = [0xFF; 7];
             data[..chunk.len()].clone_from_slice(chunk);
