@@ -1324,7 +1324,7 @@ dependencies = [
  "embedded-can",
  "j1939",
  "messages",
- "thiserror",
+ "socketcan",
  "tokio",
 ]
 

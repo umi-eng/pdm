@@ -1,122 +1,170 @@
-use std::time::Duration;
+use std::io;
 
+use embedded_can::Frame;
+use j1939::{
+    Pgn,
+    diagnostics::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
+    message::{ClearToSend, DataTransfer, RequestToSend},
+};
+use socketcan::{CanFrame, Id, tokio::CanSocket};
+
+/// PDM36 interface.
 pub struct Pdm36 {
-    source_address: u8,
+    interface: CanSocket,
+    address: u8,
 }
-
-pub type Channels = crate::Channels<36>;
 
 impl Pdm36 {
     /// Connect to a PDM36.
-    pub fn new(interface: impl Into<String>, source_address: u8) -> Result<Self, ()> {
-        Ok(Self { source_address })
+    pub fn new(interface: CanSocket, address: u8) -> Result<Self, ()> {
+        Ok(Self { interface, address })
     }
 
-    /// Configure one or more output channels.
-    pub async fn configure_outputs(
-        &self,
-        channels: impl Into<Channels>,
-        config: OutputConfig,
-    ) -> Result<(), ()> {
-        let channels: Channels = channels.into();
-
-        let id = j1939::Id::builder()
-            .pgn(messages::OUTPUT_CONFIGURE)
-            .da(self.source_address)
-            .sa(0x00)
+    /// Perform the firmware update process.
+    pub async fn update_firmware(&self, firmware: &[u8]) -> Result<(), io::Error> {
+        let req_id = j1939::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(Pgn::MemoryAccessRequest)
+            .priority(6)
             .build();
 
-        let mask1 = channels.0 & 0xFFF;
-        let mask2 = (channels.0 >> 12) & 0xFFF;
-        let mask3 = (channels.0 >> 24) & 0xFFF;
-        let masks = [mask1 as u16, mask2 as u16, mask3 as u16];
+        let req = MemoryAccessRequest::new(Command::Erase, Pointer::Direct(0), 0, 0);
+        self.interface
+            .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
+            .await?;
 
-        let current_limit = (config.current_limit.clamp(0.0, 25.0) * 10.0) as u8;
-
-        let (econ_duty, econ_delay) = if let Some(econ) = config.economization {
-            let duty = (econ.duty.clamp(0.0, 1.0) * 255.0) as u8;
-            let delay = (econ.delay.as_secs_f32().clamp(0.05, 0.750) * 20.0) as u8;
-            (duty, delay)
-        } else {
-            (255, 0)
+        let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+        let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+            return Err(io::Error::other("Could not deserialize frame"));
         };
+        match res.status() {
+            Status::Proceed => {}
+            Status::Busy => return Err(io::Error::other("Device busy")),
+            status => {
+                return Err(io::Error::other(format!(
+                    "Memory access request failed: {:?}",
+                    status
+                )));
+            }
+        }
 
-        for (n, mask) in masks.iter().enumerate() {
-            if *mask != 0 {
-                messages::OutputConfigure::new(
-                    n as u8,
-                    *mask,
-                    config.open_load_detection,
-                    config.blanking_window as u8,
-                    current_limit,
-                    econ_duty,
-                    econ_delay,
-                )
-                .unwrap();
+        let chunk_size = 1024;
+        for (n, chunk) in firmware.chunks(chunk_size).enumerate() {
+            // request write
+            let offset = n * chunk_size;
+            let req = MemoryAccessRequest::new(
+                Command::Write,
+                Pointer::Direct(offset as u32),
+                chunk.len() as u16,
+                0,
+            );
+            self.interface
+                .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
+                .await?;
 
-                todo!("actually send frames")
+            // get response
+            let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+            let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+                return Err(io::Error::other("Could not deserialize frame"));
+            };
+            match res.status() {
+                Status::Proceed => {}
+                Status::Busy => return Err(io::Error::other("Device busy")),
+                status => {
+                    return Err(io::Error::other(format!(
+                        "Memory access request failed: {:?}",
+                        status
+                    )));
+                }
+            }
+
+            // write binary data in transfer
+            self.transfer(chunk).await?;
+
+            // get memory access complete response
+            let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+            let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+                return Err(io::Error::other("Could not deserialize frame"));
+            };
+            match res.status() {
+                Status::OperationCompleted => {}
+                Status::Busy => return Err(io::Error::other("Device busy")),
+                status => {
+                    return Err(io::Error::other(format!(
+                        "Memory access request failed: {:?}",
+                        status
+                    )));
+                }
             }
         }
 
         Ok(())
     }
-}
 
-#[derive(Debug)]
-pub struct OutputConfig {
-    /// Open load detection feature.
-    pub open_load_detection: bool,
-    /// Blanking window.
-    pub blanking_window: BlankingWindow,
-    /// Current limit in amps.
-    pub current_limit: f32,
-    /// Coil economization setting.
-    pub economization: Option<CoilEconomization>,
-}
+    /// Wait for a message with a given PGN that is addressed to us.
+    async fn wait_for_message(&self, pgn: Pgn) -> Result<CanFrame, io::Error> {
+        loop {
+            let frame = self.interface.read_frame().await?;
 
-impl Default for OutputConfig {
-    fn default() -> Self {
-        Self {
-            open_load_detection: false,
-            blanking_window: BlankingWindow::LatchOff,
-            current_limit: 0.0,
-            economization: None,
+            let id = match frame.id() {
+                Id::Extended(id) => j1939::Id::from(id),
+                Id::Standard(_) => continue,
+            };
+
+            if id.pgn() == pgn && id.sa() == self.address && id.da() == Some(0) {
+                return Ok(frame);
+            }
         }
     }
-}
 
-/// Programmable blanking window.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BlankingWindow {
-    LatchOff = 0,
-    For32ms = 1,
-    For96ms = 2,
-    For240ms = 3,
-}
+    /// Do a TP transfer to the PDM.
+    async fn transfer(&self, data: &[u8]) -> Result<(), io::Error> {
+        // send request-to-send
+        let id = j1939::Id::builder()
+            .sa(0)
+            .da(self.address)
+            .pgn(Pgn::TransportProtocolConnectionManagement)
+            .build();
+        let rts = RequestToSend::new(data.len() as u16, Some(1), Pgn::BinaryDataTransfer);
+        let data: [u8; 8] = rts.into();
+        self.interface
+            .write_frame(CanFrame::new(id, &data).unwrap())
+            .await?;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct CoilEconomization {
-    /// Delay before duty cycle is ramped back.
-    pub delay: Duration,
-    /// PWM duty when economizing.
-    pub duty: f32,
-}
+        let res = self
+            .wait_for_message(Pgn::TransportProtocolConnectionManagement)
+            .await?;
+        let Ok(_) = ClearToSend::try_from(res.data()) else {
+            return Err(io::Error::other("Did not get clear to send response"));
+        };
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+        let id = j1939::Id::builder()
+            .sa(0)
+            .da(self.address)
+            .pgn(Pgn::TransportProtocolConnectionManagement)
+            .build();
+        let mut sequence = 0;
 
-    #[tokio::test]
-    async fn interface() {
-        let pdm = Pdm36::new("can0", 0x55).unwrap();
+        for chunk in data.chunks(7) {
+            // send data
+            let mut data = [0; 7];
+            data.clone_from_slice(chunk);
+            let dt = DataTransfer::new(sequence, data);
+            self.interface
+                .write_frame(CanFrame::new(id, &<[u8; 8]>::from(&dt)).unwrap())
+                .await?;
 
-        pdm.configure_outputs(
-            Channels::new().range(1..=10).ch(20),
-            OutputConfig {
-                ..Default::default()
-            },
-        )
-        .await
-        .unwrap();
+            // wait for cts response
+            let res = self
+                .wait_for_message(Pgn::TransportProtocolConnectionManagement)
+                .await?;
+            let Ok(cts) = ClearToSend::try_from(res.data()) else {
+                return Err(io::Error::other("Did not get clear to send response"));
+            };
+            sequence = cts.next_sequence();
+        }
+
+        Ok(())
     }
 }

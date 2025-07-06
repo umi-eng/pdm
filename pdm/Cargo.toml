@@ -7,7 +7,7 @@ edition = "2024"
 embedded-can = "0.4.1"
 j1939.workspace = true
 messages.workspace = true
-thiserror = "2.0.12"
+socketcan = { version = "3.5.0", features = ["tokio"] }
 
 [dev-dependencies]
 tokio = { version = "1.45.1", features = ["full"] }

@@ -1,19 +1,26 @@
 use crate::{
+    Mono,
     app::{activity, receive},
     hal::can,
     output::{self, OUTPUT_MAP},
 };
-use j1939::transfer::Transfer;
-use j1939::{Id, IdBuilder, Pgn};
+use j1939::{
+    Id, IdBuilder, Pgn,
+    diagnostics::{ErrorIndicator, MemoryAccessResponse, Pointer, Status},
+    transfer::TransferResponse,
+};
+use j1939::{diagnostics::Command, transfer::Transfer};
+use rtic_monotonics::{Monotonic, fugit::ExtU64};
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
     let can_rx = cx.local.can_rx;
     let can_tx = cx.shared.can_tx;
     let drivers = cx.shared.drivers;
+    let updater = cx.local.updater;
     let source_address = *cx.shared.source_address;
 
-    let mut transfer = None;
+    let mut ongoing_write = None;
 
     loop {
         let envelope = can_rx.read().await.unwrap();
@@ -33,39 +40,188 @@ pub async fn receive(cx: receive::Context<'_>) {
         let data = envelope.frame.data();
 
         match id.pgn() {
+            Pgn::MemoryAccessRequest => {
+                if let Ok(req) = j1939::diagnostics::MemoryAccessRequest::try_from(data) {
+                    let response_id = j1939::Id::builder()
+                        .da(id.sa())
+                        .sa(source_address)
+                        .pgn(Pgn::MemoryAccessResponse)
+                        .priority(6)
+                        .build();
+
+                    match req.command() {
+                        Command::Erase => {
+                            // todo: handle this returning an error and respond
+                            // with an error over J1939.
+                            updater.prepare_update().await.unwrap();
+
+                            let response = MemoryAccessResponse::new(
+                                Status::Proceed,
+                                ErrorIndicator::None,
+                                req.length(),
+                                0xFFFF,
+                            );
+
+                            can_tx
+                                .access()
+                                .await
+                                .write(
+                                    &can::Frame::new_data(response_id, &<[u8; 8]>::from(&response))
+                                        .unwrap(),
+                                )
+                                .await;
+                        }
+                        Command::Write => {
+                            if let Pointer::Direct(addr) = req.pointer() {
+                                ongoing_write = Some(OngoingWriteRequest::new(addr));
+
+                                let response = MemoryAccessResponse::new(
+                                    Status::Proceed,
+                                    ErrorIndicator::None,
+                                    req.length(),
+                                    0xFFFF,
+                                );
+
+                                can_tx
+                                    .access()
+                                    .await
+                                    .write(
+                                        &can::Frame::new_data(
+                                            response_id,
+                                            &<[u8; 8]>::from(&response),
+                                        )
+                                        .unwrap(),
+                                    )
+                                    .await;
+                            } else {
+                                defmt::error!("Cannot handle spatial pointer.");
+                            }
+                        }
+                        Command::BootLoad => {
+                            defmt::info!("Marking firmware as updated.");
+                            updater.mark_updated().await.unwrap();
+
+                            let response = MemoryAccessResponse::new(
+                                Status::Proceed,
+                                ErrorIndicator::None,
+                                req.length(),
+                                0xFFFF,
+                            );
+
+                            can_tx
+                                .access()
+                                .await
+                                .write(
+                                    &can::Frame::new_data(response_id, &<[u8; 8]>::from(&response))
+                                        .unwrap(),
+                                )
+                                .await;
+
+                            defmt::info!("Booting into new firmware.");
+                            Mono::delay(50_u64.millis()).await;
+                            cortex_m::peripheral::SCB::sys_reset();
+                        }
+                        _ => {}
+                    }
+                }
+            }
             Pgn::TransportProtocolConnectionManagement => {
                 if let Ok(rts) = j1939::message::RequestToSend::try_from(data) {
-                    transfer = Some(Transfer::<1024>::new(rts));
+                    if rts.pgn() == Pgn::BinaryDataTransfer {
+                        if let Some(write) = &mut ongoing_write {
+                            let response_id = j1939::Id::builder()
+                                .sa(source_address)
+                                .da(id.sa())
+                                .pgn(Pgn::TransportProtocolConnectionManagement)
+                                .priority(6)
+                                .build();
+                            let cts = j1939::message::ClearToSend::new(
+                                rts.max_packets_per_response(),
+                                0,
+                                Pgn::BinaryDataTransfer,
+                            );
+
+                            can_tx
+                                .access()
+                                .await
+                                .write(
+                                    &can::Frame::new_data(response_id, &<[u8; 8]>::from(&cts))
+                                        .unwrap(),
+                                )
+                                .await;
+
+                            write.transfer = Some(Transfer::new(rts));
+                        } else {
+                            defmt::error!("Cannot start transfer with no ongoing write request.");
+                        }
+                    } else {
+                        defmt::warn!("Cannot start transfer for this pgn");
+                    }
                 }
             }
             Pgn::TransportProtocolDataTransfer => {
-                if let Some(transfer) = &mut transfer {
-                    if let Ok(dt) = j1939::message::DataTransfer::try_from(data) {
-                        match transfer.data_transfer(dt) {
-                            Ok(Some(cts)) => {
-                                let id = IdBuilder::new()
-                                    .pgn(Pgn::TransportProtocolConnectionManagement)
-                                    .sa(0x55)
-                                    .da(0x00)
-                                    .build();
+                if let Some(write) = &mut ongoing_write {
+                    if let Some(transfer) = &mut write.transfer {
+                        if let Ok(dt) = j1939::message::DataTransfer::try_from(data) {
+                            let id = IdBuilder::new()
+                                .pgn(Pgn::TransportProtocolConnectionManagement)
+                                .sa(source_address)
+                                .da(id.sa())
+                                .build();
 
-                                let id = embedded_can::ExtendedId::new(id.as_raw()).unwrap();
-                                let frame = can::Frame::new_data(id, &cts.to_frame_data()).unwrap();
-                                can_tx.access().await.write(&frame).await;
-                            }
-                            Ok(None) => {}
-                            Err(abort) => {
-                                let id = IdBuilder::new()
-                                    .pgn(Pgn::TransportProtocolConnectionManagement)
-                                    .sa(0x55)
-                                    .da(0x00)
-                                    .build();
+                            match transfer.data_transfer(dt) {
+                                Ok(Some(cts)) => {
+                                    let frame =
+                                        can::Frame::new_data(id, &cts.to_frame_data()).unwrap();
+                                    can_tx.access().await.write(&frame).await;
 
-                                let data: [u8; 8] = (&abort).into();
+                                    match cts {
+                                        TransferResponse::End(_) => {
+                                            defmt::info!("Writing firmware block.");
+                                            updater
+                                                .write_firmware(
+                                                    write.offset as usize,
+                                                    transfer.buffer(),
+                                                )
+                                                .await
+                                                .unwrap();
 
-                                let id = embedded_can::ExtendedId::new(id.as_raw()).unwrap();
-                                let frame = can::Frame::new_data(id, &data).unwrap();
-                                can_tx.access().await.write(&frame).await;
+                                            let response = MemoryAccessResponse::new(
+                                                Status::OperationCompleted,
+                                                ErrorIndicator::None,
+                                                transfer.buffer().len() as u16,
+                                                0xFFFF,
+                                            );
+
+                                            let id = IdBuilder::new()
+                                                .pgn(Pgn::MemoryAccessResponse)
+                                                .sa(source_address)
+                                                .da(id.sa())
+                                                .build();
+
+                                            can_tx
+                                                .access()
+                                                .await
+                                                .write(
+                                                    &can::Frame::new_data(
+                                                        id,
+                                                        &<[u8; 8]>::from(&response),
+                                                    )
+                                                    .unwrap(),
+                                                )
+                                                .await;
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                                Ok(None) => {}
+                                Err(abort) => {
+                                    let data: [u8; 8] = (&abort).into();
+
+                                    let id = embedded_can::ExtendedId::new(id.as_raw()).unwrap();
+                                    let frame = can::Frame::new_data(id, &data).unwrap();
+                                    can_tx.access().await.write(&frame).await;
+                                }
                             }
                         }
                     }
@@ -211,4 +367,18 @@ fn output_state(raw: u8) -> output::State {
 fn scale_pwm(byte: u8) -> u16 {
     let pwm = byte as u16 + 1;
     (pwm << 2) - 1
+}
+
+pub struct OngoingWriteRequest {
+    offset: u32,
+    transfer: Option<Transfer<1024>>,
+}
+
+impl OngoingWriteRequest {
+    pub fn new(offset: u32) -> Self {
+        Self {
+            offset,
+            transfer: None,
+        }
+    }
 }
