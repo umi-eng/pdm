@@ -1,4 +1,4 @@
-use crate::app::startup;
+use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
@@ -43,4 +43,10 @@ pub async fn startup(cx: startup::Context<'_>) {
     let frame = Frame::new_data(id, data.raw()).unwrap();
 
     can.access().await.write(&frame).await;
+
+    defmt::info!("starting runtime tasks");
+    receive::spawn().unwrap();
+    analog::spawn().unwrap();
+    status::spawn().unwrap();
+    current::spawn().unwrap();
 }

@@ -214,10 +214,6 @@ mod app {
 
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
-        receive::spawn().unwrap();
-        analog::spawn().unwrap();
-        status::spawn().unwrap();
-        current::spawn().unwrap();
 
         defmt::info!("init complete");
 
