@@ -106,7 +106,7 @@ impl<'a> TryFrom<&'a [u8]> for RequestToSend {
                 0..255 => Some(value[4]),
                 255 => None,
             },
-            pgn: Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0xFF])),
+            pgn: Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0x00])),
         })
     }
 }
@@ -173,7 +173,7 @@ impl<'a> TryFrom<&'a [u8]> for ClearToSend {
             return Err(value);
         }
 
-        let pgn = Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0xFF]));
+        let pgn = Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0x00]));
 
         Ok(Self {
             max_packets_per_response: match value[1] {
@@ -294,7 +294,7 @@ impl<'a> TryFrom<&'a [u8]> for ConnectionAbort {
         Ok(Self {
             reason: AbortReason::try_from(value[1]).unwrap_or(AbortReason::Custom),
             sender_role: AbortSenderRole::try_from(value[2] & 0b00000011).unwrap(),
-            pgn: Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0xFF])),
+            pgn: Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0x00])),
         })
     }
 }
