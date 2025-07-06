@@ -204,7 +204,7 @@ impl From<&MemoryAccessResponse> for [u8; 8] {
         data[1] |= u8::from(res.status) << 1;
 
         let error_indicator: u32 = res.error_indicator.into();
-        data[2..5].copy_from_slice(&error_indicator.to_le_bytes()[..2]);
+        data[2..5].copy_from_slice(&error_indicator.to_le_bytes()[..3]);
 
         data[6..8].copy_from_slice(&res.seed.to_le_bytes());
 
