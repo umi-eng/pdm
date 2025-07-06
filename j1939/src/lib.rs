@@ -1,5 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 
+pub mod diagnostics;
 mod id;
 pub mod message;
 pub mod prelude;
