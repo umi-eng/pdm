@@ -1,4 +1,4 @@
-use crate::app::watchdog;
+use crate::app::*;
 use crate::{Mono, output};
 use rtic_monotonics::systick::prelude::*;
 use st_driver::vn9e30f::{CurrentSamplePoint, PwmFreq, PwmTrigger};
@@ -57,6 +57,7 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
             let status = driver.global_status();
             if status.fs() {
                 defmt::error!("Driver {} entered failstate.", output::Driver::from(n));
+                error::spawn().ok();
                 driver.enter_normal().await.ok().unwrap();
             }
         }
