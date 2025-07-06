@@ -1,5 +1,4 @@
 use crate::id::Pgn;
-use heapless::Vec;
 
 trait Mux<T> {
     const MUX_VALUE: T;
