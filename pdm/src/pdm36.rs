@@ -104,6 +104,12 @@ impl Pdm36 {
             }
         }
 
+        log::info!("Firmware load finished. Bootloading...");
+        let req = MemoryAccessRequest::new(Command::BootLoad, Pointer::Direct(0), 0, 0);
+        self.interface
+            .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
+            .await?;
+
         Ok(())
     }
 
