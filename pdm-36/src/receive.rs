@@ -52,27 +52,6 @@ pub async fn receive(cx: receive::Context<'_>) {
                         .build();
 
                     match req.command() {
-                        Command::Erase => {
-                            // todo: handle this returning an error and respond
-                            // with an error over J1939.
-                            updater.prepare_update().await.unwrap();
-
-                            let response = MemoryAccessResponse::new(
-                                Status::Proceed,
-                                ErrorIndicator::None,
-                                req.length(),
-                                0xFFFF,
-                            );
-
-                            can_tx
-                                .access()
-                                .await
-                                .write(
-                                    &can::Frame::new_data(response_id, &<[u8; 8]>::from(&response))
-                                        .unwrap(),
-                                )
-                                .await;
-                        }
                         Command::Write => {
                             if let Pointer::Direct(addr) = req.pointer() {
                                 ongoing_write = Some(OngoingWriteRequest::new(addr));

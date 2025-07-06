@@ -29,26 +29,6 @@ impl Pdm36 {
             .priority(6)
             .build();
 
-        let req = MemoryAccessRequest::new(Command::Erase, Pointer::Direct(0), 0, 0);
-        self.interface
-            .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
-            .await?;
-
-        let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
-        let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
-            return Err(io::Error::other("Could not deserialize frame"));
-        };
-        match res.status() {
-            Status::Proceed => {}
-            Status::Busy => return Err(io::Error::other("Device busy")),
-            status => {
-                return Err(io::Error::other(format!(
-                    "Memory access request failed: {:?}",
-                    status
-                )));
-            }
-        }
-
         let chunk_size = 1024;
         for (n, chunk) in firmware.chunks(chunk_size).enumerate() {
             // request write
