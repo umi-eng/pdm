@@ -67,7 +67,7 @@ impl<const N: usize> Transfer<N> {
             let len = (self.buffer.len() + msg.data().len()) - self.buffer.capacity();
             &msg.data()[..(msg.data().len() - len)]
         } else {
-            msg.data()
+            &msg.data()
         };
 
         self.buffer.extend_from_slice(data).unwrap();

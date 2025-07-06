@@ -402,18 +402,22 @@ impl From<&AbortSenderRole> for u8 {
 #[derive(Debug, Clone)]
 pub struct DataTransfer {
     sequence: u8,
-    data: Vec<u8, 7>,
+    data: [u8; 7],
 }
 
 impl DataTransfer {
+    pub fn new(sequence: u8, data: [u8; 7]) -> Self {
+        Self { sequence, data }
+    }
+
     /// Packet sequence number.
     pub fn sequence(&self) -> u8 {
         self.sequence
     }
 
     /// Payload data.
-    pub fn data(&self) -> &[u8] {
-        &self.data
+    pub fn data(&self) -> [u8; 7] {
+        self.data
     }
 }
 
@@ -421,13 +425,13 @@ impl From<&DataTransfer> for [u8; 8] {
     fn from(value: &DataTransfer) -> Self {
         [
             value.sequence,
-            *value.data.get(0).unwrap_or(&0xFF),
-            *value.data.get(1).unwrap_or(&0xFF),
-            *value.data.get(2).unwrap_or(&0xFF),
-            *value.data.get(3).unwrap_or(&0xFF),
-            *value.data.get(4).unwrap_or(&0xFF),
-            *value.data.get(5).unwrap_or(&0xFF),
-            *value.data.get(6).unwrap_or(&0xFF),
+            value.data[0],
+            value.data[1],
+            value.data[2],
+            value.data[3],
+            value.data[4],
+            value.data[5],
+            value.data[6],
         ]
     }
 }
@@ -442,7 +446,9 @@ impl<'a> TryFrom<&'a [u8]> for DataTransfer {
 
         Ok(Self {
             sequence: value[0],
-            data: Vec::from_slice(&value[1..]).unwrap(),
+            data: [
+                value[1], value[2], value[3], value[4], value[5], value[6], value[7],
+            ],
         })
     }
 }
