@@ -155,9 +155,11 @@ pub async fn receive(cx: receive::Context<'_>) {
                             write.transfer = Some(Transfer::new(rts));
                         } else {
                             defmt::error!("Cannot start transfer with no ongoing write request.");
+                            continue;
                         }
                     } else {
                         defmt::warn!("Cannot start transfer for this pgn");
+                        continue;
                     }
                 }
             }
