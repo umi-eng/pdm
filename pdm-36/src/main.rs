@@ -64,7 +64,7 @@ pub mod pac {
     pub use embassy_stm32::pac::*;
 }
 
-#[rtic::app(device = pac, peripherals = false)]
+#[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
     use super::*;
 
@@ -245,10 +245,10 @@ mod app {
         #[task(shared = [&can_tx, &source_address])]
         async fn startup(cx: startup::Context);
 
-        #[task(local = [wd, pwm], shared = [&drivers])]
+        #[task(priority = 2, local = [wd, pwm], shared = [&drivers])]
         async fn watchdog(cx: watchdog::Context);
 
-        #[task(local = [can_rx, updater], shared = [&drivers, &can_tx, &source_address])]
+        #[task(priority = 1, local = [can_rx, updater], shared = [&drivers, &can_tx, &source_address])]
         async fn receive(cx: receive::Context);
 
         #[task(shared = [&drivers, &can_tx, &can_properties, &source_address])]
