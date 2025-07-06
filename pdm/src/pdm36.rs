@@ -142,7 +142,7 @@ impl Pdm36 {
         let id = j1939::Id::builder()
             .sa(0)
             .da(self.address)
-            .pgn(Pgn::TransportProtocolConnectionManagement)
+            .pgn(Pgn::TransportProtocolDataTransfer)
             .build();
         let mut sequence = 0;
 
