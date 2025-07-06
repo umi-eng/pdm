@@ -4,7 +4,7 @@ use embedded_can::Frame;
 use j1939::{
     Pgn,
     diagnostics::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
-    message::{ClearToSend, DataTransfer, RequestToSend},
+    message::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
 };
 use socketcan::{CanFrame, Id, tokio::CanSocket};
 
@@ -169,11 +169,15 @@ impl Pdm36 {
                 .wait_for_message(Pgn::TransportProtocolConnectionManagement)
                 .await?;
             let Ok(cts) = ClearToSend::try_from(res.data()) else {
-                return Err(io::Error::other("Did not get clear to send response"));
+                let Ok(ack) = EndOfMessageAck::try_from(res.data()) else {
+                    return Err(io::Error::other("Did not get clear to send response"));
+                };
+
+                return Ok(());
             };
             sequence = cts.next_sequence();
         }
 
-        Ok(())
+        return Err(io::Error::other("Did not get final end of message ack"));
     }
 }
