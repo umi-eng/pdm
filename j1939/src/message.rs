@@ -242,6 +242,32 @@ impl From<&EndOfMessageAck> for [u8; 8] {
     }
 }
 
+impl<'a> TryFrom<&'a [u8]> for EndOfMessageAck {
+    type Error = &'a [u8];
+
+    fn try_from(value: &'a [u8]) -> Result<Self, Self::Error> {
+        if value.len() != 8 {
+            return Err(value);
+        }
+
+        if value[0] != Self::MUX_VALUE {
+            return Err(value);
+        }
+
+        let total_size = u16::from_le_bytes([value[1], value[2]]);
+
+        let total_packets = value[3];
+
+        let pgn = Pgn::from(u32::from_le_bytes([value[5], value[6], value[7], 0x00]));
+
+        Ok(Self {
+            total_size,
+            total_packets,
+            pgn,
+        })
+    }
+}
+
 /// Connection abort (TP.Conn_Abort) message.
 #[derive(Debug, Clone)]
 pub struct ConnectionAbort {
