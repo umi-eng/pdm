@@ -1,0 +1,4 @@
+{
+  "name": "odrive",
+  "image": "mcr.microsoft.com/vscode/devcontainers/rust:dev-1"
+}
