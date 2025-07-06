@@ -153,7 +153,7 @@ impl Pdm36 {
             .da(self.address)
             .pgn(Pgn::TransportProtocolDataTransfer)
             .build();
-        let mut sequence = 0;
+        let mut sequence = 1;
 
         for chunk in data.chunks(7) {
             // send data
