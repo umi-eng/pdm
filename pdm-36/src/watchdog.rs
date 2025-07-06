@@ -57,6 +57,7 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
             let status = driver.global_status();
             if status.fs() {
                 defmt::error!("Driver {} entered failstate.", output::Driver::from(n));
+                driver.enter_normal().await.ok().unwrap();
             }
         }
 
