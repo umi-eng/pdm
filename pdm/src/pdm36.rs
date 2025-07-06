@@ -164,6 +164,6 @@ impl Pdm36 {
             sequence = cts.next_sequence();
         }
 
-        Err(io::Error::other("Did not get final end of message ack"));
+        Err(io::Error::other("Did not get final end of message ack"))
     }
 }
