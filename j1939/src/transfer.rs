@@ -85,7 +85,7 @@ impl<const N: usize> Transfer<N> {
             // send cts on nth data transfer
             if msg.sequence() % packets_per_response == 0 {
                 return Ok(Some(TransferResponse::Cts(ClearToSend::new(
-                    self.rts.max_packets_per_response().unwrap_or(255),
+                    self.rts.max_packets_per_response(),
                     self.rx_packets + 1,
                     self.rts.pgn(),
                 ))));
