@@ -134,9 +134,8 @@ mod app {
         Mono::start(cx.core.SYST, 160_000_000);
 
         // setup and start watchdog
-        let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 100000);
-        #[cfg(not(feature = "disable-watchdog"))]
-        wd.unleash();
+        let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 1000000);
+        wd.pet(); // pet the watchdog once to let it know we're here.
 
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);

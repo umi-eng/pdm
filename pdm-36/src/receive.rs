@@ -20,7 +20,7 @@ pub async fn receive(cx: receive::Context<'_>) {
     let updater = cx.local.updater;
     let source_address = *cx.shared.source_address;
 
-    updater.mark_booted().await;
+    updater.mark_booted().await.unwrap();
 
     let mut ongoing_write = None;
 
