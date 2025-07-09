@@ -1113,16 +1113,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
-name = "j1939"
-version = "0.1.0"
-dependencies = [
- "defmt 1.0.1",
- "embedded-can",
- "heapless",
- "num",
-]
-
-[[package]]
 name = "kdl"
 version = "6.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

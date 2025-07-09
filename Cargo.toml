@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
     "analog",
-    "j1939",
     "messages",
     "pdm",
     "pdm-36",
@@ -14,7 +13,6 @@ members = [
 
 [workspace.dependencies]
 messages = { path = "messages" }
-j1939 = { path = "j1939" }
 st-driver = { path = "st-driver", features = ["defmt"] }
 vpd = { path = "vpd" }
 analog = { path = "analog" }
