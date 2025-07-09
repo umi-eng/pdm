@@ -4,13 +4,14 @@ use crate::{
     hal::can,
     output::{self, OUTPUT_MAP},
 };
-use j1939::{
-    Id, IdBuilder, Pgn,
-    diagnostics::{ErrorIndicator, MemoryAccessResponse, Pointer, Status},
-    transfer::TransferResponse,
-};
-use j1939::{diagnostics::Command, transfer::Transfer};
 use rtic_monotonics::{Monotonic, fugit::ExtU64};
+use saelient::{
+    Id, IdBuilder, Pgn,
+    diagnostic::{
+        Command, ErrorIndicator, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status,
+    },
+    transport::{ClearToSend, DataTransfer, RequestToSend, Response, Transfer},
+};
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -22,7 +23,9 @@ pub async fn receive(cx: receive::Context<'_>) {
 
     updater.mark_booted().await.unwrap();
 
-    let mut ongoing_write = None;
+    let mut storage = [0; 1024];
+    let mut offset = 0;
+    let mut transfer = None;
 
     loop {
         let envelope = can_rx.read().await.unwrap();
@@ -43,18 +46,20 @@ pub async fn receive(cx: receive::Context<'_>) {
 
         match id.pgn() {
             Pgn::MemoryAccessRequest => {
-                if let Ok(req) = j1939::diagnostics::MemoryAccessRequest::try_from(data) {
-                    let response_id = j1939::Id::builder()
+                if let Ok(req) = MemoryAccessRequest::try_from(data) {
+                    let response_id = saelient::Id::builder()
                         .da(id.sa())
                         .sa(source_address)
                         .pgn(Pgn::MemoryAccessResponse)
                         .priority(6)
-                        .build();
+                        .build()
+                        .unwrap();
 
                     match req.command() {
                         Command::Write => {
                             if let Pointer::Direct(addr) = req.pointer() {
-                                ongoing_write = Some(OngoingWriteRequest::new(addr));
+                                offset = addr;
+                                transfer = None;
 
                                 let response = MemoryAccessResponse::new(
                                     Status::Proceed,
@@ -107,35 +112,30 @@ pub async fn receive(cx: receive::Context<'_>) {
                 }
             }
             Pgn::TransportProtocolConnectionManagement => {
-                if let Ok(rts) = j1939::message::RequestToSend::try_from(data) {
+                if let Ok(rts) = RequestToSend::try_from(data) {
                     if rts.pgn() == Pgn::BinaryDataTransfer {
-                        if let Some(write) = &mut ongoing_write {
-                            let response_id = j1939::Id::builder()
-                                .sa(source_address)
-                                .da(id.sa())
-                                .pgn(Pgn::TransportProtocolConnectionManagement)
-                                .priority(6)
-                                .build();
-                            let cts = j1939::message::ClearToSend::new(
-                                rts.max_packets_per_response(),
-                                0,
-                                Pgn::BinaryDataTransfer,
-                            );
+                        let response_id = saelient::Id::builder()
+                            .sa(source_address)
+                            .da(id.sa())
+                            .pgn(Pgn::TransportProtocolConnectionManagement)
+                            .priority(6)
+                            .build()
+                            .unwrap();
+                        let cts = ClearToSend::new(
+                            rts.max_packets_per_response(),
+                            0,
+                            Pgn::BinaryDataTransfer,
+                        );
 
-                            can_tx
-                                .access()
-                                .await
-                                .write(
-                                    &can::Frame::new_data(response_id, &<[u8; 8]>::from(&cts))
-                                        .unwrap(),
-                                )
-                                .await;
+                        can_tx
+                            .access()
+                            .await
+                            .write(
+                                &can::Frame::new_data(response_id, &<[u8; 8]>::from(&cts)).unwrap(),
+                            )
+                            .await;
 
-                            write.transfer = Some(Transfer::new(rts));
-                        } else {
-                            defmt::error!("Cannot start transfer with no ongoing write request.");
-                            continue;
-                        }
+                        transfer = Some(Transfer::new_with_storage(rts, storage.as_mut_slice()));
                     } else {
                         defmt::warn!("Cannot start transfer for this pgn");
                         continue;
@@ -143,63 +143,63 @@ pub async fn receive(cx: receive::Context<'_>) {
                 }
             }
             Pgn::TransportProtocolDataTransfer => {
-                if let Some(write) = &mut ongoing_write {
-                    if let Some(transfer) = &mut write.transfer {
-                        if let Ok(dt) = j1939::message::DataTransfer::try_from(data) {
-                            let response_id = IdBuilder::new()
-                                .pgn(Pgn::TransportProtocolConnectionManagement)
-                                .sa(source_address)
-                                .da(id.sa())
-                                .build();
+                if let Some(transfer) = &mut transfer {
+                    if let Ok(dt) = DataTransfer::try_from(data) {
+                        let response_id = IdBuilder::new()
+                            .pgn(Pgn::TransportProtocolConnectionManagement)
+                            .sa(source_address)
+                            .da(id.sa())
+                            .build()
+                            .unwrap();
 
-                            match transfer.data_transfer(dt) {
-                                Ok(Some(cts)) => {
-                                    let frame =
-                                        can::Frame::new_data(response_id, &cts.to_frame_data())
-                                            .unwrap();
-                                    can_tx.access().await.write(&frame).await;
+                        match transfer.next(dt) {
+                            Ok(Some(cts)) => {
+                                let frame =
+                                    can::Frame::new_data(response_id, &<[u8; 8]>::from(&cts))
+                                        .unwrap();
+                                can_tx.access().await.write(&frame).await;
 
-                                    if let TransferResponse::End(_) = cts {
-                                        defmt::info!("Writing firmware block.");
-                                        updater
-                                            .write_firmware(
-                                                write.offset as usize,
-                                                transfer.buffer(),
+                                if let Response::End(_) = cts {
+                                    defmt::info!("Writing firmware block.");
+                                    updater
+                                        .write_firmware(
+                                            offset as usize,
+                                            transfer.finished().unwrap(),
+                                        )
+                                        .await
+                                        .unwrap();
+
+                                    let response = MemoryAccessResponse::new(
+                                        Status::OperationCompleted,
+                                        ErrorIndicator::None,
+                                        transfer.finished().unwrap().len() as u16,
+                                        0xFFFF,
+                                    );
+                                    let response_id = saelient::Id::builder()
+                                        .pgn(Pgn::MemoryAccessResponse)
+                                        .sa(source_address)
+                                        .da(id.sa())
+                                        .build()
+                                        .unwrap();
+                                    can_tx
+                                        .access()
+                                        .await
+                                        .write(
+                                            &can::Frame::new_data(
+                                                response_id,
+                                                &<[u8; 8]>::from(&response),
                                             )
-                                            .await
-                                            .unwrap();
-
-                                        let response = MemoryAccessResponse::new(
-                                            Status::OperationCompleted,
-                                            ErrorIndicator::None,
-                                            transfer.buffer().len() as u16,
-                                            0xFFFF,
-                                        );
-                                        let response_id = IdBuilder::new()
-                                            .pgn(Pgn::MemoryAccessResponse)
-                                            .sa(source_address)
-                                            .da(id.sa())
-                                            .build();
-                                        can_tx
-                                            .access()
-                                            .await
-                                            .write(
-                                                &can::Frame::new_data(
-                                                    response_id,
-                                                    &<[u8; 8]>::from(&response),
-                                                )
-                                                .unwrap(),
-                                            )
-                                            .await;
-                                    }
+                                            .unwrap(),
+                                        )
+                                        .await;
                                 }
-                                Ok(None) => {}
-                                Err(abort) => {
-                                    defmt::error!("Transfer aborted: {}", abort.reason());
-                                    let data: [u8; 8] = (&abort).into();
-                                    let frame = can::Frame::new_data(response_id, &data).unwrap();
-                                    can_tx.access().await.write(&frame).await;
-                                }
+                            }
+                            Ok(None) => {}
+                            Err((err, abort)) => {
+                                defmt::error!("Transfer aborted: {}", abort.reason());
+                                let data: [u8; 8] = (&abort).into();
+                                let frame = can::Frame::new_data(response_id, &data).unwrap();
+                                can_tx.access().await.write(&frame).await;
                             }
                         }
                     }
@@ -345,18 +345,4 @@ fn output_state(raw: u8) -> output::State {
 fn scale_pwm(byte: u8) -> u16 {
     let pwm = byte as u16 + 1;
     (pwm << 2) - 1
-}
-
-pub struct OngoingWriteRequest {
-    offset: u32,
-    transfer: Option<Transfer<1024>>,
-}
-
-impl OngoingWriteRequest {
-    pub fn new(offset: u32) -> Self {
-        Self {
-            offset,
-            transfer: None,
-        }
-    }
 }

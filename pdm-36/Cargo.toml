@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 messages.workspace = true
-j1939.workspace = true
+saelient = { workspace = true, features = ["defmt-1"] }
 st-driver.workspace = true
 analog.workspace = true
 vpd.workspace = true

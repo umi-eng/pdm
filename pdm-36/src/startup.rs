@@ -36,10 +36,11 @@ pub async fn startup(cx: startup::Context<'_>) {
     )
     .unwrap();
 
-    let id = j1939::Id::builder()
+    let id = saelient::Id::builder()
         .pgn(messages::STARTUP)
         .sa(source_address)
-        .build();
+        .build()
+        .unwrap();
     let frame = Frame::new_data(id, data.raw()).unwrap();
 
     can.access().await.write(&frame).await;

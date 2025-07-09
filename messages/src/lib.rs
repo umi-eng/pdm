@@ -4,7 +4,7 @@
 mod messages;
 pub use messages::*;
 
-use j1939::Pgn;
+use saelient::Pgn;
 
 /// Output control messages.
 pub const CONTROL: Pgn = Pgn::ProprietaryA;

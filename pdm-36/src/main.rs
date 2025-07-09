@@ -187,7 +187,7 @@ mod app {
         let drv_g = Arbiter::new(Driver::new(DriverInterface::new(drv_g), 6));
 
         // PWM clock
-        let ch1 = simple_pwm::PwmPin::new_ch1(p.PB9, OutputType::PushPull);
+        let ch1 = simple_pwm::PwmPin::new(p.PB9, OutputType::PushPull);
         let pwm = simple_pwm::SimplePwm::new(
             p.TIM17,
             Some(ch1),

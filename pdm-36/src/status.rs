@@ -2,11 +2,11 @@ use crate::Mono;
 use crate::app::status;
 use crate::hal;
 use hal::can::Frame;
-use j1939::signal::Signal;
-use j1939::slot::SaeTP01;
-use j1939::slot::Slot;
 use messages::SystemStatus;
 use rtic_monotonics::systick::prelude::*;
+use saelient::signal::Signal;
+use saelient::slot::SaeTP01;
+use saelient::slot::Slot;
 
 /// System status reporter.
 pub async fn status(cx: status::Context<'_>) {
@@ -14,11 +14,12 @@ pub async fn status(cx: status::Context<'_>) {
     let can = cx.shared.can_tx;
     let can_stats = cx.shared.can_properties;
 
-    let id = j1939::Id::builder()
+    let id = saelient::Id::builder()
         .pgn(messages::SYSTEM_STATUS)
         .priority(6)
         .sa(*cx.shared.source_address)
-        .build();
+        .build()
+        .unwrap();
 
     loop {
         let start = Mono::now();

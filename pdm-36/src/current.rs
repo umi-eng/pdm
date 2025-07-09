@@ -3,14 +3,14 @@ use crate::output::OUTPUT_MAP;
 use crate::{Mono, app::current};
 use core::array::from_fn;
 use hal::can::Frame;
-use j1939::signal::{Param8, Param10, Signal};
-use j1939::slot::Slot;
-use j1939::slot_impl;
 use messages::{
     CurrentSense, CurrentSenseMuxM0, CurrentSenseMuxM1, CurrentSenseMuxM2, CurrentSenseMuxM3,
     CurrentSenseMuxM4, CurrentSenseMuxM5,
 };
 use rtic_monotonics::systick::prelude::*;
+use saelient::signal::{Param8, Param10, Signal};
+use saelient::slot::Slot;
+use saelient::slot_impl;
 
 slot_impl!(Current, Param10, 0.0, 0.01, "A", "Current - 10mA per bit");
 slot_impl!(
@@ -26,11 +26,12 @@ pub async fn current(cx: current::Context<'_>) {
     let can = cx.shared.can_tx;
     let drivers = cx.shared.drivers;
 
-    let id = j1939::Id::builder()
+    let id = saelient::Id::builder()
         .sa(*cx.shared.source_address)
         .pgn(messages::CURRENT_SENSE)
         .priority(6)
-        .build();
+        .build()
+        .unwrap();
 
     loop {
         let start = Mono::now();

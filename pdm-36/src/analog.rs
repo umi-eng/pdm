@@ -3,10 +3,10 @@ use crate::{Mono, app::analog};
 use ::analog::{MovingAvg, count_to_volts, divider_vin};
 use hal::adc::{Resolution, SampleTime};
 use hal::can::Frame;
-use j1939::signal::Signal;
-use j1939::slot::{SaeEV06, Slot};
 use messages::AnalogInputs;
 use rtic_monotonics::systick::prelude::*;
+use saelient::signal::Signal;
+use saelient::slot::{SaeEV06, Slot};
 
 const VREF: f32 = 3.300;
 const R1: f32 = 100_000.0;
@@ -32,11 +32,12 @@ pub async fn analog(cx: analog::Context<'_>) {
     adc_3.set_resolution(resolution);
     adc_4.set_resolution(resolution);
 
-    let id = j1939::Id::builder()
+    let id = saelient::Id::builder()
         .sa(*cx.shared.source_address)
         .pgn(messages::ANALOG_READINGS)
         .priority(6)
-        .build();
+        .build()
+        .unwrap();
 
     const DEPTH: usize = 10;
     let mut ain_1_avg = MovingAvg::<f32, DEPTH>::new();

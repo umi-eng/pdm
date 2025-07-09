@@ -1,10 +1,10 @@
 use std::io;
 
 use embedded_can::Frame;
-use j1939::{
+use saelient::{
     Pgn,
-    diagnostics::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
-    message::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
+    diagnostic::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
+    transport::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
 };
 use socketcan::{CanFrame, Id, tokio::CanSocket};
 
@@ -22,12 +22,13 @@ impl Pdm36 {
 
     /// Perform the firmware update process.
     pub async fn update_firmware(&self, firmware: &[u8]) -> Result<(), io::Error> {
-        let req_id = j1939::Id::builder()
+        let req_id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
             .pgn(Pgn::MemoryAccessRequest)
             .priority(6)
-            .build();
+            .build()
+            .unwrap();
 
         let chunk_size = 1024;
         for (n, chunk) in firmware.chunks(chunk_size).enumerate() {
@@ -101,7 +102,7 @@ impl Pdm36 {
             let frame = self.interface.read_frame().await?;
 
             let id = match frame.id() {
-                Id::Extended(id) => j1939::Id::from(id),
+                Id::Extended(id) => saelient::Id::from(id),
                 Id::Standard(_) => continue,
             };
 
@@ -116,11 +117,12 @@ impl Pdm36 {
         log::debug!("Starting transfer with length {}.", payload.len());
 
         // send request-to-send
-        let id = j1939::Id::builder()
+        let id = saelient::Id::builder()
             .sa(0)
             .da(self.address)
             .pgn(Pgn::TransportProtocolConnectionManagement)
-            .build();
+            .build()
+            .unwrap();
         let rts = RequestToSend::new(payload.len() as u16, Some(1), Pgn::BinaryDataTransfer);
         let data: [u8; 8] = rts.into();
         self.interface
@@ -134,11 +136,12 @@ impl Pdm36 {
             return Err(io::Error::other("Did not get clear to send response"));
         };
 
-        let id = j1939::Id::builder()
+        let id = saelient::Id::builder()
             .sa(0)
             .da(self.address)
             .pgn(Pgn::TransportProtocolDataTransfer)
-            .build();
+            .build()
+            .unwrap();
         let mut sequence = 1;
 
         for chunk in payload.chunks(7) {

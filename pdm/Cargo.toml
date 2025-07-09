@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 embedded-can = "0.4.1"
-j1939.workspace = true
+saelient = { workspace = true, features = ["std"] }
 log = "0.4.27"
 messages.workspace = true
 socketcan = { version = "3.5.0", features = ["tokio"] }
