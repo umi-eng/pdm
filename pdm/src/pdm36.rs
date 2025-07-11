@@ -128,6 +128,8 @@ impl Pdm36 {
                 .write_frame(CanFrame::new(id, frame.data()).unwrap())
                 .await?;
         }
+
+        Ok(())
     }
 
     /// Perform the firmware update process.
