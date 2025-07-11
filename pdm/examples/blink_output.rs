@@ -24,8 +24,10 @@ async fn main() -> Result<(), io::Error> {
     let mut pdm = pdm36::Pdm36::new(socket, address);
 
     loop {
+        println!("Turning output ON");
         pdm.set_output(output, true).await?;
         sleep(Duration::from_secs(1)).await;
+        println!("Turning output OFF");
         pdm.set_output(output, false).await?;
         sleep(Duration::from_secs(1)).await;
     }
