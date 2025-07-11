@@ -18,3 +18,39 @@ pub const SYSTEM_STATUS: Pgn = Pgn::ProprietaryB(0x12);
 pub const CURRENT_SENSE: Pgn = Pgn::ProprietaryB(0x10);
 /// Analog readings message.
 pub const ANALOG_READINGS: Pgn = Pgn::ProprietaryB(0x11);
+
+/// Output state.
+#[derive(Debug, defmt::Format, Clone, Copy, PartialEq, Eq)]
+pub enum OutputState {
+    Off = 0,
+    On = 1,
+    NoChange = 3,
+}
+
+impl From<OutputState> for u8 {
+    fn from(value: OutputState) -> Self {
+        value as u8
+    }
+}
+
+impl From<bool> for OutputState {
+    fn from(value: bool) -> Self {
+        match value {
+            true => Self::On,
+            false => Self::Off,
+        }
+    }
+}
+
+impl TryFrom<u8> for OutputState {
+    type Error = u8;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::Off),
+            1 => Ok(Self::On),
+            3 => Ok(Self::NoChange),
+            _ => Err(value),
+        }
+    }
+}

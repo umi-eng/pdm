@@ -1806,7 +1806,7 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 [[package]]
 name = "saelient"
 version = "0.2.0"
-source = "git+https://github.com/umi-eng/saelient.git#a643ada61ff33697eea103c229638cd9586e55ba"
+source = "git+https://github.com/umi-eng/saelient.git#3d56f8db06482245027e0a23b9526c343b4f51af"
 dependencies = [
  "defmt 1.0.1",
  "embedded-can",

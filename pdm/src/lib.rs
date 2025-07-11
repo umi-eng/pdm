@@ -1,89 +1,50 @@
+use messages::OutputState;
+
 pub mod pdm36;
 
 /// Selection of one or more channels.
 #[derive(Debug)]
-pub struct Channels<const N: usize>(pub(crate) u64);
+pub struct Outputs<const N: usize>([OutputState; N]);
 
-impl<const N: usize> Channels<N> {
+impl<const N: usize> Outputs<N> {
     /// Create a new empty channel selection.
     pub fn new() -> Self {
-        Self(0)
+        Self([OutputState::NoChange; N])
     }
 
     /// Add a channel to the selection.
-    pub fn ch(mut self, number: usize) -> Self {
+    pub fn ch(mut self, number: usize, state: OutputState) -> Self {
         assert!(number > 0);
 
-        let number = number as u64 - 1;
-        self.0 |= 1 << number;
-
+        self.0[number - 1] = state;
         self
     }
 
-    pub fn range<R>(mut self, range: R) -> Self
+    /// Set the state for a range of channels.
+    pub fn range<R>(mut self, range: R, state: OutputState) -> Self
     where
         R: IntoIterator<Item = usize>,
     {
-        for ch in range {
-            assert!(ch > 0, "Channel numbers must be greater than 0");
-            assert!(
-                ch <= N,
-                "Channel number {} exceeds maximum channel count {}",
-                ch,
-                N
-            );
-
-            let ch = ch as u64 - 1;
-            self.0 |= 1 << ch;
+        for n in range {
+            assert!(n > 0);
+            self.0[n - 1] = state;
         }
 
         self
     }
+
+    pub fn as_slice(&self) -> &[OutputState] {
+        &self.0
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut [OutputState] {
+        &mut self.0
+    }
 }
 
-impl<const N: usize> Default for Channels<N> {
+impl<const N: usize> Default for Outputs<N> {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl<const N: usize> From<usize> for Channels<N> {
-    fn from(value: usize) -> Self {
-        Self::new().ch(value)
-    }
-}
-
-impl<const N: usize> IntoIterator for Channels<N> {
-    type Item = usize;
-    type IntoIter = ChannelsIterator<N>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        ChannelsIterator {
-            channels: self.0,
-            position: 0,
-        }
-    }
-}
-
-pub struct ChannelsIterator<const N: usize> {
-    channels: u64,
-    position: u8,
-}
-
-impl<const N: usize> Iterator for ChannelsIterator<N> {
-    type Item = usize;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        while self.position < N as u8 {
-            let current_position = self.position;
-            self.position += 1;
-
-            if (self.channels & (1 << current_position)) != 0 {
-                // Add 1 to convert from 0-based to 1-based channel numbering
-                return Some((current_position + 1) as usize);
-            }
-        }
-        None
     }
 }
 
@@ -92,13 +53,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn channel_iterator() {
-        let channels = Channels::<36>::new().ch(1).ch(3).ch(5);
-        let channel_vec: Vec<usize> = channels.into_iter().collect();
-        assert_eq!(channel_vec, vec![1, 3, 5]);
+    fn outputs() {
+        let simple = Outputs::<5>::new()
+            .ch(1, OutputState::On)
+            .ch(3, OutputState::Off)
+            .ch(5, OutputState::NoChange);
+        assert_eq!(
+            simple.as_slice(),
+            &[
+                OutputState::On,
+                OutputState::NoChange,
+                OutputState::Off,
+                OutputState::NoChange,
+                OutputState::NoChange
+            ]
+        );
 
-        let mixed_channels = Channels::<36>::new().ch(2).range(4..=6);
-        let mixed_vec: Vec<usize> = mixed_channels.into_iter().collect();
-        assert_eq!(mixed_vec, vec![2, 4, 5, 6]);
+        let mixed = Outputs::<6>::new()
+            .ch(2, OutputState::On)
+            .range(4..=6, OutputState::Off);
+        assert_eq!(
+            mixed.as_slice(),
+            &[
+                OutputState::NoChange,
+                OutputState::On,
+                OutputState::NoChange,
+                OutputState::Off,
+                OutputState::Off,
+                OutputState::Off,
+            ]
+        );
     }
 }

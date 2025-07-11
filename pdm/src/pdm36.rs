@@ -1,12 +1,15 @@
 use std::io;
 
 use embedded_can::Frame;
+use messages::{Control, ControlMuxM0, ControlMuxM1, ControlMuxM2, OutputState};
 use saelient::{
     Pgn,
     diagnostic::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
     transport::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
 };
 use socketcan::{CanFrame, Id, tokio::CanSocket};
+
+pub type Outputs = crate::Outputs<36>;
 
 /// PDM36 interface.
 pub struct Pdm36 {
@@ -18,6 +21,119 @@ impl Pdm36 {
     /// Connect to a PDM36.
     pub fn new(interface: CanSocket, address: u8) -> Self {
         Self { interface, address }
+    }
+
+    /// Set a single output on or off.
+    pub async fn set_output(&mut self, output: usize, on: bool) -> Result<(), io::Error> {
+        self.set_outputs_pwm(Outputs::new().ch(output, OutputState::from(on)), 1.0)
+            .await
+    }
+
+    /// Set a single output with a PWM duty.
+    pub async fn set_output_pwm(&mut self, output: usize, duty: f32) -> Result<(), io::Error> {
+        self.set_outputs_pwm(Outputs::new().ch(output, OutputState::On), duty)
+            .await
+    }
+
+    /// Set one or more outputs.
+    pub async fn set_outputs(&mut self, outputs: Outputs) -> Result<(), io::Error> {
+        self.set_outputs_pwm(outputs, 1.0).await
+    }
+
+    /// Set a number of outputs with a PWM duty.
+    ///
+    /// `pwm` is clamped to \[0.0, 1.0\].
+    pub async fn set_outputs_pwm(
+        &mut self,
+        outputs: Outputs,
+        pwm_duty: f32,
+    ) -> Result<(), io::Error> {
+        let duty = (pwm_duty.clamp(0.0, 1.0) * 255.0) as u8;
+
+        let mut chunks = outputs.as_slice().chunks(12);
+
+        let frame_1 = {
+            let outputs = chunks.next().unwrap();
+            let mut mux = ControlMuxM0::new();
+            mux.set_output_1(outputs[0].into()).unwrap();
+            mux.set_output_2(outputs[1].into()).unwrap();
+            mux.set_output_3(outputs[2].into()).unwrap();
+            mux.set_output_4(outputs[3].into()).unwrap();
+            mux.set_output_5(outputs[4].into()).unwrap();
+            mux.set_output_6(outputs[5].into()).unwrap();
+            mux.set_output_7(outputs[6].into()).unwrap();
+            mux.set_output_8(outputs[7].into()).unwrap();
+            mux.set_output_9(outputs[8].into()).unwrap();
+            mux.set_output_10(outputs[9].into()).unwrap();
+            mux.set_output_11(outputs[10].into()).unwrap();
+            mux.set_output_12(outputs[11].into()).unwrap();
+            mux.set_pwm_duty_m0(duty).unwrap();
+            let mut frame = Control::new(0).unwrap();
+            frame.set_m0(mux).unwrap();
+            frame
+        };
+
+        let frame_2 = {
+            let outputs = chunks.next().unwrap();
+            let mut mux = ControlMuxM1::new();
+            mux.set_output_13(outputs[0].into()).unwrap();
+            mux.set_output_14(outputs[1].into()).unwrap();
+            mux.set_output_15(outputs[2].into()).unwrap();
+            mux.set_output_16(outputs[3].into()).unwrap();
+            mux.set_output_17(outputs[4].into()).unwrap();
+            mux.set_output_18(outputs[5].into()).unwrap();
+            mux.set_output_19(outputs[6].into()).unwrap();
+            mux.set_output_20(outputs[7].into()).unwrap();
+            mux.set_output_21(outputs[8].into()).unwrap();
+            mux.set_output_22(outputs[9].into()).unwrap();
+            mux.set_output_23(outputs[10].into()).unwrap();
+            mux.set_output_24(outputs[11].into()).unwrap();
+            mux.set_pwm_duty_m1(duty).unwrap();
+            let mut frame = Control::new(0).unwrap();
+            frame.set_m1(mux).unwrap();
+            frame
+        };
+
+        let frame_3 = {
+            let outputs = chunks.next().unwrap();
+            let mut mux = ControlMuxM2::new();
+            mux.set_output_25(outputs[0].into()).unwrap();
+            mux.set_output_26(outputs[1].into()).unwrap();
+            mux.set_output_27(outputs[2].into()).unwrap();
+            mux.set_output_28(outputs[3].into()).unwrap();
+            mux.set_output_29(outputs[4].into()).unwrap();
+            mux.set_output_30(outputs[5].into()).unwrap();
+            mux.set_output_31(outputs[6].into()).unwrap();
+            mux.set_output_32(outputs[7].into()).unwrap();
+            mux.set_output_33(outputs[8].into()).unwrap();
+            mux.set_output_34(outputs[9].into()).unwrap();
+            mux.set_output_35(outputs[10].into()).unwrap();
+            mux.set_output_36(outputs[11].into()).unwrap();
+            mux.set_pwm_duty_m2(duty).unwrap();
+            let mut frame = Control::new(0).unwrap();
+            frame.set_m2(mux).unwrap();
+            frame
+        };
+
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(Pgn::ProprietaryA)
+            .priority(3)
+            .build()
+            .unwrap();
+
+        self.interface
+            .write_frame(CanFrame::new(id, frame_1.data()).unwrap())
+            .await?;
+        self.interface
+            .write_frame(CanFrame::new(id, frame_2.data()).unwrap())
+            .await?;
+        self.interface
+            .write_frame(CanFrame::new(id, frame_3.data()).unwrap())
+            .await?;
+
+        todo!()
     }
 
     /// Perform the firmware update process.
