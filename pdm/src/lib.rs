@@ -33,10 +33,12 @@ impl<const N: usize> Outputs<N> {
         self
     }
 
+    /// Returns a slice containing the entire array.
     pub fn as_slice(&self) -> &[OutputState] {
         &self.0
     }
 
+    /// Returns a mutable slice containing the entire array.
     pub fn as_mut_slice(&mut self) -> &mut [OutputState] {
         &mut self.0
     }
