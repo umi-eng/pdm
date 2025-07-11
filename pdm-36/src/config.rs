@@ -127,6 +127,4 @@ impl<'f> Config<'f> {
             store: Arbiter::new(Store::new(flash)),
         }
     }
-
-    config_key!(j1939_sa, b"ADDR", u8, 0x55);
 }
