@@ -52,68 +52,68 @@ impl Pdm36 {
 
         let mut chunks = outputs.as_slice().chunks(12);
 
-        let frame_1 = {
-            let outputs = chunks.next().unwrap();
-            let mut mux = ControlMuxM0::new();
-            mux.set_output_1(outputs[0].into()).unwrap();
-            mux.set_output_2(outputs[1].into()).unwrap();
-            mux.set_output_3(outputs[2].into()).unwrap();
-            mux.set_output_4(outputs[3].into()).unwrap();
-            mux.set_output_5(outputs[4].into()).unwrap();
-            mux.set_output_6(outputs[5].into()).unwrap();
-            mux.set_output_7(outputs[6].into()).unwrap();
-            mux.set_output_8(outputs[7].into()).unwrap();
-            mux.set_output_9(outputs[8].into()).unwrap();
-            mux.set_output_10(outputs[9].into()).unwrap();
-            mux.set_output_11(outputs[10].into()).unwrap();
-            mux.set_output_12(outputs[11].into()).unwrap();
-            mux.set_pwm_duty_m0(duty).unwrap();
-            let mut frame = Control::new(0).unwrap();
-            frame.set_m0(mux).unwrap();
-            frame
-        };
-
-        let frame_2 = {
-            let outputs = chunks.next().unwrap();
-            let mut mux = ControlMuxM1::new();
-            mux.set_output_13(outputs[0].into()).unwrap();
-            mux.set_output_14(outputs[1].into()).unwrap();
-            mux.set_output_15(outputs[2].into()).unwrap();
-            mux.set_output_16(outputs[3].into()).unwrap();
-            mux.set_output_17(outputs[4].into()).unwrap();
-            mux.set_output_18(outputs[5].into()).unwrap();
-            mux.set_output_19(outputs[6].into()).unwrap();
-            mux.set_output_20(outputs[7].into()).unwrap();
-            mux.set_output_21(outputs[8].into()).unwrap();
-            mux.set_output_22(outputs[9].into()).unwrap();
-            mux.set_output_23(outputs[10].into()).unwrap();
-            mux.set_output_24(outputs[11].into()).unwrap();
-            mux.set_pwm_duty_m1(duty).unwrap();
-            let mut frame = Control::new(0).unwrap();
-            frame.set_m1(mux).unwrap();
-            frame
-        };
-
-        let frame_3 = {
-            let outputs = chunks.next().unwrap();
-            let mut mux = ControlMuxM2::new();
-            mux.set_output_25(outputs[0].into()).unwrap();
-            mux.set_output_26(outputs[1].into()).unwrap();
-            mux.set_output_27(outputs[2].into()).unwrap();
-            mux.set_output_28(outputs[3].into()).unwrap();
-            mux.set_output_29(outputs[4].into()).unwrap();
-            mux.set_output_30(outputs[5].into()).unwrap();
-            mux.set_output_31(outputs[6].into()).unwrap();
-            mux.set_output_32(outputs[7].into()).unwrap();
-            mux.set_output_33(outputs[8].into()).unwrap();
-            mux.set_output_34(outputs[9].into()).unwrap();
-            mux.set_output_35(outputs[10].into()).unwrap();
-            mux.set_output_36(outputs[11].into()).unwrap();
-            mux.set_pwm_duty_m2(duty).unwrap();
-            let mut frame = Control::new(0).unwrap();
-            frame.set_m2(mux).unwrap();
-            frame
-        };
+        let frames = [
+            {
+                let outputs = chunks.next().unwrap();
+                let mut mux = ControlMuxM0::new();
+                mux.set_output_1(outputs[0].into()).unwrap();
+                mux.set_output_2(outputs[1].into()).unwrap();
+                mux.set_output_3(outputs[2].into()).unwrap();
+                mux.set_output_4(outputs[3].into()).unwrap();
+                mux.set_output_5(outputs[4].into()).unwrap();
+                mux.set_output_6(outputs[5].into()).unwrap();
+                mux.set_output_7(outputs[6].into()).unwrap();
+                mux.set_output_8(outputs[7].into()).unwrap();
+                mux.set_output_9(outputs[8].into()).unwrap();
+                mux.set_output_10(outputs[9].into()).unwrap();
+                mux.set_output_11(outputs[10].into()).unwrap();
+                mux.set_output_12(outputs[11].into()).unwrap();
+                mux.set_pwm_duty_m0(duty).unwrap();
+                let mut frame = Control::new(0).unwrap();
+                frame.set_m0(mux).unwrap();
+                frame
+            },
+            {
+                let outputs = chunks.next().unwrap();
+                let mut mux = ControlMuxM1::new();
+                mux.set_output_13(outputs[0].into()).unwrap();
+                mux.set_output_14(outputs[1].into()).unwrap();
+                mux.set_output_15(outputs[2].into()).unwrap();
+                mux.set_output_16(outputs[3].into()).unwrap();
+                mux.set_output_17(outputs[4].into()).unwrap();
+                mux.set_output_18(outputs[5].into()).unwrap();
+                mux.set_output_19(outputs[6].into()).unwrap();
+                mux.set_output_20(outputs[7].into()).unwrap();
+                mux.set_output_21(outputs[8].into()).unwrap();
+                mux.set_output_22(outputs[9].into()).unwrap();
+                mux.set_output_23(outputs[10].into()).unwrap();
+                mux.set_output_24(outputs[11].into()).unwrap();
+                mux.set_pwm_duty_m1(duty).unwrap();
+                let mut frame = Control::new(0).unwrap();
+                frame.set_m1(mux).unwrap();
+                frame
+            },
+            {
+                let outputs = chunks.next().unwrap();
+                let mut mux = ControlMuxM2::new();
+                mux.set_output_25(outputs[0].into()).unwrap();
+                mux.set_output_26(outputs[1].into()).unwrap();
+                mux.set_output_27(outputs[2].into()).unwrap();
+                mux.set_output_28(outputs[3].into()).unwrap();
+                mux.set_output_29(outputs[4].into()).unwrap();
+                mux.set_output_30(outputs[5].into()).unwrap();
+                mux.set_output_31(outputs[6].into()).unwrap();
+                mux.set_output_32(outputs[7].into()).unwrap();
+                mux.set_output_33(outputs[8].into()).unwrap();
+                mux.set_output_34(outputs[9].into()).unwrap();
+                mux.set_output_35(outputs[10].into()).unwrap();
+                mux.set_output_36(outputs[11].into()).unwrap();
+                mux.set_pwm_duty_m2(duty).unwrap();
+                let mut frame = Control::new(0).unwrap();
+                frame.set_m2(mux).unwrap();
+                frame
+            },
+        ];
 
         let id = saelient::Id::builder()
             .da(self.address)
@@ -123,17 +123,11 @@ impl Pdm36 {
             .build()
             .unwrap();
 
-        self.interface
-            .write_frame(CanFrame::new(id, frame_1.data()).unwrap())
-            .await?;
-        self.interface
-            .write_frame(CanFrame::new(id, frame_2.data()).unwrap())
-            .await?;
-        self.interface
-            .write_frame(CanFrame::new(id, frame_3.data()).unwrap())
-            .await?;
-
-        todo!()
+        for frame in frames {
+            self.interface
+                .write_frame(CanFrame::new(id, frame.data()).unwrap())
+                .await?;
+        }
     }
 
     /// Perform the firmware update process.
