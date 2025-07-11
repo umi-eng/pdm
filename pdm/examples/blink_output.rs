@@ -18,7 +18,7 @@ async fn main() -> Result<(), io::Error> {
     let args: Vec<String> = std::env::args().collect();
     let interface = &args[1];
     let address: u8 = args[2].parse().unwrap();
-    let output: usize = args[2].parse().unwrap();
+    let output: usize = args[3].parse().unwrap();
 
     let socket = CanSocket::open(interface)?;
     let mut pdm = pdm36::Pdm36::new(socket, address);
