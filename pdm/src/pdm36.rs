@@ -24,30 +24,26 @@ impl Pdm36 {
     }
 
     /// Set a single output on or off.
-    pub async fn set_output(&mut self, output: usize, on: bool) -> Result<(), io::Error> {
+    pub async fn set_output(&self, output: usize, on: bool) -> Result<(), io::Error> {
         self.set_outputs_pwm(Outputs::new().ch(output, OutputState::from(on)), 1.0)
             .await
     }
 
     /// Set a single output with a PWM duty.
-    pub async fn set_output_pwm(&mut self, output: usize, duty: f32) -> Result<(), io::Error> {
+    pub async fn set_output_pwm(&self, output: usize, duty: f32) -> Result<(), io::Error> {
         self.set_outputs_pwm(Outputs::new().ch(output, OutputState::On), duty)
             .await
     }
 
     /// Set one or more outputs.
-    pub async fn set_outputs(&mut self, outputs: Outputs) -> Result<(), io::Error> {
+    pub async fn set_outputs(&self, outputs: Outputs) -> Result<(), io::Error> {
         self.set_outputs_pwm(outputs, 1.0).await
     }
 
     /// Set a number of outputs with a PWM duty.
     ///
     /// `pwm` is clamped to \[0.0, 1.0\].
-    pub async fn set_outputs_pwm(
-        &mut self,
-        outputs: Outputs,
-        pwm_duty: f32,
-    ) -> Result<(), io::Error> {
+    pub async fn set_outputs_pwm(&self, outputs: Outputs, pwm_duty: f32) -> Result<(), io::Error> {
         let duty = (pwm_duty.clamp(0.0, 1.0) * 255.0) as u8;
 
         let mut chunks = outputs.as_slice().chunks(12);
