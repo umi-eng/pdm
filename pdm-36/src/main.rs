@@ -8,6 +8,7 @@ mod output;
 mod receive;
 mod startup;
 mod status;
+mod updater;
 mod watchdog;
 
 use analog::*;
@@ -15,6 +16,7 @@ use current::*;
 use receive::*;
 use startup::*;
 use status::*;
+use updater::*;
 use watchdog::*;
 
 use defmt_rtt as _;
@@ -25,6 +27,7 @@ use core::mem::MaybeUninit;
 use embassy_boot_stm32::*;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::flash::partition::Partition;
+use embassy_stm32::can::Frame;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::Peri;
@@ -48,6 +51,9 @@ use rtic_monotonics::systick::prelude::*;
 use rtic_monotonics::systick_monotonic;
 use rtic_sync::arbiter::Arbiter;
 use rtic_sync::arbiter::spi::ArbiterDevice;
+use rtic_sync::channel::Receiver;
+use rtic_sync::channel::Sender;
+use rtic_sync::make_channel;
 use st_driver::Driver;
 use st_driver::DriverInterface;
 
@@ -97,6 +103,8 @@ mod app {
         ain_1: Peri<'static, PB12>,
         ain_2: Peri<'static, PB13>,
         ain_3: Peri<'static, PB14>,
+        updater_tx: Sender<'static, Frame, 8>,
+        updater_rx: Receiver<'static, Frame, 8>,
     }
 
     #[init(local = [
@@ -211,6 +219,9 @@ mod app {
         let source_address = (adr0 as u8) | ((adr1 as u8) << 1);
         let source_address = source_address + 0x55;
 
+        // Inter-task communication
+        let (updater_tx, updater_rx) = make_channel!(Frame, 8);
+
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
 
@@ -236,22 +247,27 @@ mod app {
                 ain_1,
                 ain_2,
                 ain_3,
+                updater_tx,
+                updater_rx,
             },
         )
     }
 
     extern "Rust" {
-        #[task(shared = [&can_tx, &source_address])]
+        #[task(shared = [&can_tx, &source_address, &config])]
         async fn startup(cx: startup::Context);
 
         #[task(priority = 2, local = [wd, pwm], shared = [&drivers])]
         async fn watchdog(cx: watchdog::Context);
 
-        #[task(priority = 1, local = [can_rx, updater], shared = [&drivers, &can_tx, &source_address])]
+        #[task(priority = 1, local = [can_rx, updater_tx], shared = [&drivers, &can_tx, &source_address])]
         async fn receive(cx: receive::Context);
 
         #[task(shared = [&drivers, &can_tx, &can_properties, &source_address])]
         async fn status(cx: status::Context);
+
+        #[task(local = [updater, updater_rx], shared = [&can_tx, &source_address])]
+        async fn updater(cx: updater::Context);
 
         #[task(
             local = [adc_3, adc_4, ain_1, ain_2, ain_3],
