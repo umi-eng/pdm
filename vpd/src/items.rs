@@ -1,8 +1,9 @@
 use crate::Item;
+use serde::Deserialize;
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout, Unaligned};
 
 /// Hardware semantic-version.
-#[derive(Debug, FromBytes, IntoBytes, Immutable, Unaligned, KnownLayout)]
+#[derive(Debug, FromBytes, IntoBytes, Immutable, Unaligned, KnownLayout, Deserialize)]
 #[repr(C, packed)]
 #[cfg_attr(feature = "defmt-1", defmt::Format)]
 pub struct HardwareVersion {
@@ -18,7 +19,7 @@ impl Item for HardwareVersion {
 }
 
 /// Serial number.
-#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
+#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-1", defmt::Format)]
 pub struct SerialNumber {

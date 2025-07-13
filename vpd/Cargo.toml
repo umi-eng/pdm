@@ -6,6 +6,7 @@ edition = "2024"
 
 [dependencies]
 defmt = { version = "1.0.1", optional = true }
+serde = { version = "1.0.219", default-features = false, features = ["derive"] }
 tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
 zerocopy = { version = "0.8.26", features = ["derive"] }
 
