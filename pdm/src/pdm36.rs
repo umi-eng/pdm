@@ -4,7 +4,7 @@ use embedded_can::Frame;
 use messages::{Control, ControlMuxM0, ControlMuxM1, ControlMuxM2, OutputState};
 use saelient::prelude::*;
 use saelient::{
-    Pgn,
+    PduFormat, Pgn,
     diagnostic::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
     transport::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
 };
@@ -240,7 +240,13 @@ impl Pdm36 {
                 Id::Standard(_) => continue,
             };
 
-            if id.pgn() == pgn && id.sa() == self.address && id.da() == Some(0) {
+            if let PduFormat::Pdu1(_) = id.pf() {
+                if id.da() != Some(0) {
+                    continue;
+                }
+            }
+
+            if id.pgn() == pgn && id.sa() == self.address {
                 return Ok(frame);
             }
         }
