@@ -5,7 +5,7 @@ use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout, Unaligned};
 /// Hardware semantic-version.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, Unaligned, KnownLayout, Deserialize)]
 #[repr(C, packed)]
-#[cfg_attr(feature = "defmt-1", defmt::Format)]
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub struct HardwareVersion {
     pub major: u8,
     pub minor: u8,
@@ -21,7 +21,7 @@ impl Item for HardwareVersion {
 /// Serial number.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-1", defmt::Format)]
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub struct SerialNumber {
     pub year: u8,
     pub week: u8,
@@ -37,7 +37,7 @@ impl Item for SerialNumber {
 /// Public key for signing firmware.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-1", defmt::Format)]
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub struct PubKey {
     pub key: [u8; 32],
 }
