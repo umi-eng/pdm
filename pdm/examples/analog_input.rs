@@ -22,7 +22,7 @@ async fn main() -> Result<(), io::Error> {
 
     loop {
         let voltage = pdm.analog_input(input).await?;
-        println!("Input {} voltage: {:.02}V", input, voltage);
+        println!("Input {} voltage: {:.03}V", input, voltage);
         sleep(Duration::from_secs(1)).await;
     }
 }
