@@ -32,3 +32,17 @@ impl Item for SerialNumber {
         *b"SN  "
     }
 }
+
+/// Public key for signing firmware.
+#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
+#[repr(C)]
+#[cfg_attr(feature = "defmt-1", defmt::Format)]
+pub struct PubKey {
+    pub key: [u8; 32],
+}
+
+impl Item for PubKey {
+    fn tag() -> [u8; 4] {
+        *b"PUBK"
+    }
+}
