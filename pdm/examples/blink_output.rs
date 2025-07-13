@@ -21,7 +21,7 @@ async fn main() -> Result<(), io::Error> {
     let output: usize = args[3].parse().unwrap();
 
     let socket = CanSocket::open(interface)?;
-    let mut pdm = pdm36::Pdm36::new(socket, address);
+    let pdm = pdm36::Pdm36::new(socket, address);
 
     loop {
         println!("Turning output ON");
