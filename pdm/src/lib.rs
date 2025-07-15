@@ -14,10 +14,14 @@ impl<const N: usize> Outputs<N> {
 
     /// Add a channel to the selection.
     pub fn ch(mut self, number: usize, state: OutputState) -> Self {
-        assert!(number > 0);
-
-        self.0[number - 1] = state;
+        self.set_ch(number, state);
         self
+    }
+
+    /// Set a given channel output state.
+    pub fn set_ch(&mut self, number: usize, state: OutputState) {
+        assert!(number > 0);
+        self.0[number - 1] = state;
     }
 
     /// Set the state for a range of channels.
@@ -25,12 +29,18 @@ impl<const N: usize> Outputs<N> {
     where
         R: IntoIterator<Item = usize>,
     {
+        self.set_range(range, state);
+        self
+    }
+
+    pub fn set_range<R>(&mut self, range: R, state: OutputState)
+    where
+        R: IntoIterator<Item = usize>,
+    {
         for n in range {
             assert!(n > 0);
             self.0[n - 1] = state;
         }
-
-        self
     }
 
     /// Returns a slice containing the entire array.
