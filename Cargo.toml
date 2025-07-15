@@ -14,7 +14,7 @@ members = [
 [workspace.dependencies]
 messages = { path = "messages" }
 st-driver = { path = "st-driver", features = ["defmt"] }
-vpd = { path = "vpd" }
+vpd = { path = "vpd", features = ["defmt-1"] }
 analog = { path = "analog" }
 pdm = { path = "pdm" }
 saelient = { git = "https://github.com/umi-eng/saelient.git", default-features = false }
