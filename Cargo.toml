@@ -9,6 +9,7 @@ members = [
     "pdm-tool",
     "st-driver",
     "vpd",
+    "xtask",
 ]
 
 [workspace.dependencies]
