@@ -2,7 +2,7 @@ use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
-use vpd::items::HardwareVersion;
+use vpd::otp::HardwareVersion;
 
 pub async fn startup(cx: startup::Context<'_>) {
     let can = cx.shared.can_tx;

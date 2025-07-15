@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 
-pub mod items;
+pub mod otp;
 
 use tlvc::{ChunkHandle, TlvcRead, TlvcReadError, TlvcReader};
 use zerocopy::{FromBytes, IntoBytes};
@@ -96,12 +96,12 @@ mod tests {
         .unwrap();
         let packed = tlvc_text::pack(&text);
 
-        let hw: items::HardwareVersion = read_from_slice(packed.as_slice()).unwrap();
+        let hw: otp::HardwareVersion = read_from_slice(packed.as_slice()).unwrap();
         assert_eq!(hw.major, 3);
         assert_eq!(hw.minor, 2);
         assert_eq!(hw.patch, 1);
 
-        let sn: items::SerialNumber = read_from_slice(packed.as_slice()).unwrap();
+        let sn: otp::SerialNumber = read_from_slice(packed.as_slice()).unwrap();
         assert_eq!(sn.year, 25);
         assert_eq!(sn.week, 51);
         assert_eq!(sn.sequence, 0x4104);
