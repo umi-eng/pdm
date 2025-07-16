@@ -47,3 +47,10 @@ impl Item for PubKey {
         *b"PUBK"
     }
 }
+
+/// Check type sizes at compile time.
+const _CHECK_SIZE: () = {
+    assert!(size_of::<HardwareVersion>() == 3);
+    assert!(size_of::<SerialNumber>() == 4);
+    assert!(size_of::<PubKey>() == 32);
+};
