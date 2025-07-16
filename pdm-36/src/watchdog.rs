@@ -43,8 +43,6 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
         }
 
         driver.enter_normal().await.ok().unwrap();
-
-        driver.output(1, true, 1023).await.ok().unwrap();
     }
 
     loop {
