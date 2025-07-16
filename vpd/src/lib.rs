@@ -17,8 +17,6 @@ pub trait Item {
 /// The first and only chunk must have the tag "VPD0" with the vital product
 /// data nested inside.
 pub fn read_from_slice<V: IntoBytes + FromBytes + Item>(storage: &[u8]) -> Result<V, Error<&[u8]>> {
-    let mut out = V::new_zeroed();
-
     let mut reader = TlvcReader::begin(storage).map_err(Error::Begin)?;
 
     let Ok(Some(chunk)) = reader.next() else {
@@ -31,6 +29,7 @@ pub fn read_from_slice<V: IntoBytes + FromBytes + Item>(storage: &[u8]) -> Resul
 
     let chunk = get_chunk_with_tag(chunk.read_as_chunks(), V::tag())?;
 
+    let mut out = V::new_zeroed();
     let len = chunk.len() as usize;
     if len > out.as_mut_bytes().len() {
         return Err(Error::ChunkSize);
