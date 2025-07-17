@@ -10,7 +10,7 @@ use base64::{Engine, prelude::BASE64_STANDARD};
 #[derive(Debug, clap::Parser)]
 pub struct Cmd {
     /// Base64 encoded private key seed.
-    #[clap(long, env = "FIRMWARE_PRIVKEY")]
+    #[clap(long, env = "FIRMWARE_PRIVKEY_SEED")]
     privkey_seed: String,
     /// Firmware binary.
     #[clap(long)]
