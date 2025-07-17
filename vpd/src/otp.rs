@@ -30,7 +30,7 @@ pub struct SerialNumber {
 
 impl Item for SerialNumber {
     fn tag() -> [u8; 4] {
-        *b"SN  "
+        *b"SERN"
     }
 }
 
