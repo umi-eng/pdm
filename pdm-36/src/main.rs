@@ -83,7 +83,7 @@ mod app {
 
     #[shared]
     struct Shared {
-        config: config::Config<'static>,
+        _config: config::Config<'static>,
         drivers: [Arbiter<StDriver>; 7],
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
@@ -229,7 +229,7 @@ mod app {
 
         (
             Shared {
-                config,
+                _config: config,
                 drivers: [drv_a, drv_b, drv_c, drv_d, drv_e, drv_f, drv_g],
                 can_tx,
                 can_properties,
@@ -254,7 +254,7 @@ mod app {
     }
 
     extern "Rust" {
-        #[task(shared = [&can_tx, &source_address, &config])]
+        #[task(shared = [&can_tx, &source_address])]
         async fn startup(cx: startup::Context);
 
         #[task(priority = 2, local = [wd, pwm], shared = [&drivers])]

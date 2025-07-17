@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use crate::hal;
 use core::ops::Range;
 use embassy_embedded_hal::adapter::BlockingAsync;
