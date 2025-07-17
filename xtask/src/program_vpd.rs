@@ -8,7 +8,7 @@ use std::io::Read;
 use std::{fs::File, path::PathBuf};
 use tlvc_text::{Piece, Tag};
 use vpd::Item;
-use vpd::items::{HardwareVersion, PubKey, SerialNumber};
+use vpd::otp::{HardwareVersion, PubKey, SerialNumber};
 use zerocopy::Immutable;
 use zerocopy::IntoBytes;
 
