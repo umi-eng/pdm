@@ -13,7 +13,6 @@ pub struct Cmd {
     #[clap(long, env = "FIRMWARE_PRIVKEY_SEED")]
     privkey_seed: String,
     /// Firmware binary.
-    #[clap(long)]
     firmware: PathBuf,
 }
 
@@ -31,12 +30,11 @@ impl Cmd {
         let sig = keypair.sign(&firmware);
         firmware.extend(&sig.to_bytes());
 
-        println!("sig len: {}", sig.to_bytes().len());
-
         // write signed firmware file
-        let path = self.firmware.clone();
-        let mut signed_file = File::create(path.with_extension("bin.signed"))?;
+        let path = self.firmware.clone().with_extension("bin.signed");
+        let mut signed_file = File::create(&path)?;
         signed_file.write(&firmware)?;
+        println!("Written {} bytes to {:?}", firmware.len(), path);
 
         Ok(())
     }
