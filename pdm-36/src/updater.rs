@@ -1,11 +1,14 @@
 use crate::Mono;
+use crate::config::otp_slice;
 use crate::hal;
+use embassy_boot::FirmwareUpdaterError;
 use hal::can;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;
 use saelient::diagnostic::*;
 use saelient::transport::*;
+use vpd::otp;
 
 use crate::app::updater;
 
@@ -14,11 +17,14 @@ pub async fn updater<'a>(cx: updater::Context<'_>) {
     let can_tx = cx.shared.can_tx;
     let source_address = *cx.shared.source_address;
 
+    let pubkey: otp::PubKey =
+        vpd::read_from_slice(&otp_slice()).expect("public key present in VPD");
+
     updater.mark_booted().await.unwrap();
 
     let mut storage = [0; 1024];
     let mut offset = 0;
-    let mut transfer = None;
+    let mut transfer: Option<Transfer<'_>> = None;
 
     while let Ok(frame) = cx.local.updater_rx.recv().await {
         let id = match frame.id() {
@@ -66,8 +72,74 @@ pub async fn updater<'a>(cx: updater::Context<'_>) {
                             }
                         }
                         Command::BootLoad => {
-                            defmt::info!("Marking firmware as updated.");
-                            updater.mark_updated().await.unwrap();
+                            defmt::info!("Verifying firmware update.");
+
+                            let Some(last_transfer_len) = transfer
+                                .as_ref()
+                                .and_then(|f| f.finished().and_then(|f| Some(f.len())))
+                            else {
+                                let response = MemoryAccessResponse::new(
+                                    Status::OperationFailed,
+                                    ErrorIndicator::AddressingGeneral,
+                                    req.length(),
+                                    0xFFFF,
+                                );
+
+                                can_tx
+                                    .access()
+                                    .await
+                                    .write(
+                                        &can::Frame::new_data(
+                                            response_id,
+                                            &<[u8; 8]>::from(&response),
+                                        )
+                                        .unwrap(),
+                                    )
+                                    .await;
+                                continue;
+                            };
+
+                            let update_len = offset + last_transfer_len as u32;
+                            let signature = &mut [0; 64];
+                            let sig_start = update_len - signature.len() as u32;
+
+                            updater.read_dfu(sig_start, signature).await.unwrap();
+
+                            match updater
+                                .verify_and_mark_updated(&pubkey.key, signature, update_len)
+                                .await
+                            {
+                                Ok(_) => {}
+                                Err(FirmwareUpdaterError::Signature(_)) => {
+                                    defmt::warn!("Signature verification failed.");
+
+                                    let response = MemoryAccessResponse::new(
+                                        Status::OperationFailed,
+                                        ErrorIndicator::Security,
+                                        req.length(),
+                                        0xFFFF,
+                                    );
+
+                                    can_tx
+                                        .access()
+                                        .await
+                                        .write(
+                                            &can::Frame::new_data(
+                                                response_id,
+                                                &<[u8; 8]>::from(&response),
+                                            )
+                                            .unwrap(),
+                                        )
+                                        .await;
+                                    continue;
+                                }
+                                Err(err) => {
+                                    defmt::error!(
+                                        "Some other error occurred during verification: {:?}",
+                                        err
+                                    );
+                                }
+                            }
 
                             let response = MemoryAccessResponse::new(
                                 Status::Proceed,

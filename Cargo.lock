@@ -890,6 +890,7 @@ dependencies = [
  "embassy-sync",
  "embedded-storage",
  "embedded-storage-async",
+ "salty",
  "signature",
 ]
 
