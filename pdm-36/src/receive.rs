@@ -97,7 +97,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                             let mut drivers =
                                 [drivers[3].access().await, drivers[4].access().await];
 
-                            for (n, (driver, channel)) in OUTPUT_MAP[13..24].iter().enumerate() {
+                            for (n, (driver, channel)) in OUTPUT_MAP[12..24].iter().enumerate() {
                                 let on = match states[n] {
                                     output::State::On => true,
                                     output::State::Off => false,
@@ -136,7 +136,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                             let mut drivers =
                                 [drivers[5].access().await, drivers[6].access().await];
 
-                            for (n, (driver, channel)) in OUTPUT_MAP[25..36].iter().enumerate() {
+                            for (n, (driver, channel)) in OUTPUT_MAP[24..36].iter().enumerate() {
                                 let on = match states[n] {
                                     output::State::On => true,
                                     output::State::Off => false,
