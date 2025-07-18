@@ -6,6 +6,7 @@ use std::{
 
 use anyhow::Result;
 use base64::{Engine, prelude::BASE64_STANDARD};
+use salty::Sha512;
 
 #[derive(Debug, clap::Parser)]
 pub struct Cmd {
@@ -26,8 +27,10 @@ impl Cmd {
         let mut firmware = Vec::new();
         firmware_file.read_to_end(&mut firmware)?;
 
+        let sum = Sha512::new().updated(&firmware).finalize();
+
         // add signature
-        let sig = keypair.sign(&firmware);
+        let sig = keypair.sign(&sum);
         firmware.extend(&sig.to_bytes());
 
         // write signed firmware file
