@@ -1,12 +1,11 @@
+use anyhow::Result;
+use base64::{Engine, prelude::BASE64_STANDARD};
+use salty::Sha512;
 use std::{
     fs::File,
     io::{Read, Write},
     path::PathBuf,
 };
-
-use anyhow::Result;
-use base64::{Engine, prelude::BASE64_STANDARD};
-use salty::Sha512;
 
 #[derive(Debug, clap::Parser)]
 pub struct Cmd {
