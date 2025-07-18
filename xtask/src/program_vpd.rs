@@ -8,6 +8,7 @@ use std::io::Read;
 use std::{fs::File, path::PathBuf};
 use tlvc_text::{Piece, Tag};
 use vpd::Item;
+use vpd::otp::PartNumber;
 use vpd::otp::{HardwareVersion, PubKey, SerialNumber};
 use zerocopy::Immutable;
 use zerocopy::IntoBytes;
@@ -107,6 +108,7 @@ impl VitalProductData {
             Tag::new(*b"VPD0"),
             vec![
                 chunk(&self.hardware_version),
+                chunk(&PartNumber(*b"PDM036")),
                 chunk(&self.serial_number),
                 chunk(&PubKey {
                     key: pubkey
