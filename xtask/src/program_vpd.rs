@@ -20,9 +20,6 @@ pub struct Cmd {
     /// VPD file in RON format.
     #[clap(long)]
     vpd: PathBuf,
-    /// Public key file.
-    #[clap(long)]
-    pubkey: PathBuf,
     /// Make probe-rs do a dry run.
     #[clap(long)]
     dry_run: bool,
@@ -30,16 +27,19 @@ pub struct Cmd {
 
 impl Cmd {
     pub fn run(self) -> Result<()> {
+        let pubkey = BASE64_STANDARD
+            .decode(include_str!("../pub.key").trim())
+            .unwrap();
+
         let mut file = File::open(self.vpd)?;
         let mut vpd_file = String::new();
         file.read_to_string(&mut vpd_file)?;
         let vpd: VitalProductData = toml::from_str(&vpd_file)?;
+        let vpd = vpd.pack(pubkey)?;
         println!("{:#?}", vpd);
-        let vpd = vpd.pack(signify_key_from_file(&self.pubkey)?)?;
 
         let mut data = Vec::new();
         vpd.append_to(&mut data);
-
         pad_to_double_word(&mut data);
 
         if data.len() > 1024 {
@@ -117,16 +117,4 @@ impl VitalProductData {
 
         Ok(piece)
     }
-}
-
-/// Read a signify key from a file.
-/// This discards the metadata at the beginning of the key.
-fn signify_key_from_file(path: &PathBuf) -> anyhow::Result<Vec<u8>> {
-    let mut public_key = File::open(path)?;
-    let mut key = String::new();
-    public_key.read_to_string(&mut key)?;
-    let key = key.split("\n").nth(1).unwrap();
-    let decoded = BASE64_STANDARD.decode(key)?;
-    let (_, key) = decoded.split_at(10);
-    Ok(key.to_owned())
 }
