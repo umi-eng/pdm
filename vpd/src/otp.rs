@@ -22,11 +22,11 @@ impl Item for HardwareVersion {
 #[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
-pub struct PartNumber(pub [u8; 6]);
+pub struct PartNumber(pub [u8; 5]);
 
 impl PartNumber {
     pub fn is_pdm36(&self) -> bool {
-        self.0 == *b"PDM036"
+        self.0 == *b"PDM36"
     }
 }
 
@@ -69,7 +69,7 @@ impl Item for PubKey {
 /// Check type sizes at compile time.
 const _CHECK_SIZE: () = {
     assert!(size_of::<HardwareVersion>() == 3);
-    assert!(size_of::<PartNumber>() == 6);
+    assert!(size_of::<PartNumber>() == 5);
     assert!(size_of::<SerialNumber>() == 4);
     assert!(size_of::<PubKey>() == 32);
 };

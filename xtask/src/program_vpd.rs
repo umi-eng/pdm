@@ -108,7 +108,7 @@ impl VitalProductData {
             Tag::new(*b"VPD0"),
             vec![
                 chunk(&self.hardware_version),
-                chunk(&PartNumber(*b"PDM036")),
+                chunk(&PartNumber(*b"PDM36")),
                 chunk(&self.serial_number),
                 chunk(&PubKey {
                     key: pubkey
