@@ -49,6 +49,7 @@ impl Cmd {
             ));
         }
 
+        println!("Writing {} bytes to OTP.", data.len());
         println!("Data: {:?}", data);
 
         let mut registry_file = File::open("xtask/STM32G4.yaml")?;
