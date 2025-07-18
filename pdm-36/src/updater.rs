@@ -175,10 +175,10 @@ pub async fn updater<'a>(cx: updater::Context<'_>) {
                 updater.write_firmware(offset as usize, data).await.unwrap();
                 respond_complete(can, source_address, id.sa(), data.len() as u16).await;
                 firmware_size += data.len() as u32;
-            }
 
-            // transfer finished
-            transfer = None;
+                // transfer finished
+                transfer = None;
+            }
         }
     }
 }
