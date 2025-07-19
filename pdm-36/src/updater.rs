@@ -11,13 +11,13 @@ use saelient::Pgn;
 use saelient::diagnostic::*;
 use saelient::transport::*;
 
-pub async fn updater<'a>(cx: updater::Context<'_>) {
+pub async fn updater(cx: updater::Context<'_>) {
     let updater = cx.local.updater;
     let can = cx.shared.can_tx;
     let source_address = *cx.shared.source_address;
 
     let pubkey: vpd::otp::PubKey =
-        vpd::read_from_slice(&otp_slice()).expect("public key present in VPD");
+        vpd::read_from_slice(otp_slice()).expect("public key present in VPD");
 
     updater.mark_booted().await.unwrap();
 
