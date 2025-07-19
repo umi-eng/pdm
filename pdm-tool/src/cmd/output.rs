@@ -2,8 +2,10 @@ use pdm::{Outputs, pdm36::Pdm36};
 
 #[derive(clap::Parser)]
 pub struct Cmd {
+    /// PWM duty (1.0 = 100%).
     #[clap(long)]
     pwm: Option<f32>,
+    /// Output state map (4=true 10=false etc.).
     #[clap(last = false)]
     outputs: Vec<String>,
 }
