@@ -20,7 +20,8 @@ pub const CURRENT_SENSE: Pgn = Pgn::ProprietaryB(0x10);
 pub const ANALOG_READINGS: Pgn = Pgn::ProprietaryB(0x11);
 
 /// Output state.
-#[derive(Debug, defmt::Format, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub enum OutputState {
     Off = 0,
     On = 1,

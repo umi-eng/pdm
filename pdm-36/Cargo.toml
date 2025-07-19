@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-messages.workspace = true
+messages = { workspace = true, features = ["defmt-1"] }
 saelient = { workspace = true, features = ["defmt-1"] }
 st-driver.workspace = true
 analog.workspace = true
