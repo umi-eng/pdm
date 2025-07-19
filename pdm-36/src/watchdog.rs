@@ -1,7 +1,9 @@
 use crate::app::*;
 use crate::{Mono, output};
 use rtic_monotonics::systick::prelude::*;
-use st_driver::vn9e30f::{CurrentSamplePoint, PwmFreq, PwmTrigger};
+use st_driver::vn9e30f::CurrentSamplePoint;
+use st_driver::vn9e30f::PwmFreq;
+use st_driver::vn9e30f::PwmTrigger;
 
 /// Watchdog handler task.
 ///

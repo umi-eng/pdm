@@ -3,12 +3,17 @@ use crate::output::OUTPUT_MAP;
 use crate::{Mono, app::current};
 use core::array::from_fn;
 use hal::can::Frame;
-use messages::{
-    CurrentSense, CurrentSenseMuxM0, CurrentSenseMuxM1, CurrentSenseMuxM2, CurrentSenseMuxM3,
-    CurrentSenseMuxM4, CurrentSenseMuxM5,
-};
+use messages::CurrentSense;
+use messages::CurrentSenseMuxM0;
+use messages::CurrentSenseMuxM1;
+use messages::CurrentSenseMuxM2;
+use messages::CurrentSenseMuxM3;
+use messages::CurrentSenseMuxM4;
+use messages::CurrentSenseMuxM5;
 use rtic_monotonics::systick::prelude::*;
-use saelient::signal::{Param8, Param10, Signal};
+use saelient::signal::Param8;
+use saelient::signal::Param10;
+use saelient::signal::Signal;
 use saelient::slot::Slot;
 use saelient::slot_impl;
 

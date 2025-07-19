@@ -1,12 +1,17 @@
+use crate::Mono;
+use crate::app::analog;
 use crate::hal;
-use crate::{Mono, app::analog};
-use ::analog::{MovingAvg, count_to_volts, divider_vin};
-use hal::adc::{Resolution, SampleTime};
+use ::analog::MovingAvg;
+use ::analog::count_to_volts;
+use ::analog::divider_vin;
+use hal::adc::Resolution;
+use hal::adc::SampleTime;
 use hal::can::Frame;
 use messages::AnalogInputs;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Signal;
-use saelient::slot::{SaeEV06, Slot};
+use saelient::slot::SaeEV06;
+use saelient::slot::Slot;
 
 const VREF: f32 = 3.300;
 const R1: f32 = 100_000.0;

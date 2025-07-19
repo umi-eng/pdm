@@ -4,15 +4,16 @@ use crate::hal;
 use core::ops::Range;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_stm32::flash::Blocking;
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::mutex::Mutex;
 use hal::flash;
 use rtic_sync::arbiter::Arbiter;
-use sequential_storage::{
-    Error,
-    cache::KeyPointerCache,
-    erase_all,
-    map::{Value, fetch_item, store_item},
-};
+use sequential_storage::Error;
+use sequential_storage::cache::KeyPointerCache;
+use sequential_storage::erase_all;
+use sequential_storage::map::Value;
+use sequential_storage::map::fetch_item;
+use sequential_storage::map::store_item;
 
 unsafe extern "C" {
     // These symbols come from the linker script (memory.x)
