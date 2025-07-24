@@ -1,6 +1,6 @@
-use messages::OutputState;
-
 pub mod pdm36;
+
+pub use messages::OutputState;
 
 /// Selection of one or more channels.
 #[derive(Debug)]
