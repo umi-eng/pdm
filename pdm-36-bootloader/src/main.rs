@@ -16,7 +16,7 @@ fn main() -> ! {
 
     let p = embassy_stm32::init(Default::default());
 
-    let mut wd = hal::wdg::IndependentWatchdog::new(p.IWDG, 1000000);
+    let mut wd = hal::wdg::IndependentWatchdog::new(p.IWDG, 5000000);
     wd.unleash();
 
     let layout = Flash::new_blocking(p.FLASH).into_blocking_regions();
