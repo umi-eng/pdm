@@ -15,5 +15,6 @@ embassy-boot-stm32 = { git = "https://github.com/embassy-rs/embassy.git" }
 embassy-stm32 = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "stm32g474ce",
     "single-bank",
+    "defmt",
 ] }
 embassy-sync = { git = "https://github.com/embassy-rs/embassy.git" }
