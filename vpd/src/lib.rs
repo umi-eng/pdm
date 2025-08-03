@@ -78,6 +78,23 @@ where
     ChunkSize,
 }
 
+#[cfg(feature = "defmt-1")]
+impl<R: TlvcRead> defmt::Format for Error<R> {
+    fn format(&self, fmt: defmt::Formatter) {
+        use defmt::write;
+
+        match self {
+            Error::Begin(_) => write!(fmt, "Begin error"),
+            Error::Read(_) => write!(fmt, "Read error"),
+            Error::Checksum(_) => write!(fmt, "Checksum invalid"),
+            Error::NextChunk(_) => write!(fmt, "Next chunk invalid"),
+            Error::NoSuchChunk(chunk) => write!(fmt, "No such chunk \"{}\"", chunk),
+            Error::NoRootChunk => write!(fmt, "No root chunk"),
+            Error::ChunkSize => write!(fmt, "Chunk size invalid"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

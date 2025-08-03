@@ -16,8 +16,14 @@ pub async fn updater(cx: updater::Context<'_>) {
     let can = cx.shared.can_tx;
     let source_address = *cx.shared.source_address;
 
-    let pubkey: vpd::otp::PubKey =
-        vpd::read_from_slice(otp_slice()).expect("public key present in VPD");
+    let pubkey: vpd::otp::PubKey = match vpd::read_from_slice(otp_slice()) {
+        Ok(key) => key,
+        Err(err) => {
+            defmt::error!("Failed to read public key from VPD: {}", err);
+            error::spawn().ok();
+            return;
+        }
+    };
 
     updater.mark_booted().await.unwrap();
 
