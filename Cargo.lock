@@ -2228,6 +2228,7 @@ dependencies = [
  "embassy-boot-stm32",
  "embassy-stm32",
  "embassy-sync",
+ "rtic-monotonics",
 ]
 
 [[package]]
