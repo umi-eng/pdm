@@ -44,7 +44,9 @@ pub async fn updater(cx: updater::Context<'_>) {
                     match req.command() {
                         Command::Erase => {
                             if let Pointer::Direct(_) = req.pointer() {
-                                updater.prepare_update().await.unwrap();
+                                if let Err(err) = updater.prepare_update().await {
+                                    defmt::error!("Failed to prepare update: {}", err);
+                                }
                                 firmware_size = 0;
                             }
                         }
@@ -178,12 +180,24 @@ pub async fn updater(cx: updater::Context<'_>) {
         // respond accordingly.
         if let Some(ongoing) = &mut transfer {
             if let Some(data) = ongoing.finished() {
-                updater.write_firmware(offset as usize, data).await.unwrap();
-                respond_complete(can, source_address, id.sa(), data.len() as u16).await;
-                firmware_size += data.len() as u32;
-
-                // transfer finished
-                transfer = None;
+                match updater.write_firmware(offset as usize, data).await {
+                    Ok(_) => {
+                        respond_complete(can, source_address, id.sa(), data.len() as u16).await;
+                        firmware_size += data.len() as u32;
+                        // transfer finished
+                        transfer = None;
+                    }
+                    Err(err) => {
+                        defmt::error!("Failed to write firmware block: {}", err);
+                        respond_failed(
+                            can,
+                            source_address,
+                            id.sa(),
+                            ErrorIndicator::AbortFromSoftwareProcess,
+                        )
+                        .await
+                    }
+                }
             }
         }
     }
