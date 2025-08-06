@@ -25,7 +25,9 @@ pub async fn updater(cx: updater::Context<'_>) {
         }
     };
 
-    updater.mark_booted().await.unwrap();
+    if let Err(err) = updater.mark_booted().await {
+        defmt::error!("Failed to mark boot successful: {}", err);
+    }
 
     let mut offset = 0;
     let mut storage = [0; 1024];
