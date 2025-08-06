@@ -11,7 +11,14 @@ pub async fn receive(cx: receive::Context<'_>) {
     let source_address = *cx.shared.source_address;
 
     loop {
-        let frame = can_rx.read().await.unwrap().frame;
+        let frame = match can_rx.read().await {
+            Ok(env) => env.frame,
+            Err(err) => {
+                defmt::warn!("CAN error: {}", err);
+                error::spawn().ok();
+                continue;
+            }
+        };
 
         let id = match frame.id() {
             embedded_can::Id::Extended(id) => Id::new(id.as_raw()),
