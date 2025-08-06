@@ -12,15 +12,10 @@ use hal::flash::Flash;
 use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick_monotonic;
 
-systick_monotonic!(Mono, 10_000);
-defmt::timestamp!("{=u64:tus}", Mono::now().duration_since_epoch().to_micros());
-
 #[cortex_m_rt::entry]
 fn main() -> ! {
     let c = unsafe { cortex_m::Peripherals::steal() };
     let p = embassy_stm32::init(Default::default());
-
-    Mono::start(c.SYST, 16_000_000);
 
     defmt::info!("Bootloader start");
 
