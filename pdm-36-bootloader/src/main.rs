@@ -9,12 +9,9 @@ use embassy_boot_stm32::*;
 use embassy_sync::blocking_mutex::Mutex;
 use hal::flash::BANK1_REGION;
 use hal::flash::Flash;
-use rtic_monotonics::Monotonic;
-use rtic_monotonics::systick_monotonic;
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
-    let c = unsafe { cortex_m::Peripherals::steal() };
     let p = embassy_stm32::init(Default::default());
 
     defmt::info!("Bootloader start");
