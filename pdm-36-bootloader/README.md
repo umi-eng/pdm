@@ -21,5 +21,5 @@ probe-rs download \
   --chip STM32G474CE \
   --base-address 0x08000000 \
   --binary-format bin \
-  pdm-36-bootloader-v0.1.0.bin
+  pdm-36-bootloader-v0.1.1.bin
 ```
