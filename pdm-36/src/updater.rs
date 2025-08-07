@@ -74,7 +74,24 @@ pub async fn updater(cx: updater::Context<'_>) {
                             // read signature from end of firmware
                             let signature = &mut [0; 64];
                             let end_of_firmware = firmware_size - signature.len() as u32;
-                            updater.read_dfu(end_of_firmware, signature).await.unwrap();
+
+                            match updater.read_dfu(end_of_firmware, signature).await {
+                                Ok(_) => {}
+                                Err(err) => {
+                                    defmt::error!(
+                                        "Failed to read signature from DFU section: {}",
+                                        err
+                                    );
+                                    respond_failed(
+                                        can,
+                                        source_address,
+                                        id.sa(),
+                                        ErrorIndicator::InternalFailure,
+                                    )
+                                    .await;
+                                    continue;
+                                }
+                            }
 
                             match updater
                                 .verify_and_mark_updated(&pubkey.key, signature, end_of_firmware)
