@@ -2,7 +2,9 @@
 
 # [Unreleased]
 
-# Changed
+# v0.1.1
+
+## Changed
 
 - Show error instead of panic when reading public key from VPD.
 - Show error instead of panic when CAN bus error occurs.
