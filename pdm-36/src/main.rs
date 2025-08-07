@@ -54,8 +54,8 @@ use rtic_sync::arbiter::spi::ArbiterDevice;
 use rtic_sync::channel::Receiver;
 use rtic_sync::channel::Sender;
 use rtic_sync::make_channel;
-use st_driver::Driver;
 use st_driver::DriverInterface;
+use st_driver::vn9e30f::Driver;
 
 systick_monotonic!(Mono, 10_000);
 defmt::timestamp!("{=u64:tus}", Mono::now().duration_since_epoch().to_micros());

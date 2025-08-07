@@ -6,7 +6,6 @@ edition = "2024"
 [dependencies]
 messages = { workspace = true, features = ["defmt-1"] }
 saelient = { workspace = true, features = ["defmt-1"] }
-st-driver.workspace = true
 analog.workspace = true
 vpd.workspace = true
 
@@ -41,6 +40,9 @@ embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
 ] }
 sequential-storage = { version = "4.0.3", features = ["defmt-03"] }
 paste = "1.0.15"
+st-driver = { git = "https://github.com/umi-eng/st-driver.git", version = "0.1.0", rev = "b137ba2b", features = [
+    "defmt-1",
+] }
 
 [features]
 disable-watchdog = []

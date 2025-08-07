@@ -7,14 +7,12 @@ members = [
     "pdm-36",
     "pdm-36-bootloader",
     "pdm-tool",
-    "st-driver",
     "vpd",
     "xtask",
 ]
 
 [workspace.dependencies]
 messages = { path = "messages" }
-st-driver = { path = "st-driver", features = ["defmt"] }
 vpd = { path = "vpd", features = ["defmt-1"] }
 analog = { path = "analog" }
 pdm = { path = "pdm" }

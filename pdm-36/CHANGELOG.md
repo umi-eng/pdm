@@ -2,6 +2,10 @@
 
 # [Unreleased]
 
+## Changed
+
+- Replace local `st-driver` crate with with external repo version.
+
 # v0.1.1
 
 ## Changed
