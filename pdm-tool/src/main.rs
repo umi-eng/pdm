@@ -23,6 +23,7 @@ impl Cli {
         match self.subcommand {
             Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
         }
     }
 }
@@ -33,6 +34,8 @@ enum Subcommand {
     Update(cmd::update::Cmd),
     /// Control outputs.
     Output(cmd::output::Cmd),
+    /// Read analog inputs.
+    Analog(cmd::analog::Cmd),
 }
 
 #[tokio::main]
