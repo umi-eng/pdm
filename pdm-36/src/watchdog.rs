@@ -2,6 +2,7 @@ use crate::app::*;
 use crate::{Mono, output};
 use rtic_monotonics::systick::prelude::*;
 use st_driver::vn9e30f::CurrentSamplePoint;
+use st_driver::vn9e30f::LatchOffTime;
 use st_driver::vn9e30f::PwmFreq;
 use st_driver::vn9e30f::PwmTrigger;
 
@@ -42,6 +43,12 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
                 .unwrap();
             // trigger sooner on the rising edge
             driver.pwm_trig(PwmTrigger::RisingEdge).await.ok().unwrap();
+            // have outputs latch off when reaching power limit
+            driver
+                .off_time(chan, LatchOffTime::LatchOff)
+                .await
+                .ok()
+                .unwrap();
         }
 
         driver.enter_normal().await.ok().unwrap();
