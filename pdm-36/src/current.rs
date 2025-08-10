@@ -53,7 +53,7 @@ pub async fn current(cx: current::Context<'_>) {
 
         // get current readins from drivers
         let mut results = [0.0; 36];
-        for (n, (driver, output)) in OUTPUT_MAP.iter().enumerate() {
+        for (n, (driver, output, _)) in OUTPUT_MAP.iter().enumerate() {
             let driver = &mut drivers[*driver as usize];
             let (sense, _) = driver.current_sense(*output).await.ok().unwrap();
 
