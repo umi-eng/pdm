@@ -253,6 +253,22 @@ mod app {
         )
     }
 
+    #[task(local = [led_act])]
+    async fn activity(cx: activity::Context) {
+        cx.local.led_act.set_high();
+        Mono::delay(20_u64.millis()).await;
+        cx.local.led_act.set_low();
+        Mono::delay(10_u64.millis()).await;
+    }
+
+    #[task(local = [led_err])]
+    async fn error(cx: error::Context) {
+        cx.local.led_err.set_high();
+        Mono::delay(450_u64.millis()).await;
+        cx.local.led_err.set_low();
+        Mono::delay(50_u64.millis()).await;
+    }
+
     extern "Rust" {
         #[task(shared = [&can_tx, &source_address])]
         async fn startup(cx: startup::Context);
@@ -277,21 +293,5 @@ mod app {
 
         #[task(shared = [&drivers, &can_tx, &source_address])]
         async fn current(cx: current::Context);
-    }
-
-    #[task(local = [led_act])]
-    async fn activity(cx: activity::Context) {
-        cx.local.led_act.set_high();
-        Mono::delay(20_u64.millis()).await;
-        cx.local.led_act.set_low();
-        Mono::delay(10_u64.millis()).await;
-    }
-
-    #[task(local = [led_err])]
-    async fn error(cx: error::Context) {
-        cx.local.led_err.set_high();
-        Mono::delay(450_u64.millis()).await;
-        cx.local.led_err.set_low();
-        Mono::delay(50_u64.millis()).await;
     }
 }
