@@ -2917,7 +2917,7 @@ dependencies = [
 [[package]]
 name = "st-driver"
 version = "0.1.0"
-source = "git+https://github.com/umi-eng/st-driver.git?rev=b532c2a#b532c2af09442ae40111c1c0a2e1f988468463a9"
+source = "git+https://github.com/umi-eng/st-driver.git?rev=adbb026#adbb026baebc8c25c1de2cb0a2287ecbbdeb6c56"
 dependencies = [
  "defmt 1.0.1",
  "device-driver",
