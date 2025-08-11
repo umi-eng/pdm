@@ -49,6 +49,8 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
                 .await
                 .ok()
                 .unwrap();
+            // mask vds turn-off
+            driver.vds_masking(chan, true).await.ok().unwrap();
         }
 
         driver.enter_normal().await.ok().unwrap();
