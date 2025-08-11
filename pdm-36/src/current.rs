@@ -1,4 +1,5 @@
 use crate::hal;
+use crate::output::ChanKind;
 use crate::output::OUTPUT_MAP;
 use crate::{Mono, app::current};
 use core::array::from_fn;
@@ -53,13 +54,32 @@ pub async fn current(cx: current::Context<'_>) {
 
         // get current readins from drivers
         let mut results = [0.0; 36];
-        for (n, (driver, output, _)) in OUTPUT_MAP.iter().enumerate() {
-            let driver = &mut drivers[*driver as usize];
-            let (sense, _) = driver.current_sense(*output).await.ok().unwrap();
+        for (n, (driver, output, kind)) in OUTPUT_MAP.iter().enumerate() {
+            let drv = &mut drivers[*driver as usize];
+            let (sense, new) = drv.current_sense(*output).await.ok().unwrap();
+
+            if new {
+                let limit = match kind {
+                    ChanKind::High => 9.0,
+                    ChanKind::Low => 3.0,
+                };
+
+                if sense > limit {
+                    defmt::warn!(
+                        "Output {} ({}{}) current limited {} > {}",
+                        n,
+                        driver,
+                        output,
+                        sense,
+                        limit
+                    );
+                    drv.output(*output, false, 0).await.ok().unwrap();
+                }
+            }
 
             // current measurements are only captured by the drive whilst the
             // output is turned on.
-            if driver.output_enabled(*output).await.unwrap_or(false) {
+            if drv.output_enabled(*output).await.unwrap_or(false) {
                 results[n] = sense;
             }
         }
