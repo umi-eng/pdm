@@ -67,7 +67,7 @@ pub async fn current(cx: current::Context<'_>) {
                 if sense > limit {
                     defmt::warn!(
                         "Output {} ({}{}) current limited {} > {}",
-                        n,
+                        n + 1,
                         driver,
                         output,
                         sense,
