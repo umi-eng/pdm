@@ -2,6 +2,11 @@
 
 # [Unreleased]
 
+## Added
+
+- Fixed soft limits for low and high-current outputs.
+- Automatic latch-off recovery.
+
 ## Changed
 
 - Replace local `st-driver` crate with with external repo version.
