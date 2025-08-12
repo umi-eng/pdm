@@ -34,7 +34,6 @@ jobs:
       - name: std crates
         run: |
           cargo check \
-            -p j1939 \
             -p messages \
             -p pdm \
             -p pdm-tool
