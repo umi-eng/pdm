@@ -2,6 +2,7 @@ use crate::app::*;
 use crate::{Mono, output};
 use rtic_monotonics::systick::prelude::*;
 use st_driver::vn9e30f::CurrentSamplePoint;
+use st_driver::vn9e30f::LatchOffTime;
 use st_driver::vn9e30f::PwmFreq;
 use st_driver::vn9e30f::PwmTrigger;
 
@@ -18,6 +19,8 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
     pwm_ch.enable();
 
     let drivers = cx.shared.drivers;
+
+    let latch_off_time = LatchOffTime::Time240ms;
 
     // initialise drivers
     for driver in drivers {
@@ -42,6 +45,10 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
                 .unwrap();
             // trigger sooner on the rising edge
             driver.pwm_trig(PwmTrigger::RisingEdge).await.ok().unwrap();
+            // have outputs latch off when reaching power limit
+            driver.off_time(chan, latch_off_time).await.ok().unwrap();
+            // mask vds turn-off
+            driver.vds_masking(chan, true).await.ok().unwrap();
         }
 
         driver.enter_normal().await.ok().unwrap();
@@ -60,6 +67,17 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
                 error::spawn().ok();
                 driver.enter_normal().await.ok().unwrap();
             }
+
+            if status.loff() {
+                for ch in 0..driver.channels() {
+                    let out_stat = driver.output_status(ch).await.ok().unwrap();
+                    if out_stat.channel_latch_off {
+                        driver.off_time(ch, latch_off_time).await.ok().unwrap();
+                    }
+                }
+            }
+
+            driver.clear_status().await.ok().unwrap();
         }
 
         cx.local.wd.pet();

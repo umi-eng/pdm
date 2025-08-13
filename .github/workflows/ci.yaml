@@ -34,11 +34,9 @@ jobs:
       - name: std crates
         run: |
           cargo check \
-            -p j1939 \
             -p messages \
             -p pdm \
-            -p pdm-tool \
-            -p st-driver \
+            -p pdm-tool
       - name: no_std crates
         run: |
           cargo check --target thumbv7em-none-eabihf \
@@ -63,7 +61,6 @@ jobs:
             -p messages \
             -p pdm \
             -p pdm-tool \
-            -p st-driver \
             -- -D warnings
       - name: no_std crates
         run: |
