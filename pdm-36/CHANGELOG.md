@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+# v0.1.2
+
 ## Added
 
 - Fixed soft limits for low and high-current outputs.
