@@ -72,6 +72,9 @@ pub async fn analog(cx: analog::Context<'_>) {
         }
 
         // convert to j1939 slot
+        //
+        // todo: failure of this conversion should result in a j1939 error
+        // indicator value being sent in the frame
         let ain_1 = SaeEV06::from_f32(ain_1_avg.avg().unwrap()).unwrap();
         let ain_2 = SaeEV06::from_f32(ain_2_avg.avg().unwrap()).unwrap();
         let ain_3 = SaeEV06::from_f32(ain_3_avg.avg().unwrap()).unwrap();
