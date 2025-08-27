@@ -49,9 +49,21 @@ impl Pdm36 {
 
         let mut chunks = outputs.as_slice().chunks(12);
 
-        let frames = [
-            {
-                let outputs = chunks.next().unwrap();
+        let mut frames = Vec::new();
+
+        // returns true if any of the given outputs require a state change
+        fn output_changed(outputs: &[OutputState]) -> bool {
+            for out in outputs {
+                if *out != OutputState::NoChange {
+                    return true;
+                }
+            }
+            false
+        }
+
+        {
+            let outputs = chunks.next().unwrap();
+            if output_changed(outputs) {
                 let mut mux = ControlMuxM0::new();
                 mux.set_output_1(outputs[0].into()).unwrap();
                 mux.set_output_2(outputs[1].into()).unwrap();
@@ -68,10 +80,13 @@ impl Pdm36 {
                 mux.set_pwm_duty_m0(duty).unwrap();
                 let mut frame = Control::new(0).unwrap();
                 frame.set_m0(mux).unwrap();
-                frame
-            },
-            {
-                let outputs = chunks.next().unwrap();
+                frames.push(frame);
+            }
+        }
+
+        {
+            let outputs = chunks.next().unwrap();
+            if output_changed(outputs) {
                 let mut mux = ControlMuxM1::new();
                 mux.set_output_13(outputs[0].into()).unwrap();
                 mux.set_output_14(outputs[1].into()).unwrap();
@@ -88,10 +103,13 @@ impl Pdm36 {
                 mux.set_pwm_duty_m1(duty).unwrap();
                 let mut frame = Control::new(0).unwrap();
                 frame.set_m1(mux).unwrap();
-                frame
-            },
-            {
-                let outputs = chunks.next().unwrap();
+                frames.push(frame);
+            }
+        }
+
+        {
+            let outputs = chunks.next().unwrap();
+            if output_changed(outputs) {
                 let mut mux = ControlMuxM2::new();
                 mux.set_output_25(outputs[0].into()).unwrap();
                 mux.set_output_26(outputs[1].into()).unwrap();
@@ -108,9 +126,9 @@ impl Pdm36 {
                 mux.set_pwm_duty_m2(duty).unwrap();
                 let mut frame = Control::new(0).unwrap();
                 frame.set_m2(mux).unwrap();
-                frame
-            },
-        ];
+                frames.push(frame);
+            }
+        }
 
         let id = saelient::Id::builder()
             .da(self.address)
