@@ -3,7 +3,7 @@ pub mod pdm36;
 pub use messages::OutputState;
 
 /// Selection of one or more channels.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Outputs<const N: usize>([OutputState; N]);
 
 impl<const N: usize> Outputs<N> {
