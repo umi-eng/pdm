@@ -24,6 +24,7 @@ impl Cli {
             Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
         }
     }
 }
@@ -36,6 +37,8 @@ enum Subcommand {
     Output(cmd::output::Cmd),
     /// Read analog inputs.
     Analog(cmd::analog::Cmd),
+    /// Read current sense.
+    Current(cmd::current::Cmd),
 }
 
 #[tokio::main]
