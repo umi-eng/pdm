@@ -3,7 +3,6 @@ use pdm::pdm36::Pdm36;
 #[derive(clap::Parser)]
 pub struct Cmd {
     /// Analog input selection.
-    #[clap(long)]
     input: usize,
 }
 
