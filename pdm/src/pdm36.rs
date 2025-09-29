@@ -2,13 +2,17 @@ use std::io;
 
 use embedded_can::Frame;
 use messages::{Control, ControlMuxM0, ControlMuxM1, ControlMuxM2, OutputState};
-use saelient::prelude::*;
+use saelient::slot_impl;
 use saelient::{
     PduFormat, Pgn,
     diagnostic::{Command, MemoryAccessRequest, MemoryAccessResponse, Pointer, Status},
+    signal::Param10,
+    slot::Slot,
     transport::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
 };
 use socketcan::{CanFrame, Id, tokio::CanSocket};
+
+slot_impl!(Current, Param10, 0.0, 0.01, "A", "Current - 10mA per bit");
 
 pub type Outputs = crate::Outputs<36>;
 
@@ -170,6 +174,68 @@ impl Pdm36 {
         };
 
         Ok(reading)
+    }
+
+    /// Get current sense reading for an output.
+    pub async fn current_sense(&self, output: usize) -> Result<f32, io::Error> {
+        loop {
+            let frame = self.wait_for_message(messages::CURRENT_SENSE).await?;
+
+            let mut sense = messages::CurrentSense::try_from(frame.data())
+                .map_err(|err| io::Error::other(err.to_string()))?;
+
+            let value = match (
+                output,
+                sense
+                    .mux()
+                    .map_err(|err| io::Error::other(err.to_string()))?,
+            ) {
+                (1, messages::CurrentSenseMuxIndex::M0(m)) => m.current_sense_1(),
+                (2, messages::CurrentSenseMuxIndex::M0(m)) => m.current_sense_2(),
+                (3, messages::CurrentSenseMuxIndex::M0(m)) => m.current_sense_3(),
+                (4, messages::CurrentSenseMuxIndex::M0(m)) => m.current_sense_4(),
+                (5, messages::CurrentSenseMuxIndex::M0(m)) => m.current_sense_5(),
+                (6, messages::CurrentSenseMuxIndex::M0(m)) => m.current_sense_6(),
+                (7, messages::CurrentSenseMuxIndex::M1(m)) => m.current_sense_7(),
+                (8, messages::CurrentSenseMuxIndex::M1(m)) => m.current_sense_8(),
+                (9, messages::CurrentSenseMuxIndex::M1(m)) => m.current_sense_9(),
+                (10, messages::CurrentSenseMuxIndex::M1(m)) => m.current_sense_10(),
+                (11, messages::CurrentSenseMuxIndex::M1(m)) => m.current_sense_11(),
+                (12, messages::CurrentSenseMuxIndex::M1(m)) => m.current_sense_12(),
+                (13, messages::CurrentSenseMuxIndex::M2(m)) => m.current_sense_13(),
+                (14, messages::CurrentSenseMuxIndex::M2(m)) => m.current_sense_14(),
+                (15, messages::CurrentSenseMuxIndex::M2(m)) => m.current_sense_15(),
+                (16, messages::CurrentSenseMuxIndex::M2(m)) => m.current_sense_16(),
+                (17, messages::CurrentSenseMuxIndex::M2(m)) => m.current_sense_17(),
+                (18, messages::CurrentSenseMuxIndex::M2(m)) => m.current_sense_18(),
+                (19, messages::CurrentSenseMuxIndex::M3(m)) => m.current_sense_19(),
+                (20, messages::CurrentSenseMuxIndex::M3(m)) => m.current_sense_20(),
+                (21, messages::CurrentSenseMuxIndex::M3(m)) => m.current_sense_21(),
+                (22, messages::CurrentSenseMuxIndex::M3(m)) => m.current_sense_22(),
+                (23, messages::CurrentSenseMuxIndex::M3(m)) => m.current_sense_23(),
+                (24, messages::CurrentSenseMuxIndex::M3(m)) => m.current_sense_24(),
+                (25, messages::CurrentSenseMuxIndex::M4(m)) => m.current_sense_25(),
+                (26, messages::CurrentSenseMuxIndex::M4(m)) => m.current_sense_26(),
+                (27, messages::CurrentSenseMuxIndex::M4(m)) => m.current_sense_27(),
+                (28, messages::CurrentSenseMuxIndex::M4(m)) => m.current_sense_28(),
+                (29, messages::CurrentSenseMuxIndex::M4(m)) => m.current_sense_29(),
+                (30, messages::CurrentSenseMuxIndex::M4(m)) => m.current_sense_30(),
+                (31, messages::CurrentSenseMuxIndex::M5(m)) => m.current_sense_31(),
+                (32, messages::CurrentSenseMuxIndex::M5(m)) => m.current_sense_32(),
+                (33, messages::CurrentSenseMuxIndex::M5(m)) => m.current_sense_33(),
+                (34, messages::CurrentSenseMuxIndex::M5(m)) => m.current_sense_34(),
+                (35, messages::CurrentSenseMuxIndex::M5(m)) => m.current_sense_35(),
+                (36, messages::CurrentSenseMuxIndex::M5(m)) => m.current_sense_36(),
+                _ => {
+                    continue;
+                }
+            };
+
+            // todo: handle other values by passing up to the caller.
+            if let Some(current) = Current::new(value.into()).as_f32() {
+                return Ok(current);
+            }
+        }
     }
 
     /// Perform the firmware update process.
