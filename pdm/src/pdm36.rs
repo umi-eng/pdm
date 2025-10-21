@@ -1,5 +1,3 @@
-use std::io;
-
 use embedded_can::Frame;
 use messages::{Control, ControlMuxM0, ControlMuxM1, ControlMuxM2, OutputState};
 use saelient::slot_impl;
@@ -11,6 +9,7 @@ use saelient::{
     transport::{ClearToSend, DataTransfer, EndOfMessageAck, RequestToSend},
 };
 use socketcan::{CanFrame, Id, tokio::CanSocket};
+use std::io;
 
 slot_impl!(Current, Param10, 0.0, 0.01, "A", "Current - 10mA per bit");
 
