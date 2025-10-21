@@ -20,6 +20,11 @@ pub async fn receive(cx: receive::Context<'_>) {
             }
         };
 
+        // ignore RTR frames
+        if frame.header().rtr() {
+            continue;
+        }
+
         let id = match frame.id() {
             embedded_can::Id::Extended(id) => Id::new(id.as_raw()),
             _ => continue,
