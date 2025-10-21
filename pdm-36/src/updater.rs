@@ -32,7 +32,7 @@ pub async fn updater(cx: updater::Context<'_>) {
     let mut offset = 0;
     let mut storage = [0; 1024];
     let mut transfer: Option<Transfer<'_>> = None;
-    let mut firmware_size = 0;
+    let mut firmware_size: u32 = 0;
 
     while let Ok(frame) = cx.local.updater_rx.recv().await {
         let id = match frame.id() {
@@ -73,7 +73,8 @@ pub async fn updater(cx: updater::Context<'_>) {
 
                             // read signature from end of firmware
                             let signature = &mut [0; 64];
-                            let end_of_firmware = firmware_size - signature.len() as u32;
+                            let end_of_firmware =
+                                firmware_size.saturating_sub(signature.len() as u32);
 
                             match updater.read_dfu(end_of_firmware, signature).await {
                                 Ok(_) => {}
