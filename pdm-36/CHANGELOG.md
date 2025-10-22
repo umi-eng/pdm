@@ -2,6 +2,10 @@
 
 # [Unreleased]
 
+- Fix possible underflow when calculating end of firmware position.
+- Ignore RTR frames.
+- Add wait after CAN error to avoid locking up for too long.
+- Fix backend being thumbv6 instead of thumbv7.
 - Remove use of `delay_until` and prefer simple `delay`.
 - Use 32-bit SysTick timer.
 
