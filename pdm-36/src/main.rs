@@ -58,7 +58,7 @@ use st_driver::DriverInterface;
 use st_driver::vn9e30f::Driver;
 
 systick_monotonic!(Mono, 10_000);
-defmt::timestamp!("{=u64:tus}", Mono::now().duration_since_epoch().to_micros());
+defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().to_micros());
 
 hal::bind_interrupts!(struct Irqs {
     FDCAN1_IT0 => can::IT0InterruptHandler<FDCAN1>;
@@ -256,17 +256,17 @@ mod app {
     #[task(local = [led_act])]
     async fn activity(cx: activity::Context) {
         cx.local.led_act.set_high();
-        Mono::delay(20_u64.millis()).await;
+        Mono::delay(20.millis()).await;
         cx.local.led_act.set_low();
-        Mono::delay(10_u64.millis()).await;
+        Mono::delay(10.millis()).await;
     }
 
     #[task(local = [led_err])]
     async fn error(cx: error::Context) {
         cx.local.led_err.set_high();
-        Mono::delay(450_u64.millis()).await;
+        Mono::delay(450.millis()).await;
         cx.local.led_err.set_low();
-        Mono::delay(50_u64.millis()).await;
+        Mono::delay(50.millis()).await;
     }
 
     extern "Rust" {

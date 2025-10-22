@@ -55,8 +55,6 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
     }
 
     loop {
-        let start = Mono::now();
-
         for (n, driver) in drivers.iter().enumerate() {
             let mut driver = driver.access().await;
             driver.toggle_watchdog().await.ok().unwrap();
@@ -82,6 +80,6 @@ pub async fn watchdog(cx: watchdog::Context<'_>) {
 
         cx.local.wd.pet();
 
-        Mono::delay_until(start + 20_u64.millis()).await;
+        Mono::delay(20.millis()).await;
     }
 }

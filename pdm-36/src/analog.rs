@@ -50,13 +50,11 @@ pub async fn analog(cx: analog::Context<'_>) {
     let mut ain_3_avg = MovingAvg::<f32, DEPTH>::new();
 
     // wait for adc to settle
-    Mono::delay(100_u64.millis()).await;
+    Mono::delay(100.millis()).await;
 
     loop {
         // sample many times
         for _ in 0..100 {
-            let start = Mono::now();
-
             // read inputs
             let ain_1 = count_to_volts(VREF, MAX_COUNT as f32, adc_4.blocking_read(ain_1) as f32);
             let ain_2 = count_to_volts(VREF, MAX_COUNT as f32, adc_3.blocking_read(ain_2) as f32);
@@ -68,7 +66,7 @@ pub async fn analog(cx: analog::Context<'_>) {
             ain_3_avg.push(divider_vin(R1, R2, ain_3));
 
             // wait for next tick
-            Mono::delay_until(start + 1_u64.millis()).await;
+            Mono::delay(10.millis()).await;
         }
 
         // convert to j1939 slot

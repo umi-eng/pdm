@@ -3,7 +3,7 @@ use crate::app::*;
 use crate::output;
 use crate::output::OUTPUT_MAP;
 use rtic_monotonics::Monotonic;
-use rtic_monotonics::fugit::ExtU64;
+use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;
 
@@ -18,7 +18,7 @@ pub async fn receive(cx: receive::Context<'_>) {
             Ok(env) => env.frame,
             Err(err) => {
                 defmt::warn!("CAN error: {}", err);
-                Mono::delay(1_u64.millis()).await;
+                Mono::delay(1.millis()).await;
                 error::spawn().ok();
                 continue;
             }

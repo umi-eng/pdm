@@ -40,8 +40,6 @@ pub async fn current(cx: current::Context<'_>) {
         .unwrap();
 
     loop {
-        let start = Mono::now();
-
         let mut drivers = [
             drivers[0].access().await,
             drivers[1].access().await,
@@ -163,9 +161,9 @@ pub async fn current(cx: current::Context<'_>) {
                 .await
                 .write(&Frame::new_data(id, frame.raw()).unwrap())
                 .await;
-            Mono::delay(1_u64.millis()).await;
+            Mono::delay(10.millis()).await;
         }
 
-        Mono::delay_until(start + 100_u64.millis()).await;
+        Mono::delay(100.millis()).await;
     }
 }

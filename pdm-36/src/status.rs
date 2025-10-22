@@ -22,8 +22,6 @@ pub async fn status(cx: status::Context<'_>) {
         .unwrap();
 
     loop {
-        let start = Mono::now();
-
         let mut max_temp = 0.0;
         for driver in drivers {
             let mut driver = driver.access().await;
@@ -57,6 +55,6 @@ pub async fn status(cx: status::Context<'_>) {
             }
         }
 
-        Mono::delay_until(start + 200_u64.millis()).await;
+        Mono::delay(200.millis()).await;
     }
 }

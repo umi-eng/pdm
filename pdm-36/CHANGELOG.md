@@ -2,6 +2,9 @@
 
 # [Unreleased]
 
+- Remove use of `delay_until` and prefer simple `delay`.
+- Use 32-bit SysTick timer.
+
 # v0.1.2
 
 ## Added
