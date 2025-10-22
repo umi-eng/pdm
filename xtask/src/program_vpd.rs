@@ -34,7 +34,7 @@ pub struct Cmd {
 impl Cmd {
     pub fn run(self) -> Result<()> {
         let pubkey = BASE64_STANDARD
-            .decode(include_str!("../pub.key").trim())
+            .decode(include_str!("../public.key").trim())
             .unwrap();
 
         let mut file = File::open(self.vpd)?;
