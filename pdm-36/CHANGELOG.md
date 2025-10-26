@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+# v0.1.3
+
 - Fix possible underflow when calculating end of firmware position.
 - Ignore RTR frames.
 - Add wait after CAN error to avoid locking up for too long.
