@@ -8,6 +8,7 @@
 - Fix backend being thumbv6 instead of thumbv7.
 - Remove use of `delay_until` and prefer simple `delay`.
 - Use 32-bit SysTick timer.
+- Show hardware version and serial number on startup.
 
 # v0.1.2
 

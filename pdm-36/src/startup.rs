@@ -3,6 +3,7 @@ use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
 use vpd::otp::HardwareVersion;
+use vpd::otp::SerialNumber;
 
 pub async fn startup(cx: startup::Context<'_>) {
     let can = cx.shared.can_tx;
@@ -22,6 +23,7 @@ pub async fn startup(cx: startup::Context<'_>) {
         minor: 0,
         patch: 0,
     });
+    defmt::info!("Hardware version: {:?}", hw);
 
     let data = messages::Startup::new(
         hw.major,
@@ -35,6 +37,13 @@ pub async fn startup(cx: startup::Context<'_>) {
         software,
     )
     .unwrap();
+
+    let sn: SerialNumber = vpd::read_from_slice(otp_slice()).unwrap_or(SerialNumber {
+        year: 0,
+        week: 0,
+        sequence: 0,
+    });
+    defmt::info!("Serial number: {}", sn);
 
     let id = saelient::Id::builder()
         .pgn(messages::STARTUP)

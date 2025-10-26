@@ -5,11 +5,17 @@ use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout, Unaligned};
 /// Hardware semantic-version.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, Unaligned, KnownLayout, Deserialize)]
 #[repr(C, packed)]
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub struct HardwareVersion {
     pub major: u8,
     pub minor: u8,
     pub patch: u8,
+}
+
+#[cfg(feature = "defmt-1")]
+impl defmt::Format for HardwareVersion {
+    fn format(&self, fmt: defmt::Formatter) {
+        defmt::write!(fmt, "v{}.{}.{}", self.major, self.minor, self.patch);
+    }
 }
 
 impl Item for HardwareVersion {
@@ -39,11 +45,17 @@ impl Item for PartNumber {
 /// Serial number.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub struct SerialNumber {
     pub year: u8,
     pub week: u8,
     pub sequence: u16,
+}
+
+#[cfg(feature = "defmt-1")]
+impl defmt::Format for SerialNumber {
+    fn format(&self, fmt: defmt::Formatter) {
+        defmt::write!(fmt, "{:02}{:02}-{:X}", self.year, self.week, self.sequence);
+    }
 }
 
 impl Item for SerialNumber {
