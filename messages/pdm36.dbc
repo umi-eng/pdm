@@ -87,7 +87,7 @@ BO_ 419364949 Startup: 8 Vector__XXX
  SG_ Reset_Cause_Watchdog : 49|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
  SG_ Reset_Cause_Software : 50|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
 
-BO_ 419365205 System_Status: 8 Vector__XXX
+BO_ 419369557 System_Status: 8 Vector__XXX
  SG_ CAN_RX_Errors : 8|8@1+ (1,0) [0|255] "Count" Vector__XXX
  SG_ CAN_TX_Errors : 16|8@1+ (1,0) [0|255] "Count" Vector__XXX
  SG_ Temperature : 24|8@1+ (1,0) [0|255] "Celsius" Vector__XXX

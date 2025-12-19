@@ -5,7 +5,7 @@
 #![allow(clippy::excessive_precision, clippy::manual_range_contains, clippy::absurd_extreme_comparisons, clippy::too_many_arguments)]
 #![deny(clippy::arithmetic_side_effects)]
 
-//! Message definitions from file `"pdm-36.dbc"`
+//! Message definitions from file `"pdm36"`
 //!
 //! - Version: `Version("")`
 
@@ -2420,7 +2420,7 @@ impl defmt::Format for Startup {
 
 /// System_Status
 ///
-/// - Standard ID: 341 (0x155)
+/// - Standard ID: 4693 (0x1255)
 /// - Size: 8 bytes
 #[derive(Clone, Copy)]
 pub struct SystemStatus {
@@ -2428,7 +2428,7 @@ pub struct SystemStatus {
 }
 
 impl SystemStatus {
-    pub const MESSAGE_ID: embedded_can::Id = Id::Standard(unsafe { StandardId::new_unchecked(0x155)});
+    pub const MESSAGE_ID: embedded_can::Id = Id::Standard(unsafe { StandardId::new_unchecked(0x1255)});
     
     pub const CAN_RX_ERRORS_MIN: u8 = 0_u8;
     pub const CAN_RX_ERRORS_MAX: u8 = 255_u8;
