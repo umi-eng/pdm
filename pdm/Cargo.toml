@@ -13,3 +13,9 @@ socketcan = { version = "3.5.0", features = ["tokio"] }
 [dev-dependencies]
 tokio = { version = "1.45.1", features = ["full"] }
 tracing-subscriber = "0.3.19"
+
+[features]
+default = ["pdm20", "pdm36"]
+
+pdm20 = []
+pdm36 = []
