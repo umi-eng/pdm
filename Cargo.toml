@@ -4,6 +4,8 @@ members = [
     "analog",
     "messages",
     "pdm",
+    "pdm-20",
+    "pdm-20-bootloader",
     "pdm-36",
     "pdm-36-bootloader",
     "pdm-tool",

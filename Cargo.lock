@@ -2105,6 +2105,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "pdm-20"
+version = "0.1.0"
+dependencies = [
+ "analog",
+ "cortex-m",
+ "defmt 1.0.1",
+ "defmt-rtt",
+ "embassy-boot",
+ "embassy-boot-stm32",
+ "embassy-embedded-hal",
+ "embassy-stm32",
+ "embassy-sync",
+ "embedded-can",
+ "messages",
+ "panic-probe",
+ "paste",
+ "rtic",
+ "rtic-monotonics",
+ "rtic-sync",
+ "saelient",
+ "sequential-storage",
+ "vpd",
+]
+
+[[package]]
+name = "pdm-20-bootloader"
+version = "0.1.0"
+dependencies = [
+ "cortex-m",
+ "cortex-m-rt",
+ "defmt 1.0.1",
+ "defmt-rtt",
+ "embassy-boot-stm32",
+ "embassy-stm32",
+ "embassy-sync",
+]
+
+[[package]]
 name = "pdm-36"
 version = "0.1.3"
 dependencies = [

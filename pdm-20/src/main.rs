@@ -1,0 +1,246 @@
+#![no_std]
+#![no_main]
+
+mod config;
+mod driver;
+mod receive;
+mod startup;
+mod status;
+mod updater;
+
+use receive::*;
+use startup::*;
+use status::*;
+use updater::*;
+
+use defmt_rtt as _;
+use embassy_stm32 as hal;
+use panic_probe as _;
+
+use core::mem::MaybeUninit;
+use driver::DualChannel;
+use driver::SingleChannel;
+use embassy_boot_stm32::*;
+use embassy_embedded_hal::adapter::BlockingAsync;
+use embassy_embedded_hal::flash::partition::Partition;
+use embassy_stm32::can::Frame;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::mutex::Mutex;
+use hal::adc;
+use hal::can;
+use hal::flash;
+use hal::flash::Blocking;
+use hal::gpio::Input;
+use hal::gpio::Level;
+use hal::gpio::Output;
+use hal::gpio::Pull;
+use hal::gpio::Speed;
+use hal::peripherals::*;
+use hal::time::*;
+use hal::wdg;
+use rtic_monotonics::systick::prelude::*;
+use rtic_monotonics::systick_monotonic;
+use rtic_sync::arbiter::Arbiter;
+use rtic_sync::channel::Receiver;
+use rtic_sync::channel::Sender;
+use rtic_sync::make_channel;
+
+systick_monotonic!(Mono, 10_000);
+defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().to_micros());
+
+hal::bind_interrupts!(struct Irqs {
+    FDCAN1_IT0 => can::IT0InterruptHandler<FDCAN1>;
+    FDCAN1_IT1 => can::IT1InterruptHandler<FDCAN1>;
+});
+
+pub mod pac {
+    pub use embassy_stm32::pac::Interrupt as interrupt;
+    pub use embassy_stm32::pac::*;
+}
+
+#[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
+mod app {
+
+    use super::*;
+
+    /// Shared flash partition type signature
+    type FlashPartition =
+        Partition<'static, NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>;
+
+    #[shared]
+    struct Shared {
+        _config: config::Config<'static>,
+        can_tx: Arbiter<can::CanTx<'static>>,
+        can_properties: can::Properties,
+        source_address: u8,
+        drivers_high_current: [SingleChannel<'static>; 4],
+        drivers_low_current: [DualChannel<'static>; 8],
+        adc1: adc::Adc<'static, ADC1>,
+    }
+
+    #[local]
+    struct Local {
+        wd: wdg::IndependentWatchdog<'static, IWDG>,
+        updater: FirmwareUpdater<'static, FlashPartition, FlashPartition>,
+        led_err: Output<'static>,
+        led_act: Output<'static>,
+        can_rx: can::CanRx<'static>,
+        updater_tx: Sender<'static, Frame, 8>,
+        updater_rx: Receiver<'static, Frame, 8>,
+        temperature: adc::Temperature,
+    }
+
+    #[init(local = [
+        aligned_buffer: AlignedBuffer<8> = AlignedBuffer([0; flash::WRITE_SIZE]),
+        flash: MaybeUninit<
+            Mutex<NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>,
+        > = MaybeUninit::uninit(),
+    ])]
+    fn init(cx: init::Context) -> (Shared, Local) {
+        let mut config = hal::Config::default();
+        {
+            use embassy_stm32::rcc::*;
+            config.rcc.hse = Some(Hse {
+                freq: Hertz(24_000_000),
+                mode: HseMode::Oscillator,
+            });
+            config.rcc.pll = Some(Pll {
+                source: PllSource::HSE,
+                prediv: PllPreDiv::DIV6,
+                mul: PllMul::MUL80,
+                divp: Some(PllPDiv::DIV2), // ADC clock
+                divq: Some(PllQDiv::DIV4), // 80 Mhz for fdcan
+                divr: Some(PllRDiv::DIV2), // Main system clock at 160 MHz
+            });
+            config.rcc.mux.fdcansel = mux::Fdcansel::PLL1_Q;
+            config.rcc.mux.adc12sel = mux::Adcsel::PLL1_P;
+            config.rcc.mux.adc345sel = mux::Adcsel::SYS;
+            config.rcc.sys = Sysclk::PLL1_R;
+        }
+        let p = hal::init(config);
+
+        Mono::start(cx.core.SYST, 160_000_000);
+
+        // setup and start watchdog
+        let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 1000000);
+        wd.pet();
+
+        // flash and firmware update
+        let flash = flash::Flash::new_blocking(p.FLASH);
+        let flash = cx.local.flash.write(Mutex::new(BlockingAsync::new(flash)));
+        let config = FirmwareUpdaterConfig::from_linkerfile(flash, flash);
+        let updater = FirmwareUpdater::new(config, &mut cx.local.aligned_buffer.0);
+
+        // configuration store
+        let config = config::Config::new(flash);
+
+        // indicator leds
+        let led_err = Output::new(p.PD1, Level::Low, Speed::Low);
+        let led_act = Output::new(p.PD2, Level::Low, Speed::Low);
+
+        // can bus
+        let mut can = can::CanConfigurator::new(p.FDCAN1, p.PA11, p.PA12, Irqs);
+        can.properties().set_extended_filter(
+            can::filter::ExtendedFilterSlot::_0,
+            can::filter::ExtendedFilter::accept_all_into_fifo0(),
+        );
+        can.set_bitrate(500_000);
+        let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
+        let can_tx = Arbiter::new(can_tx);
+
+        // Addressing inputs
+        let adr0 = Input::new(p.PF9, Pull::Up).is_low();
+        let adr1 = Input::new(p.PF10, Pull::Up).is_low();
+        let source_address = (adr0 as u8) | ((adr1 as u8) << 1);
+        let source_address = source_address + 0x50;
+
+        // Inter-task communication
+        let (updater_tx, updater_rx) = make_channel!(Frame, 8);
+
+        let drivers_high_current = [
+            SingleChannel::new(p.PB14, p.PB10), // A (1)
+            SingleChannel::new(p.PB15, p.PB11), // B (2)
+            SingleChannel::new(p.PB12, p.PE14), // C (19)
+            SingleChannel::new(p.PB13, p.PE15), // D (20)
+        ];
+
+        let drivers_low_current = [
+            DualChannel::new(p.PC7, p.PC6, p.PA8), // A (4, 3)
+            DualChannel::new(p.PC9, p.PC8, p.PA9), // B (6, 5)
+            DualChannel::new(p.PB7, p.PB6, p.PD7), // C (7, 8)
+            DualChannel::new(p.PB5, p.PB4, p.PD6), // D (9, 10)
+            DualChannel::new(p.PD4, p.PD3, p.PD5), // E (11, 12)
+            DualChannel::new(p.PC3, p.PC2, p.PE4), // F (13, 14)
+            DualChannel::new(p.PC1, p.PC0, p.PE5), // G (15, 16)
+            DualChannel::new(p.PE3, p.PE2, p.PE6), // H (17, 18)
+        ];
+
+        let adc1 = adc::Adc::new(p.ADC1, Default::default());
+        let temperature = adc1.enable_temperature();
+
+        watchdog::spawn().unwrap();
+        startup::spawn().unwrap();
+
+        defmt::info!("init complete");
+
+        (
+            Shared {
+                _config: config,
+                can_tx,
+                can_properties,
+                source_address,
+                drivers_high_current,
+                drivers_low_current,
+                adc1,
+            },
+            Local {
+                wd,
+                updater,
+                led_err,
+                led_act,
+                can_rx,
+                updater_tx,
+                updater_rx,
+                temperature,
+            },
+        )
+    }
+
+    #[task(local = [led_act])]
+    async fn activity(cx: activity::Context) {
+        cx.local.led_act.set_high();
+        Mono::delay(20.millis()).await;
+        cx.local.led_act.set_low();
+        Mono::delay(10.millis()).await;
+    }
+
+    #[task(local = [led_err])]
+    async fn error(cx: error::Context) {
+        cx.local.led_err.set_high();
+        Mono::delay(450.millis()).await;
+        cx.local.led_err.set_low();
+        Mono::delay(50.millis()).await;
+    }
+
+    #[task(priority = 2, local = [wd])]
+    async fn watchdog(cx: watchdog::Context) {
+        loop {
+            cx.local.wd.pet();
+            Mono::delay(500.millis()).await;
+        }
+    }
+
+    extern "Rust" {
+        #[task(shared = [&can_tx, &source_address])]
+        async fn startup(cx: startup::Context);
+
+        #[task(priority = 1, local = [can_rx, updater_tx], shared = [&can_tx, &source_address, drivers_high_current, drivers_low_current])]
+        async fn receive(cx: receive::Context);
+
+        #[task(local = [updater, updater_rx], shared = [&can_tx, &source_address])]
+        async fn updater(cx: updater::Context);
+
+        #[task(local = [temperature], shared = [&can_tx, &can_properties, &source_address, adc1])]
+        async fn status(cx: status::Context);
+    }
+}
