@@ -3,7 +3,7 @@ use messages::OutputState;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::pgn;
-use saelient::{Id, Pgn};
+use saelient::Id;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
 
