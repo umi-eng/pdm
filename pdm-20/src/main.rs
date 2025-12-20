@@ -2,12 +2,14 @@
 #![no_main]
 
 mod config;
+mod current;
 mod driver;
 mod receive;
 mod startup;
 mod status;
 mod updater;
 
+use current::*;
 use receive::*;
 use startup::*;
 use status::*;
@@ -23,11 +25,13 @@ use driver::SingleChannel;
 use embassy_boot_stm32::*;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::flash::partition::Partition;
-use embassy_stm32::can::Frame;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::adc;
+use hal::adc::AdcChannel as _;
+use hal::adc::AnyAdcChannel;
 use hal::can;
+use hal::can::Frame;
 use hal::flash;
 use hal::flash::Blocking;
 use hal::gpio::Input;
@@ -58,9 +62,11 @@ pub mod pac {
     pub use embassy_stm32::pac::*;
 }
 
+/// Voltage reference voltage.
+pub const VREF_MV: u32 = 2500;
+
 #[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
-
     use super::*;
 
     /// Shared flash partition type signature
@@ -76,6 +82,10 @@ mod app {
         drivers_high_current: [SingleChannel<'static>; 4],
         drivers_low_current: [DualChannel<'static>; 8],
         adc1: adc::Adc<'static, ADC1>,
+        adc2: adc::Adc<'static, ADC2>,
+        adc3: adc::Adc<'static, ADC3>,
+        adc4: adc::Adc<'static, ADC4>,
+        adc5: adc::Adc<'static, ADC5>,
     }
 
     #[local]
@@ -157,25 +167,78 @@ mod app {
         // Inter-task communication
         let (updater_tx, updater_rx) = make_channel!(Frame, 8);
 
+        let adc1 = adc::Adc::new(p.ADC1, Default::default());
+        let adc2 = adc::Adc::new(p.ADC2, Default::default());
+        let adc3 = adc::Adc::new(p.ADC3, Default::default());
+        let adc4 = adc::Adc::new(p.ADC4, Default::default());
+        let adc5 = adc::Adc::new(p.ADC5, Default::default());
+
         let drivers_high_current = [
-            SingleChannel::new(p.PB14, p.PB10), // A (1)
-            SingleChannel::new(p.PB15, p.PB11), // B (2)
-            SingleChannel::new(p.PB12, p.PE14), // C (19)
-            SingleChannel::new(p.PB13, p.PE15), // D (20)
+            SingleChannel::new(p.PB14, p.PB10, AnalogCh::Adc3(p.PD12.degrade_adc())), // A (1)
+            SingleChannel::new(p.PB15, p.PB11, AnalogCh::Adc3(p.PD13.degrade_adc())), // B (2)
+            SingleChannel::new(p.PB12, p.PE14, AnalogCh::Adc3(p.PD10.degrade_adc())), // C (19)
+            SingleChannel::new(p.PB13, p.PE15, AnalogCh::Adc3(p.PD11.degrade_adc())), // D (20)
         ];
 
         let drivers_low_current = [
-            DualChannel::new(p.PC7, p.PC6, p.PA8), // A (4, 3)
-            DualChannel::new(p.PC9, p.PC8, p.PA9), // B (6, 5)
-            DualChannel::new(p.PB7, p.PB6, p.PD7), // C (7, 8)
-            DualChannel::new(p.PB5, p.PB4, p.PD6), // D (9, 10)
-            DualChannel::new(p.PD4, p.PD3, p.PD5), // E (11, 12)
-            DualChannel::new(p.PC3, p.PC2, p.PE4), // F (13, 14)
-            DualChannel::new(p.PC1, p.PC0, p.PE5), // G (15, 16)
-            DualChannel::new(p.PE3, p.PE2, p.PE6), // H (17, 18)
+            DualChannel::new(
+                p.PC7,
+                p.PC6,
+                p.PA8,
+                AnalogCh::Adc4(p.PD9.degrade_adc()),
+                AnalogCh::Adc4(p.PD8.degrade_adc()),
+            ), // A (4, 3)
+            DualChannel::new(
+                p.PC9,
+                p.PC8,
+                p.PA9,
+                AnalogCh::Adc4(p.PE11.degrade_adc()),
+                AnalogCh::Adc4(p.PE12.degrade_adc()),
+            ), // B (6, 5)
+            DualChannel::new(
+                p.PB7,
+                p.PB6,
+                p.PD7,
+                AnalogCh::Adc1(p.PB0.degrade_adc()),
+                AnalogCh::Adc1(p.PB1.degrade_adc()),
+            ), // C (7, 8)
+            DualChannel::new(
+                p.PB5,
+                p.PB4,
+                p.PD6,
+                AnalogCh::Adc3(p.PE7.degrade_adc()),
+                AnalogCh::Adc3(p.PE8.degrade_adc()),
+            ), // D (9, 10)
+            DualChannel::new(
+                p.PD4,
+                p.PD3,
+                p.PD5,
+                AnalogCh::Adc3(p.PE9.degrade_adc()),
+                AnalogCh::Adc3(p.PE10.degrade_adc()),
+            ), // E (11, 12)
+            DualChannel::new(
+                p.PC3,
+                p.PC2,
+                p.PE4,
+                AnalogCh::Adc2(p.PB2.degrade_adc()),
+                AnalogCh::Adc2(p.PA4.degrade_adc()),
+            ), // F (13, 14)
+            DualChannel::new(
+                p.PC1,
+                p.PC0,
+                p.PE5,
+                AnalogCh::Adc1(p.PA3.degrade_adc()),
+                AnalogCh::Adc1(p.PA2.degrade_adc()),
+            ), // G (15, 16)
+            DualChannel::new(
+                p.PE3,
+                p.PE2,
+                p.PE6,
+                AnalogCh::Adc1(p.PA1.degrade_adc()),
+                AnalogCh::Adc1(p.PA0.degrade_adc()),
+            ), // H (17, 18)
         ];
 
-        let adc1 = adc::Adc::new(p.ADC1, Default::default());
         let temperature = adc1.enable_temperature();
 
         watchdog::spawn().unwrap();
@@ -192,6 +255,10 @@ mod app {
                 drivers_high_current,
                 drivers_low_current,
                 adc1,
+                adc2,
+                adc3,
+                adc4,
+                adc5,
             },
             Local {
                 wd,
@@ -242,5 +309,32 @@ mod app {
 
         #[task(local = [temperature], shared = [&can_tx, &can_properties, &source_address, adc1])]
         async fn status(cx: status::Context);
+
+        #[task(
+            shared = [
+                &can_tx,
+                &source_address,
+                drivers_high_current,
+                drivers_low_current,
+                adc1,
+                adc2,
+                adc3,
+                adc4,
+                adc5,
+            ]
+        )]
+        async fn current(cx: current::Context);
     }
+}
+
+/// Analog channel.
+///
+/// Embassy doesn't provide an analog pin type that is generic over any ADC. As
+/// a result the user of this type must do the mapping to the ADC.
+pub enum AnalogCh {
+    Adc1(AnyAdcChannel<ADC1>),
+    Adc2(AnyAdcChannel<ADC2>),
+    Adc3(AnyAdcChannel<ADC3>),
+    Adc4(AnyAdcChannel<ADC4>),
+    Adc5(AnyAdcChannel<ADC5>),
 }

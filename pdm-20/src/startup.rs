@@ -59,5 +59,6 @@ pub async fn startup(cx: startup::Context<'_>) {
     receive::spawn().unwrap();
     updater::spawn().unwrap();
     status::spawn().unwrap();
+    current::spawn().unwrap();
     defmt::info!("startup complete");
 }
