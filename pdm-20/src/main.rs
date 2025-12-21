@@ -135,7 +135,7 @@ mod app {
                 divr: Some(PllRDiv::DIV2), // Main system clock at 160 MHz
             });
             config.rcc.mux.fdcansel = mux::Fdcansel::PLL1_Q;
-            config.rcc.mux.adc12sel = mux::Adcsel::PLL1_P;
+            config.rcc.mux.adc12sel = mux::Adcsel::SYS;
             config.rcc.mux.adc345sel = mux::Adcsel::SYS;
             config.rcc.sys = Sysclk::PLL1_R;
         }
