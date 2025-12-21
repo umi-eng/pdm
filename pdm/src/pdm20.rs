@@ -1,9 +1,13 @@
 use embedded_can::Frame;
+use embedded_can::Id;
 use messages::OutputState;
+use messages::pdm20::AnalogInputs;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::pgn;
-use saelient::Id;
+use saelient::PduFormat;
+use saelient::Pgn;
+use saelient::prelude::*;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
 
@@ -70,7 +74,7 @@ impl Pdm20 {
         let mut frame = Control::new(0).unwrap();
         frame.set_m0(mux).unwrap();
 
-        let id = Id::builder()
+        let id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
             .pgn(pgn::CONTROL)
@@ -83,5 +87,54 @@ impl Pdm20 {
             .await?;
 
         Ok(())
+    }
+
+    /// Read an analog input.
+    pub async fn analog_input(&self, input: usize) -> Result<f32, io::Error> {
+        let frame = self.wait_for_message(pgn::ANALOG).await?;
+
+        let analog = AnalogInputs::try_from(frame.data())
+            .map_err(|err| io::Error::other(err.to_string()))?;
+
+        let input = match input {
+            1 => analog.input_1(),
+            2 => analog.input_2(),
+            3 => analog.input_3(),
+            _ => return Err(io::Error::other("`input` out of bounds")),
+        };
+
+        let reading = saelient::slot::SaeEV06::new(input.into());
+
+        let Some(reading) = reading.as_f32() else {
+            return Err(io::Error::other(
+                "Could not convert parameter to real value",
+            ));
+        };
+
+        Ok(reading)
+    }
+
+    /// Wait for a message with a given PGN that is addressed to us.
+    async fn wait_for_message(&self, pgn: Pgn) -> Result<CanFrame, io::Error> {
+        log::debug!("Waiting for response with PGN: {:?}.", pgn);
+
+        loop {
+            let frame = self.interface.read_frame().await?;
+
+            let id = match frame.id() {
+                Id::Extended(id) => saelient::Id::from(id),
+                Id::Standard(_) => continue,
+            };
+
+            if let PduFormat::Pdu1(_) = id.pf() {
+                if id.da() != Some(0) {
+                    continue;
+                }
+            }
+
+            if id.pgn() == pgn && id.sa() == self.address {
+                return Ok(frame);
+            }
+        }
     }
 }

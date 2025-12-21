@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+mod analog;
 mod config;
 mod current;
 mod driver;
@@ -9,6 +10,7 @@ mod startup;
 mod status;
 mod updater;
 
+use analog::*;
 use current::*;
 use receive::*;
 use startup::*;
@@ -98,6 +100,9 @@ mod app {
         updater_tx: Sender<'static, Frame, 8>,
         updater_rx: Receiver<'static, Frame, 8>,
         temperature: adc::Temperature,
+        ain1: AnalogCh,
+        ain2: AnalogCh,
+        ain3: AnalogCh,
     }
 
     #[init(local = [
@@ -241,6 +246,10 @@ mod app {
 
         let temperature = adc1.enable_temperature();
 
+        let ain1 = AnalogCh::Adc2(p.PA6.degrade_adc());
+        let ain2 = AnalogCh::Adc2(p.PA7.degrade_adc());
+        let ain3 = AnalogCh::Adc2(p.PC4.degrade_adc());
+
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
 
@@ -269,6 +278,9 @@ mod app {
                 updater_tx,
                 updater_rx,
                 temperature,
+                ain1,
+                ain2,
+                ain3,
             },
         )
     }
@@ -324,6 +336,24 @@ mod app {
             ]
         )]
         async fn current(cx: current::Context);
+
+        #[task(
+            local = [
+                ain1,
+                ain2,
+                ain3,
+            ],
+            shared = [
+                &can_tx,
+                &source_address,
+                adc1,
+                adc2,
+                adc3,
+                adc4,
+                adc5,
+            ]
+        )]
+        async fn analog(cx: analog::Context);
     }
 }
 

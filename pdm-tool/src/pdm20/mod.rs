@@ -1,3 +1,4 @@
+pub mod analog;
 pub mod output;
 
 use crate::maybe_hex;
@@ -26,6 +27,7 @@ impl Cmd {
     pub async fn run(self) -> Result<()> {
         match self.subcommand {
             Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
         }
     }
 }
@@ -34,4 +36,6 @@ impl Cmd {
 enum Subcommand {
     /// Control outputs
     Output(output::Cmd),
+    /// Read analog inputs
+    Analog(analog::Cmd),
 }

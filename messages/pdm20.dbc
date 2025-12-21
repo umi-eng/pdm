@@ -73,3 +73,8 @@ BO_ 419369557 System_Status: 8 Vector__XXX
  SG_ CAN_RX_Errors : 8|8@1+ (1,0) [0|255] "Count" Vector__XXX
  SG_ CAN_TX_Errors : 16|8@1+ (1,0) [0|255] "Count" Vector__XXX
  SG_ Temperature : 24|8@1+ (1,0) [0|255] "Celsius" Vector__XXX
+
+BO_ 419369296 Analog_Inputs: 6 Vector__XXX
+ SG_ Input_1 : 0|16@1+ (1,0) [0|65535] "Analog input 1" Vector__XXX
+ SG_ Input_2 : 16|16@1+ (1,0) [0|65535] "Analog input 2" Vector__XXX
+ SG_ Input_3 : 32|16@1+ (1,0) [0|65535] "Analog input 3" Vector__XXX

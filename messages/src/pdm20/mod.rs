@@ -11,4 +11,6 @@ pub mod pgn {
     pub const STARTUP: Pgn = Pgn::ProprietaryB(0x00);
     /// System status message.
     pub const STATUS: Pgn = Pgn::ProprietaryB(0x10);
+    /// Analog readings message.
+    pub const ANALOG: Pgn = Pgn::ProprietaryB(0x11);
 }
