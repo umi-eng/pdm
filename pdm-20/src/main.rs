@@ -175,6 +175,7 @@ mod app {
         let adr1 = Input::new(p.PF10, Pull::Up).is_low();
         let source_address = (adr0 as u8) | ((adr1 as u8) << 1);
         let source_address = source_address + 0x50;
+        defmt::info!("Source address: 0x{:x}", source_address);
 
         // Inter-task communication
         let (updater_tx, updater_rx) = make_channel!(Frame, 8);
