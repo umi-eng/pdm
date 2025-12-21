@@ -50,6 +50,8 @@ use rtic_sync::arbiter::Arbiter;
 use rtic_sync::channel::Receiver;
 use rtic_sync::channel::Sender;
 use rtic_sync::make_channel;
+use rtic_sync::make_signal;
+use rtic_sync::signal;
 
 systick_monotonic!(Mono, 10_000);
 defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().to_micros());
@@ -77,7 +79,7 @@ mod app {
 
     #[shared]
     struct Shared {
-        _config: config::Config<'static>,
+        config: config::Config<'static>,
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
         source_address: u8,
@@ -106,6 +108,8 @@ mod app {
         ain1_pull: Output<'static>,
         ain2_pull: Output<'static>,
         ain3_pull: Output<'static>,
+        analog_reconfigure_send: signal::SignalWriter<'static, ()>,
+        analog_reconfigure: signal::SignalReader<'static, ()>,
     }
 
     #[init(local = [
@@ -252,6 +256,11 @@ mod app {
         let ain1 = AnalogCh::Adc2(p.PA6.degrade_adc());
         let ain2 = AnalogCh::Adc2(p.PA7.degrade_adc());
         let ain3 = AnalogCh::Adc2(p.PC4.degrade_adc());
+        let ain1_pull = Output::new(p.PC15, Level::High, Speed::Low);
+        let ain2_pull = Output::new(p.PC14, Level::High, Speed::Low);
+        let ain3_pull = Output::new(p.PC13, Level::High, Speed::Low);
+
+        let (analog_reconfigure_send, analog_reconfigure) = make_signal!(());
 
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
@@ -260,7 +269,7 @@ mod app {
 
         (
             Shared {
-                _config: config,
+                config,
                 can_tx,
                 can_properties,
                 source_address,
@@ -284,6 +293,11 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
+                ain1_pull,
+                ain2_pull,
+                ain3_pull,
+                analog_reconfigure_send,
+                analog_reconfigure,
             },
         )
     }
@@ -316,7 +330,7 @@ mod app {
         #[task(shared = [&can_tx, &source_address])]
         async fn startup(cx: startup::Context);
 
-        #[task(priority = 1, local = [can_rx, updater_tx], shared = [&can_tx, &source_address, drivers_high_current, drivers_low_current])]
+        #[task(priority = 1, local = [can_rx, updater_tx, analog_reconfigure_send], shared = [&config, &can_tx, &source_address, drivers_high_current, drivers_low_current])]
         async fn receive(cx: receive::Context);
 
         #[task(local = [updater, updater_rx], shared = [&can_tx, &source_address])]
@@ -345,8 +359,13 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
+                ain1_pull,
+                ain2_pull,
+                ain3_pull,
+                analog_reconfigure,
             ],
             shared = [
+                &config,
                 &can_tx,
                 &source_address,
                 adc1,

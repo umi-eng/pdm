@@ -1,9 +1,11 @@
 use crate::Mono;
 use crate::app::*;
 use messages::OutputState;
+use messages::pdm20::Configure;
+use messages::pdm20::ConfigureMuxIndex;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxIndex;
-use messages::pdm20::pgn::CONTROL;
+use messages::pdm20::pgn;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
@@ -12,6 +14,7 @@ use saelient::Pgn;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
+    let config = cx.shared.config;
     let can_rx = cx.local.can_rx;
     let source_address = *cx.shared.source_address;
     let mut drvh = cx.shared.drivers_high_current;
@@ -51,7 +54,7 @@ pub async fn receive(cx: receive::Context<'_>) {
             | Pgn::TransportProtocolDataTransfer => {
                 cx.local.updater_tx.send(frame).await.ok();
             }
-            CONTROL => {
+            pgn::CONTROL => {
                 if let Ok(mut output) = Control::try_from(frame.data()) {
                     match output.mux() {
                         Ok(ControlMuxIndex::M0(m0)) => {
@@ -103,7 +106,47 @@ pub async fn receive(cx: receive::Context<'_>) {
                             }
                         }
                         Err(_) => {
-                            defmt::error!("Failed to parse control mux value: {}", output.mux_raw())
+                            defmt::error!(
+                                "Failed to parse control mux value {} for control message",
+                                output.mux_raw()
+                            )
+                        }
+                    }
+                }
+            }
+            pgn::CONFIGURE => {
+                if let Ok(mut output) = Configure::try_from(frame.data()) {
+                    match output.mux() {
+                        Ok(ConfigureMuxIndex::M2(m2)) => {
+                            defmt::info!("Configure!");
+                            if let Err(err) = match m2.analog_input_1_pull_up() {
+                                0 => config.store_ain1_pull_up_enabled(&false).await,
+                                1 => config.store_ain1_pull_up_enabled(&true).await,
+                                _ => Ok(()),
+                            } {
+                                defmt::error!("Failed to update config value: {}", err);
+                            }
+                            if let Err(err) = match m2.analog_input_2_pull_up() {
+                                0 => config.store_ain2_pull_up_enabled(&false).await,
+                                1 => config.store_ain2_pull_up_enabled(&true).await,
+                                _ => Ok(()),
+                            } {
+                                defmt::error!("Failed to update config value: {}", err);
+                            }
+                            if let Err(err) = match m2.analog_input_3_pull_up() {
+                                0 => config.store_ain3_pull_up_enabled(&false).await,
+                                1 => config.store_ain3_pull_up_enabled(&true).await,
+                                _ => Ok(()),
+                            } {
+                                defmt::error!("Failed to update config value: {}", err);
+                            }
+                            cx.local.analog_reconfigure_send.write(());
+                        }
+                        Err(_) => {
+                            defmt::error!(
+                                "Failed to parse control mux value {} for config message",
+                                output.mux_raw()
+                            )
                         }
                     }
                 }

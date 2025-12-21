@@ -14,9 +14,14 @@ pub async fn analog(cx: analog::Context<'_>) {
         ain1,
         ain2,
         ain3,
+        ain1_pull,
+        ain2_pull,
+        ain3_pull,
+        analog_reconfigure,
         ..
     } = cx.local;
     let analog::SharedResources {
+        config,
         can_tx,
         source_address,
         mut adc1,
@@ -43,8 +48,35 @@ pub async fn analog(cx: analog::Context<'_>) {
         AnalogCh::Adc5(ch) => adc5.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
     };
 
+    let mut configure = async || {
+        match config.ain1_pull_up_enabled().await {
+            Ok(true) => ain1_pull.set_low(), // low is enabled
+            Ok(false) => ain1_pull.set_high(),
+            Err(err) => defmt::error!("Config read failed: {}", err),
+        }
+        match config.ain2_pull_up_enabled().await {
+            Ok(true) => ain2_pull.set_low(), // low is enabled
+            Ok(false) => ain2_pull.set_high(),
+            Err(err) => defmt::error!("Config read failed: {}", err),
+        }
+        match config.ain3_pull_up_enabled().await {
+            Ok(true) => ain3_pull.set_low(), // low is enabled
+            Ok(false) => ain3_pull.set_high(),
+            Err(err) => defmt::error!("Config read failed: {}", err),
+        }
+    };
+
+    configure().await;
+
     loop {
-        Mono::delay(100.millis()).await;
+        if Mono::timeout_after(100.millis(), analog_reconfigure.wait_fresh())
+            .await
+            .is_ok()
+        {
+            configure().await;
+            // restart the task loop
+            continue;
+        }
 
         let adc1 = convert_to_volts(read(ain1));
         let adc2 = convert_to_volts(read(ain2));

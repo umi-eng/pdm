@@ -19,6 +19,8 @@ use embedded_can::{Id, StandardId, ExtendedId};
 pub enum Messages {
     /// Control
     Control(Control),
+    /// Configure
+    Configure(Configure),
     /// Startup
     Startup(Startup),
     /// System_Status
@@ -34,6 +36,7 @@ impl Messages {
         
         let res = match id {
             Control::MESSAGE_ID => Messages::Control(Control::try_from(payload)?),
+            Configure::MESSAGE_ID => Messages::Configure(Configure::try_from(payload)?),
             Startup::MESSAGE_ID => Messages::Startup(Startup::try_from(payload)?),
             SystemStatus::MESSAGE_ID => Messages::SystemStatus(SystemStatus::try_from(payload)?),
             AnalogInputs::MESSAGE_ID => Messages::AnalogInputs(AnalogInputs::try_from(payload)?),
@@ -1109,6 +1112,286 @@ pub fn set_pwm_duty(&mut self, value: u8) -> Result<(), CanError> {
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[44..52].store_le(value);
+    Ok(())
+}
+
+}
+
+
+/// Configure
+///
+/// - Extended ID: 435113984 (0x19ef5000)
+/// - Size: 8 bytes
+#[derive(Clone, Copy)]
+pub struct Configure {
+    raw: [u8; 8],
+}
+
+impl Configure {
+    pub const MESSAGE_ID: embedded_can::Id = Id::Extended(unsafe { ExtendedId::new_unchecked(0x19ef5000)});
+    
+    pub const MUX_MIN: u8 = 0_u8;
+    pub const MUX_MAX: u8 = 15_u8;
+    pub const ANALOG_INPUT_1_PULL_UP_MIN: u8 = 0_u8;
+    pub const ANALOG_INPUT_1_PULL_UP_MAX: u8 = 3_u8;
+    pub const ANALOG_INPUT_2_PULL_UP_MIN: u8 = 0_u8;
+    pub const ANALOG_INPUT_2_PULL_UP_MAX: u8 = 3_u8;
+    pub const ANALOG_INPUT_3_PULL_UP_MIN: u8 = 0_u8;
+    pub const ANALOG_INPUT_3_PULL_UP_MAX: u8 = 3_u8;
+    
+    /// Construct new Configure from values
+    pub fn new(mux: u8) -> Result<Self, CanError> {
+        let mut res = Self { raw: [0u8; 8] };
+        res.set_mux(mux)?;
+        Ok(res)
+    }
+    
+    /// Access message payload raw value
+    pub fn raw(&self) -> &[u8; 8] {
+        &self.raw
+    }
+    
+    /// Get raw value of Mux
+    ///
+    /// - Start bit: 0
+    /// - Signal size: 4 bits
+    /// - Factor: 1
+    /// - Offset: 0
+    /// - Byte order: LittleEndian
+    /// - Value type: Unsigned
+    #[inline(always)]
+    pub fn mux_raw(&self) -> u8 {
+        let signal = self.raw.view_bits::<Lsb0>()[0..4].load_le::<u8>();
+        
+        let factor = 1;
+        u8::from(signal).saturating_mul(factor).saturating_add(0)
+    }
+    
+    pub fn mux(&mut self) -> Result<ConfigureMuxIndex, CanError> {
+        match self.mux_raw() {
+            2 => Ok(ConfigureMuxIndex::M2(ConfigureMuxM2{ raw: self.raw })),
+            multiplexor => Err(CanError::InvalidMultiplexor { message_id: Configure::MESSAGE_ID, multiplexor: multiplexor.into() }),
+        }
+    }
+    /// Set value of Mux
+    #[inline(always)]
+    fn set_mux(&mut self, value: u8) -> Result<(), CanError> {
+        if value < 0_u8 || 15_u8 < value {
+            return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+        }
+        let factor = 1;
+        let value = value.checked_sub(0)
+            .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+        let value = (value / factor) as u8;
+        
+        self.raw.view_bits_mut::<Lsb0>()[0..4].store_le(value);
+        Ok(())
+    }
+    
+    /// Set value of Mux
+    #[inline(always)]
+    pub fn set_m2(&mut self, value: ConfigureMuxM2) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(2)?;
+        Ok(())
+    }
+    
+}
+
+impl core::convert::TryFrom<&[u8]> for Configure {
+    type Error = CanError;
+    
+    #[inline(always)]
+    fn try_from(payload: &[u8]) -> Result<Self, Self::Error> {
+        if payload.len() != 8 { return Err(CanError::InvalidPayloadSize); }
+        let mut raw = [0u8; 8];
+        raw.copy_from_slice(&payload[..8]);
+        Ok(Self { raw })
+    }
+}
+
+impl embedded_can::Frame for Configure {
+    fn new(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
+        if id.into() != Self::MESSAGE_ID {
+            None
+        } else {
+            data.try_into().ok()
+        }
+    }
+
+    fn new_remote(_id: impl Into<Id>, _dlc: usize) -> Option<Self> {
+        unimplemented!()
+    }
+
+    fn is_extended(&self) -> bool {
+        match self.id() {
+            Id::Standard(_) => false,
+            Id::Extended(_) => true,
+        }
+    }
+
+    fn is_remote_frame(&self) -> bool {
+        false
+    }
+
+    fn id(&self) -> Id {
+        Self::MESSAGE_ID
+    }
+
+    fn dlc(&self) -> usize {
+        self.raw.len()
+    }
+
+    fn data(&self) -> &[u8] {
+        &self.raw
+    }
+}
+#[cfg(feature = "defmt-1")]
+impl defmt::Format for Configure {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f,
+            "Configure {{ }}",
+            );
+        }
+}
+
+/// Defined values for multiplexed signal Configure
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+pub enum ConfigureMuxIndex {
+    M2(ConfigureMuxM2),
+}
+
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[derive(Default)]
+pub struct ConfigureMuxM2 { raw: [u8; 8] }
+
+impl ConfigureMuxM2 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// Analog_Input_1_Pull_Up
+///
+/// - Min: 0
+/// - Max: 3
+/// - Unit: "Input 1 pull up enable"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn analog_input_1_pull_up(&self) -> u8 {
+    self.analog_input_1_pull_up_raw()
+}
+
+/// Get raw value of Analog_Input_1_Pull_Up
+///
+/// - Start bit: 4
+/// - Signal size: 2 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn analog_input_1_pull_up_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..6].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Analog_Input_1_Pull_Up
+#[inline(always)]
+pub fn set_analog_input_1_pull_up(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 3_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..6].store_le(value);
+    Ok(())
+}
+
+/// Analog_Input_2_Pull_Up
+///
+/// - Min: 0
+/// - Max: 3
+/// - Unit: "Input 2 pull up enable"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn analog_input_2_pull_up(&self) -> u8 {
+    self.analog_input_2_pull_up_raw()
+}
+
+/// Get raw value of Analog_Input_2_Pull_Up
+///
+/// - Start bit: 6
+/// - Signal size: 2 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn analog_input_2_pull_up_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[6..8].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Analog_Input_2_Pull_Up
+#[inline(always)]
+pub fn set_analog_input_2_pull_up(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 3_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[6..8].store_le(value);
+    Ok(())
+}
+
+/// Analog_Input_3_Pull_Up
+///
+/// - Min: 0
+/// - Max: 3
+/// - Unit: "Input 3 pull up enable"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn analog_input_3_pull_up(&self) -> u8 {
+    self.analog_input_3_pull_up_raw()
+}
+
+/// Get raw value of Analog_Input_3_Pull_Up
+///
+/// - Start bit: 8
+/// - Signal size: 2 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn analog_input_3_pull_up_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[8..10].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Analog_Input_3_Pull_Up
+#[inline(always)]
+pub fn set_analog_input_3_pull_up(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 3_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[8..10].store_le(value);
     Ok(())
 }
 

@@ -7,6 +7,8 @@ pub mod pgn {
 
     /// Output control messages.
     pub const CONTROL: Pgn = Pgn::ProprietaryA;
+    /// Configuration messages.
+    pub const CONFIGURE: Pgn = Pgn::ProprietaryA2;
     /// Power-on reset message.
     pub const STARTUP: Pgn = Pgn::ProprietaryB(0x00);
     /// System status message.

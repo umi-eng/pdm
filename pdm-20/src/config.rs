@@ -102,7 +102,7 @@ impl<'f> Store<'f> {
 #[macro_export]
 macro_rules! config_key {
     ($fn_name:ident, $key:expr, $type:ty, $default:expr) => {
-        pub async fn $fn_name(&self) -> Result<u8, Error<flash::Error>> {
+        pub async fn $fn_name(&self) -> Result<$type, Error<flash::Error>> {
             let mut store = self.store.access().await;
             store.fetch_item($key).await.map(|r| r.unwrap_or($default))
         }
@@ -130,4 +130,8 @@ impl<'f> Config<'f> {
             store: Arbiter::new(Store::new(flash)),
         }
     }
+
+    config_key!(ain1_pull_up_enabled, b"A1PU", bool, false);
+    config_key!(ain2_pull_up_enabled, b"A2PU", bool, false);
+    config_key!(ain3_pull_up_enabled, b"A3PU", bool, false);
 }
