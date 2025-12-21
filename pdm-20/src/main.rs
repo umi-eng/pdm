@@ -100,9 +100,12 @@ mod app {
         updater_tx: Sender<'static, Frame, 8>,
         updater_rx: Receiver<'static, Frame, 8>,
         temperature: adc::Temperature,
-        ain1: AnalogCh,
-        ain2: AnalogCh,
-        ain3: AnalogCh,
+        ain1: AnalogCh<'static>,
+        ain2: AnalogCh<'static>,
+        ain3: AnalogCh<'static>,
+        ain1_pull: Output<'static>,
+        ain2_pull: Output<'static>,
+        ain3_pull: Output<'static>,
     }
 
     #[init(local = [
@@ -361,10 +364,10 @@ mod app {
 ///
 /// Embassy doesn't provide an analog pin type that is generic over any ADC. As
 /// a result the user of this type must do the mapping to the ADC.
-pub enum AnalogCh {
-    Adc1(AnyAdcChannel<ADC1>),
-    Adc2(AnyAdcChannel<ADC2>),
-    Adc3(AnyAdcChannel<ADC3>),
-    Adc4(AnyAdcChannel<ADC4>),
-    Adc5(AnyAdcChannel<ADC5>),
+pub enum AnalogCh<'a> {
+    Adc1(AnyAdcChannel<'a, ADC1>),
+    Adc2(AnyAdcChannel<'a, ADC2>),
+    Adc3(AnyAdcChannel<'a, ADC3>),
+    Adc4(AnyAdcChannel<'a, ADC4>),
+    Adc5(AnyAdcChannel<'a, ADC5>),
 }
