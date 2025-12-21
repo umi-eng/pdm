@@ -31,24 +31,16 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::adc;
 use hal::adc::AdcChannel as _;
-use hal::adc::AnyAdcChannel;
 use hal::can;
-use hal::can::Frame;
 use hal::flash;
-use hal::flash::Blocking;
-use hal::gpio::Input;
-use hal::gpio::Level;
-use hal::gpio::Output;
-use hal::gpio::Pull;
-use hal::gpio::Speed;
+use hal::gpio::*;
 use hal::peripherals::*;
 use hal::time::*;
 use hal::wdg;
 use rtic_monotonics::systick::prelude::*;
 use rtic_monotonics::systick_monotonic;
 use rtic_sync::arbiter::Arbiter;
-use rtic_sync::channel::Receiver;
-use rtic_sync::channel::Sender;
+use rtic_sync::channel;
 use rtic_sync::make_channel;
 use rtic_sync::make_signal;
 use rtic_sync::signal;
@@ -73,9 +65,9 @@ pub const VREF_MV: u32 = 2500;
 mod app {
     use super::*;
 
+    type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
     /// Shared flash partition type signature
-    type FlashPartition =
-        Partition<'static, NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>;
+    type FlashPartition = Partition<'static, NoopRawMutex, FlashBlockingAsync>;
 
     #[shared]
     struct Shared {
@@ -100,8 +92,8 @@ mod app {
         led_err: Output<'static>,
         led_act: Output<'static>,
         can_rx: can::CanRx<'static>,
-        updater_tx: Sender<'static, Frame, 8>,
-        updater_rx: Receiver<'static, Frame, 8>,
+        updater_tx: channel::Sender<'static, can::Frame, 8>,
+        updater_rx: channel::Receiver<'static, can::Frame, 8>,
         temperature: adc::Temperature,
         ain1: AnalogCh<'static>,
         ain2: AnalogCh<'static>,
@@ -114,16 +106,14 @@ mod app {
 
     #[init(local = [
         aligned_buffer: AlignedBuffer<8> = AlignedBuffer([0; flash::WRITE_SIZE]),
-        flash: MaybeUninit<
-            Mutex<NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>,
-        > = MaybeUninit::uninit(),
+        flash: MaybeUninit<Mutex<NoopRawMutex, FlashBlockingAsync>> = MaybeUninit::uninit(),
     ])]
     fn init(cx: init::Context) -> (Shared, Local) {
         let mut config = hal::Config::default();
         {
             use embassy_stm32::rcc::*;
             config.rcc.hse = Some(Hse {
-                freq: Hertz(24_000_000),
+                freq: Hertz(24_000_000), // 24 MHz
                 mode: HseMode::Oscillator,
             });
             config.rcc.pll = Some(Pll {
@@ -131,7 +121,7 @@ mod app {
                 prediv: PllPreDiv::DIV6,
                 mul: PllMul::MUL80,
                 divp: None,
-                divq: Some(PllQDiv::DIV4), // 80 Mhz for fdcan
+                divq: Some(PllQDiv::DIV4), // 80 MHz for fdcan
                 divr: Some(PllRDiv::DIV2), // Main system clock at 160 MHz
             });
             config.rcc.mux.fdcansel = mux::Fdcansel::PLL1_Q;
@@ -178,7 +168,7 @@ mod app {
         defmt::info!("Source address: 0x{:x}", source_address);
 
         // Inter-task communication
-        let (updater_tx, updater_rx) = make_channel!(Frame, 8);
+        let (updater_tx, updater_rx) = make_channel!(can::Frame, 8);
 
         let adc1 = adc::Adc::new(p.ADC1, Default::default());
         let adc2 = adc::Adc::new(p.ADC2, Default::default());
@@ -396,9 +386,9 @@ mod app {
 /// Embassy doesn't provide an analog pin type that is generic over any ADC. As
 /// a result the user of this type must do the mapping to the ADC.
 pub enum AnalogCh<'a> {
-    Adc1(AnyAdcChannel<'a, ADC1>),
-    Adc2(AnyAdcChannel<'a, ADC2>),
-    Adc3(AnyAdcChannel<'a, ADC3>),
-    Adc4(AnyAdcChannel<'a, ADC4>),
-    Adc5(AnyAdcChannel<'a, ADC5>),
+    Adc1(adc::AnyAdcChannel<'a, ADC1>),
+    Adc2(adc::AnyAdcChannel<'a, ADC2>),
+    Adc3(adc::AnyAdcChannel<'a, ADC3>),
+    Adc4(adc::AnyAdcChannel<'a, ADC4>),
+    Adc5(adc::AnyAdcChannel<'a, ADC5>),
 }
