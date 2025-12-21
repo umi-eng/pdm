@@ -118,7 +118,6 @@ pub async fn receive(cx: receive::Context<'_>) {
                 if let Ok(mut output) = Configure::try_from(frame.data()) {
                     match output.mux() {
                         Ok(ConfigureMuxIndex::M2(m2)) => {
-                            defmt::info!("Configure!");
                             if let Err(err) = match m2.analog_input_1_pull_up() {
                                 0 => config.store_ain1_pull_up_enabled(&false).await,
                                 1 => config.store_ain1_pull_up_enabled(&true).await,
