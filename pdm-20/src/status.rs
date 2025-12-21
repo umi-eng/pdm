@@ -37,10 +37,10 @@ pub async fn status(cx: status::Context<'_>) {
             temperature,
         ) {
             Ok(data) => {
-                let _ = can
-                    .access()
+                can.access()
                     .await
-                    .write(&Frame::new_data(id, data.raw()).unwrap());
+                    .write(&Frame::new_data(id, data.raw()).unwrap())
+                    .await;
             }
             Err(_) => {
                 defmt::error!("Failed to build system status frame payload");

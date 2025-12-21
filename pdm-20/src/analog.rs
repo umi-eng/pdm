@@ -104,10 +104,11 @@ pub async fn analog(cx: analog::Context<'_>) {
             }
         };
 
-        let _ = can_tx
+        can_tx
             .access()
             .await
-            .write(&Frame::new_data(id, data.raw()).unwrap());
+            .write(&Frame::new_data(id, data.raw()).unwrap())
+            .await;
     }
 }
 
