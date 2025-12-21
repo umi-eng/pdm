@@ -90,6 +90,7 @@ mod app {
         adc3: adc::Adc<'static, ADC3>,
         adc4: adc::Adc<'static, ADC4>,
         adc5: adc::Adc<'static, ADC5>,
+        analog_reconfigure: signal::SignalWriter<'static, ()>,
     }
 
     #[local]
@@ -108,7 +109,6 @@ mod app {
         ain1_pull: Output<'static>,
         ain2_pull: Output<'static>,
         ain3_pull: Output<'static>,
-        analog_reconfigure_send: signal::SignalWriter<'static, ()>,
         analog_reconfigure: signal::SignalReader<'static, ()>,
     }
 
@@ -281,6 +281,7 @@ mod app {
                 adc3,
                 adc4,
                 adc5,
+                analog_reconfigure: analog_reconfigure_send,
             },
             Local {
                 wd,
@@ -297,7 +298,6 @@ mod app {
                 ain1_pull,
                 ain2_pull,
                 ain3_pull,
-                analog_reconfigure_send,
                 analog_reconfigure,
             },
         )
@@ -331,7 +331,18 @@ mod app {
         #[task(shared = [&can_tx, &source_address])]
         async fn startup(cx: startup::Context);
 
-        #[task(priority = 1, local = [can_rx, updater_tx, analog_reconfigure_send], shared = [&config, &can_tx, &source_address, drivers_high_current, drivers_low_current])]
+        #[task(
+            priority = 1,
+            local = [can_rx, updater_tx],
+            shared = [
+                &config,
+                &can_tx,
+                &source_address,
+                &analog_reconfigure,
+                drivers_high_current,
+                drivers_low_current
+            ]
+        )]
         async fn receive(cx: receive::Context);
 
         #[task(local = [updater, updater_rx], shared = [&can_tx, &source_address])]

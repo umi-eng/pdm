@@ -19,6 +19,7 @@ pub async fn receive(cx: receive::Context<'_>) {
     let source_address = *cx.shared.source_address;
     let mut drvh = cx.shared.drivers_high_current;
     let mut drvl = cx.shared.drivers_low_current;
+    let mut analog_reconfigure = cx.shared.analog_reconfigure.clone();
 
     loop {
         let frame = match can_rx.read().await {
@@ -139,7 +140,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                             } {
                                 defmt::error!("Failed to update config value: {}", err);
                             }
-                            cx.local.analog_reconfigure_send.write(());
+                            analog_reconfigure.write(());
                         }
                         Err(_) => {
                             defmt::error!(
