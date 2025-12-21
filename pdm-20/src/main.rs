@@ -130,7 +130,7 @@ mod app {
                 source: PllSource::HSE,
                 prediv: PllPreDiv::DIV6,
                 mul: PllMul::MUL80,
-                divp: Some(PllPDiv::DIV2), // ADC clock
+                divp: None,
                 divq: Some(PllQDiv::DIV4), // 80 Mhz for fdcan
                 divr: Some(PllRDiv::DIV2), // Main system clock at 160 MHz
             });
