@@ -2,6 +2,7 @@
 #![no_main]
 
 mod analog;
+pub(crate) mod blocking;
 mod config;
 mod current;
 mod driver;
