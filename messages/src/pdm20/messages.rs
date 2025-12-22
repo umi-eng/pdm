@@ -1132,6 +1132,14 @@ impl Configure {
     
     pub const MUX_MIN: u8 = 0_u8;
     pub const MUX_MAX: u8 = 15_u8;
+    pub const SYSTEM_RESTART_MIN: u8 = 0_u8;
+    pub const SYSTEM_RESTART_MAX: u8 = 3_u8;
+    pub const SYSTEM_RESET_MIN: u8 = 0_u8;
+    pub const SYSTEM_RESET_MAX: u8 = 3_u8;
+    pub const CAN_BITRATE_MIN: u8 = 0_u8;
+    pub const CAN_BITRATE_MAX: u8 = 255_u8;
+    pub const CAN_J1939_SOURCE_ADDRESS_MIN: u8 = 1_u8;
+    pub const CAN_J1939_SOURCE_ADDRESS_MAX: u8 = 255_u8;
     pub const ANALOG_INPUT_1_PULL_UP_MIN: u8 = 0_u8;
     pub const ANALOG_INPUT_1_PULL_UP_MAX: u8 = 3_u8;
     pub const ANALOG_INPUT_2_PULL_UP_MIN: u8 = 0_u8;
@@ -1169,6 +1177,8 @@ impl Configure {
     
     pub fn mux(&mut self) -> Result<ConfigureMuxIndex, CanError> {
         match self.mux_raw() {
+            0 => Ok(ConfigureMuxIndex::M0(ConfigureMuxM0{ raw: self.raw })),
+            1 => Ok(ConfigureMuxIndex::M1(ConfigureMuxM1{ raw: self.raw })),
             2 => Ok(ConfigureMuxIndex::M2(ConfigureMuxM2{ raw: self.raw })),
             multiplexor => Err(CanError::InvalidMultiplexor { message_id: Configure::MESSAGE_ID, multiplexor: multiplexor.into() }),
         }
@@ -1185,6 +1195,26 @@ impl Configure {
         let value = (value / factor) as u8;
         
         self.raw.view_bits_mut::<Lsb0>()[0..4].store_le(value);
+        Ok(())
+    }
+    
+    /// Set value of Mux
+    #[inline(always)]
+    pub fn set_m0(&mut self, value: ConfigureMuxM0) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(0)?;
+        Ok(())
+    }
+    
+    /// Set value of Mux
+    #[inline(always)]
+    pub fn set_m1(&mut self, value: ConfigureMuxM1) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(1)?;
         Ok(())
     }
     
@@ -1257,10 +1287,236 @@ impl defmt::Format for Configure {
         }
 }
 
+/// Defined values for CAN_Bitrate
+#[derive(Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+pub enum ConfigureCanBitrate {
+    X500KBitS,
+    X50KBitS,
+    X100KBitS,
+    X125KBitS,
+    X250KBitS,
+    X1MBitS,
+    NoChange,
+    _Other(u8),
+}
+
+impl From<ConfigureCanBitrate> for u8 {
+    fn from(val: ConfigureCanBitrate) -> u8 {
+        match val {
+            ConfigureCanBitrate::X500KBitS => 0,
+            ConfigureCanBitrate::X50KBitS => 1,
+            ConfigureCanBitrate::X100KBitS => 2,
+            ConfigureCanBitrate::X125KBitS => 3,
+            ConfigureCanBitrate::X250KBitS => 4,
+            ConfigureCanBitrate::X1MBitS => 5,
+            ConfigureCanBitrate::NoChange => 255,
+            ConfigureCanBitrate::_Other(x) => x,
+        }
+    }
+}
+
 /// Defined values for multiplexed signal Configure
 #[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
 pub enum ConfigureMuxIndex {
+    M0(ConfigureMuxM0),
+    M1(ConfigureMuxM1),
     M2(ConfigureMuxM2),
+}
+
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[derive(Default)]
+pub struct ConfigureMuxM0 { raw: [u8; 8] }
+
+impl ConfigureMuxM0 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// System_Restart
+///
+/// - Min: 0
+/// - Max: 3
+/// - Unit: "Perform a firmware restart after applying configuration"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn system_restart(&self) -> u8 {
+    self.system_restart_raw()
+}
+
+/// Get raw value of System_Restart
+///
+/// - Start bit: 4
+/// - Signal size: 2 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn system_restart_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..6].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of System_Restart
+#[inline(always)]
+pub fn set_system_restart(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 3_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..6].store_le(value);
+    Ok(())
+}
+
+/// System_Reset
+///
+/// - Min: 0
+/// - Max: 3
+/// - Unit: "Reset all configuration to factory defaults"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn system_reset(&self) -> u8 {
+    self.system_reset_raw()
+}
+
+/// Get raw value of System_Reset
+///
+/// - Start bit: 6
+/// - Signal size: 2 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn system_reset_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[6..8].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of System_Reset
+#[inline(always)]
+pub fn set_system_reset(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 3_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[6..8].store_le(value);
+    Ok(())
+}
+
+}
+
+#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[derive(Default)]
+pub struct ConfigureMuxM1 { raw: [u8; 8] }
+
+impl ConfigureMuxM1 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// CAN_Bitrate
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "CAN bitrate"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn can_bitrate(&self) -> ConfigureCanBitrate {
+    let signal = self.raw.view_bits::<Lsb0>()[4..8].load_le::<u8>();
+    
+    match signal {
+        0 => ConfigureCanBitrate::X500KBitS,
+        1 => ConfigureCanBitrate::X50KBitS,
+        2 => ConfigureCanBitrate::X100KBitS,
+        3 => ConfigureCanBitrate::X125KBitS,
+        4 => ConfigureCanBitrate::X250KBitS,
+        5 => ConfigureCanBitrate::X1MBitS,
+        255 => ConfigureCanBitrate::NoChange,
+        _ => ConfigureCanBitrate::_Other(self.can_bitrate_raw()),
+    }
+}
+
+/// Get raw value of CAN_Bitrate
+///
+/// - Start bit: 4
+/// - Signal size: 4 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn can_bitrate_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..8].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of CAN_Bitrate
+#[inline(always)]
+pub fn set_can_bitrate(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..8].store_le(value);
+    Ok(())
+}
+
+/// CAN_J1939_Source_Address
+///
+/// - Min: 1
+/// - Max: 255
+/// - Unit: "J1939 source address"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn can_j1939_source_address(&self) -> u8 {
+    self.can_j1939_source_address_raw()
+}
+
+/// Get raw value of CAN_J1939_Source_Address
+///
+/// - Start bit: 8
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn can_j1939_source_address_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[8..16].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of CAN_J1939_Source_Address
+#[inline(always)]
+pub fn set_can_j1939_source_address(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 1_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[8..16].store_le(value);
+    Ok(())
+}
+
 }
 
 #[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
