@@ -60,6 +60,8 @@ BO_ 2565821696 Control: 8 Vector__XXX
 
 BO_ 2582597632 Configure: 8 Vector__XXX
  SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ System_Restart m0 : 4|2@1+ (1,0) [0|3] "Perform a firmware restart after applying configuration" Vector__XXX
+ SG_ System_Reset m0 : 6|2@1+ (1,0) [0|3] "Reset all configuration to factory defaults" Vector__XXX
  SG_ CAN_Bitrate m1 : 4|4@1+ (1,0) [0|255] "CAN bitrate" Vector__XXX
  SG_ CAN_J1939_Source_Address m1 : 8|8@1+ (1,0) [1|255] "J1939 source address" Vector__XXX
  SG_ Analog_Input_1_Pull_Up m2 : 4|2@1+ (1,0) [0|3] "Input 1 pull up enable" Vector__XXX

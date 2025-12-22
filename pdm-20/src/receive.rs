@@ -119,6 +119,20 @@ pub async fn receive(cx: receive::Context<'_>) {
             pgn::CONFIGURE => {
                 if let Ok(mut output) = Configure::try_from(frame.data()) {
                     match output.mux() {
+                        Ok(ConfigureMuxIndex::M0(m0)) => {
+                            if m0.system_reset() == 1 {
+                                if let Err(err) = config.erase().await {
+                                    error::spawn().ok();
+                                    defmt::error!("Failed to erase config: {}", err);
+                                } else {
+                                    defmt::info!("Erased configuration");
+                                }
+                            }
+
+                            if m0.system_restart() == 1 {
+                                cortex_m::peripheral::SCB::sys_reset();
+                            }
+                        }
                         Ok(ConfigureMuxIndex::M1(m1)) => {
                             match m1.can_j1939_source_address() {
                                 0xFF => {} // no change

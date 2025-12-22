@@ -131,6 +131,11 @@ impl<'f> Config<'f> {
         }
     }
 
+    /// Erase all configuration contents.
+    pub async fn erase(&self) -> Result<(), Error<flash::Error>> {
+        self.store.access().await.erase_all().await
+    }
+
     // CAN/J1939
     config_key!(can_bus_bitrate, b"CBBR", u32, 500_000);
     config_key!(can_bus_source_address, b"CBSA", u8, 0x50);
