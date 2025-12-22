@@ -79,7 +79,8 @@ mod app {
         Partition<'static, NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>;
 
     /// ST driver and SPI interface type signature
-    pub type StDriver = Driver<'static, spi::Spi<'static, Async>, Output<'static>, Mono>;
+    pub type StDriver =
+        Driver<'static, spi::Spi<'static, Async, spi::mode::Master>, Output<'static>, Mono>;
 
     #[shared]
     struct Shared {
@@ -110,7 +111,7 @@ mod app {
     #[init(local = [
         aligned_buffer: AlignedBuffer<8> = AlignedBuffer([0; flash::WRITE_SIZE]),
         spi: MaybeUninit<
-            Arbiter<spi::Spi<'static, Async>>
+            Arbiter<spi::Spi<'static, Async, spi::mode::Master>>
         > = MaybeUninit::uninit(),
         flash: MaybeUninit<
             Mutex<NoopRawMutex, BlockingAsync<flash::Flash<'static, Blocking>>>,
@@ -207,8 +208,8 @@ mod app {
         );
 
         // Analog inputs
-        let adc_3 = adc::Adc::new(p.ADC3);
-        let adc_4 = adc::Adc::new(p.ADC4);
+        let adc_3 = adc::Adc::new(p.ADC3, Default::default());
+        let adc_4 = adc::Adc::new(p.ADC4, Default::default());
         let ain_1 = p.PB12;
         let ain_2 = p.PB13;
         let ain_3 = p.PB14;

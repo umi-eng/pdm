@@ -1,0 +1,92 @@
+VERSION ""
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: PDM
+
+BO_ 2565821696 Control: 8 Vector__XXX
+ SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ Output_1 m0 : 4|2@1+ (1,0) [0|3] "High-current output 1" Vector__XXX
+ SG_ Output_2 m0 : 6|2@1+ (1,0) [0|3] "High-current output 2" Vector__XXX
+ SG_ Output_3 m0 : 8|2@1+ (1,0) [0|3] "Output 3" Vector__XXX
+ SG_ Output_4 m0 : 10|2@1+ (1,0) [0|3] "Output 4" Vector__XXX
+ SG_ Output_5 m0 : 12|2@1+ (1,0) [0|3] "Output 5" Vector__XXX
+ SG_ Output_6 m0 : 14|2@1+ (1,0) [0|3] "Output 6" Vector__XXX
+ SG_ Output_7 m0 : 16|2@1+ (1,0) [0|3] "Output 7" Vector__XXX
+ SG_ Output_8 m0 : 18|2@1+ (1,0) [0|3] "Output 8" Vector__XXX
+ SG_ Output_9 m0 : 20|2@1+ (1,0) [0|3] "Output 9" Vector__XXX
+ SG_ Output_10 m0 : 22|2@1+ (1,0) [0|3] "Output 10" Vector__XXX
+ SG_ Output_11 m0 : 24|2@1+ (1,0) [0|3] "Output 11" Vector__XXX
+ SG_ Output_12 m0 : 26|2@1+ (1,0) [0|3] "Output 12" Vector__XXX
+ SG_ Output_13 m0 : 28|2@1+ (1,0) [0|3] "Output 13" Vector__XXX
+ SG_ Output_14 m0 : 30|2@1+ (1,0) [0|3] "Output 14" Vector__XXX
+ SG_ Output_15 m0 : 32|2@1+ (1,0) [0|3] "Output 15" Vector__XXX
+ SG_ Output_16 m0 : 34|2@1+ (1,0) [0|3] "Output 16" Vector__XXX
+ SG_ Output_17 m0 : 36|2@1+ (1,0) [0|3] "Output 17" Vector__XXX
+ SG_ Output_18 m0 : 38|2@1+ (1,0) [0|3] "Output 18" Vector__XXX
+ SG_ Output_19 m0 : 40|2@1+ (1,0) [0|3] "High-current output 19" Vector__XXX
+ SG_ Output_20 m0 : 42|2@1+ (1,0) [0|3] "High-current output 20" Vector__XXX
+ SG_ PWM_Duty m0 : 44|8@1+ (1,0) [0|255] "PWM duty" Vector__XXX
+
+BO_ 2582597632 Configure: 8 Vector__XXX
+ SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ System_Restart m0 : 4|2@1+ (1,0) [0|3] "Perform a firmware restart after applying configuration" Vector__XXX
+ SG_ System_Reset m0 : 6|2@1+ (1,0) [0|3] "Reset all configuration to factory defaults" Vector__XXX
+ SG_ CAN_Bitrate m1 : 4|4@1+ (1,0) [0|255] "CAN bitrate" Vector__XXX
+ SG_ CAN_J1939_Source_Address m1 : 8|8@1+ (1,0) [1|255] "J1939 source address" Vector__XXX
+ SG_ Analog_Input_1_Pull_Up m2 : 4|2@1+ (1,0) [0|3] "Input 1 pull up enable" Vector__XXX
+ SG_ Analog_Input_2_Pull_Up m2 : 6|2@1+ (1,0) [0|3] "Input 2 pull up enable" Vector__XXX
+ SG_ Analog_Input_3_Pull_Up m2 : 8|2@1+ (1,0) [0|3] "Input 3 pull up enable" Vector__XXX
+
+BO_ 419364949 Startup: 8 Vector__XXX
+ SG_ Hardware_Version_Major : 0|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Hardware_Version_Minor : 8|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Hardware_Version_Patch : 16|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Software_Major : 24|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Software_Minor : 32|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Software_Patch : 40|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
+ SG_ Reset_Cause_Brownout : 48|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
+ SG_ Reset_Cause_Watchdog : 49|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
+ SG_ Reset_Cause_Software : 50|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
+
+BO_ 419369557 System_Status: 8 Vector__XXX
+ SG_ CAN_RX_Errors : 8|8@1+ (1,0) [0|255] "Count" Vector__XXX
+ SG_ CAN_TX_Errors : 16|8@1+ (1,0) [0|255] "Count" Vector__XXX
+ SG_ Temperature : 24|8@1+ (1,0) [0|255] "Celsius" Vector__XXX
+
+BO_ 419369296 Analog_Inputs: 6 Vector__XXX
+ SG_ Input_1 : 0|16@1+ (1,0) [0|65535] "Analog input 1" Vector__XXX
+ SG_ Input_2 : 16|16@1+ (1,0) [0|65535] "Analog input 2" Vector__XXX
+ SG_ Input_3 : 32|16@1+ (1,0) [0|65535] "Analog input 3" Vector__XXX
+
+VAL_ 2582597632 CAN_Bitrate 0 "500 kBit/s" 1 "50 kBit/s" 2 "100 kBit/s" 3 "125 kBit/s" 4 "250 kBit/s" 5 "1 MBit/s" 255 "No change";

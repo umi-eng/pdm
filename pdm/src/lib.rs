@@ -1,3 +1,6 @@
+#[cfg(feature = "pdm20")]
+pub mod pdm20;
+#[cfg(feature = "pdm36")]
 pub mod pdm36;
 
 pub use messages::OutputState;

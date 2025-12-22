@@ -4,10 +4,10 @@ use crate::hal;
 use ::analog::MovingAvg;
 use ::analog::count_to_volts;
 use ::analog::divider_vin;
-use hal::adc::Resolution;
 use hal::adc::SampleTime;
 use hal::can::Frame;
-use messages::AnalogInputs;
+use messages::pdm36::AnalogInputs;
+use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Signal;
 use saelient::slot::SaeEV06;
@@ -30,16 +30,10 @@ pub async fn analog(cx: analog::Context<'_>) {
     } = cx.local;
 
     let sample_time = SampleTime::CYCLES640_5;
-    let resolution = Resolution::BITS12;
-
-    adc_3.set_sample_time(sample_time);
-    adc_4.set_sample_time(sample_time);
-    adc_3.set_resolution(resolution);
-    adc_4.set_resolution(resolution);
 
     let id = saelient::Id::builder()
         .sa(*cx.shared.source_address)
-        .pgn(messages::ANALOG_READINGS)
+        .pgn(pgn::ANALOG_READINGS)
         .priority(6)
         .build()
         .unwrap();
@@ -56,9 +50,21 @@ pub async fn analog(cx: analog::Context<'_>) {
         // sample many times
         for _ in 0..100 {
             // read inputs
-            let ain_1 = count_to_volts(VREF, MAX_COUNT as f32, adc_4.blocking_read(ain_1) as f32);
-            let ain_2 = count_to_volts(VREF, MAX_COUNT as f32, adc_3.blocking_read(ain_2) as f32);
-            let ain_3 = count_to_volts(VREF, MAX_COUNT as f32, adc_4.blocking_read(ain_3) as f32);
+            let ain_1 = count_to_volts(
+                VREF,
+                MAX_COUNT as f32,
+                adc_4.blocking_read(ain_1, sample_time) as f32,
+            );
+            let ain_2 = count_to_volts(
+                VREF,
+                MAX_COUNT as f32,
+                adc_3.blocking_read(ain_2, sample_time) as f32,
+            );
+            let ain_3 = count_to_volts(
+                VREF,
+                MAX_COUNT as f32,
+                adc_4.blocking_read(ain_3, sample_time) as f32,
+            );
 
             // get adc readings
             ain_1_avg.push(divider_vin(R1, R2, ain_1));

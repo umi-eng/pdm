@@ -15,4 +15,9 @@ dbc-codegen = { version = "0.3.0", features = [
 ], git = "https://github.com/technocreatives/dbc-codegen.git", rev = "d1a0fd9" }
 
 [features]
+default = ["pdm20", "pdm36"]
+
+pdm20 = []
+pdm36 = []
+
 defmt-1 = ["dep:defmt"]

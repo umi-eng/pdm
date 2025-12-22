@@ -1,0 +1,17 @@
+[package]
+name = "pdm-20-bootloader"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+defmt = "1.0.1"
+defmt-rtt = "1.0.0"
+cortex-m = { version = "0.7.6", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7.5"
+embassy-boot-stm32 = { git = "https://github.com/embassy-rs/embassy.git" }
+embassy-stm32 = { git = "https://github.com/embassy-rs/embassy.git", features = [
+    "stm32g474ve",
+    "single-bank",
+    "defmt",
+] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git" }

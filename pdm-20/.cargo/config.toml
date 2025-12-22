@@ -1,0 +1,26 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "probe-rs run --chip STM32G474VE --protocol swd"
+linker = "flip-link"
+rustflags = [
+    "-C",
+    "link-arg=-nmagic",
+    "-C",
+    "link-arg=-Tlink.x",
+    "-C",
+    "link-arg=-Tdefmt.x",
+]
+
+[build]
+target = "thumbv7em-none-eabihf"
+
+[env]
+DEFMT_LOG = "info"
+
+[profile.release]
+codegen-units = 1
+debug = 2
+lto = true
+opt-level = "z"
+
+[profile.dev]
+opt-level = 1

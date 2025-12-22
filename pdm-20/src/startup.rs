@@ -2,8 +2,8 @@ use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
-use messages::pdm36::Startup;
-use messages::pdm36::pgn;
+use messages::pdm20::Startup;
+use messages::pdm20::pgn::STARTUP;
 use vpd::otp::HardwareVersion;
 use vpd::otp::SerialNumber;
 
@@ -16,7 +16,6 @@ pub async fn startup(cx: startup::Context<'_>) {
     let brownout = rcc_csr.borrstf();
     let watchdog = rcc_csr.iwdgrstf();
     let software = rcc_csr.sftrstf();
-
     // clear reset flags
     hal::pac::RCC.csr().modify(|f| f.set_rmvf(true));
 
@@ -48,7 +47,7 @@ pub async fn startup(cx: startup::Context<'_>) {
     defmt::info!("Serial number: {}", sn);
 
     let id = saelient::Id::builder()
-        .pgn(pgn::STARTUP)
+        .pgn(STARTUP)
         .sa(source_address)
         .build()
         .unwrap();
@@ -59,8 +58,8 @@ pub async fn startup(cx: startup::Context<'_>) {
     defmt::info!("starting runtime tasks");
     receive::spawn().unwrap();
     updater::spawn().unwrap();
-    analog::spawn().unwrap();
     status::spawn().unwrap();
     current::spawn().unwrap();
+    analog::spawn().unwrap();
     defmt::info!("startup complete");
 }
