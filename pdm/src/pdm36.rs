@@ -328,10 +328,10 @@ impl Pdm36 {
                 Id::Standard(_) => continue,
             };
 
-            if let PduFormat::Pdu1(_) = id.pf() {
-                if id.da() != Some(0) {
-                    continue;
-                }
+            if let PduFormat::Pdu1(_) = id.pf()
+                && id.da() != Some(0)
+            {
+                continue;
             }
 
             if id.pgn() == pgn && id.sa() == self.address {
