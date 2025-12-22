@@ -3,6 +3,7 @@ use crate::hal;
 use hal::Peri;
 use hal::gpio::*;
 
+/// VN5T016AH-E single-channel output driver.
 pub struct SingleChannel<'d> {
     pub output: Output<'d>,
     pub fault_reset: Output<'d>,
@@ -23,6 +24,7 @@ impl<'d> SingleChannel<'d> {
     }
 }
 
+/// VND5T100AJTR-E dual-channel output driver.
 pub struct DualChannel<'d> {
     pub output1: Output<'d>,
     pub output2: Output<'d>,
