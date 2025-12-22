@@ -34,11 +34,10 @@ async fn main() -> Result<()> {
 }
 
 pub(crate) fn maybe_hex(input: &str) -> Result<u8, String> {
-    let result = if input.starts_with("0x") {
-        u8::from_str_radix(&input[2..], 16)
+    if let Some(stripped) = input.strip_prefix("0x") {
+        u8::from_str_radix(stripped, 16)
     } else {
         u8::from_str_radix(input, 10)
-    };
-
-    result.map_err(|e| format!("{e}"))
+    }
+    .map_err(|e| format!("{e}"))
 }
