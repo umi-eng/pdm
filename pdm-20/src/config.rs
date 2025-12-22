@@ -131,6 +131,11 @@ impl<'f> Config<'f> {
         }
     }
 
+    // CAN/J1939
+    config_key!(can_bus_bitrate, b"CBBR", u32, 500_000);
+    config_key!(can_bus_source_address, b"CBSA", u8, 0x50);
+
+    // Analog
     config_key!(ain1_pull_up_enabled, b"A1PU", bool, false);
     config_key!(ain2_pull_up_enabled, b"A2PU", bool, false);
     config_key!(ain3_pull_up_enabled, b"A3PU", bool, false);

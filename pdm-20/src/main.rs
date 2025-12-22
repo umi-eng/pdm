@@ -22,6 +22,7 @@ use defmt_rtt as _;
 use embassy_stm32 as hal;
 use panic_probe as _;
 
+use blocking::block_on;
 use core::mem::MaybeUninit;
 use driver::DualChannel;
 use driver::SingleChannel;
@@ -157,15 +158,23 @@ mod app {
             can::filter::ExtendedFilterSlot::_0,
             can::filter::ExtendedFilter::accept_all_into_fifo0(),
         );
-        can.set_bitrate(500_000);
+        let bitrate = block_on(config.can_bus_bitrate()).unwrap_or(124_000);
+        can.set_bitrate(bitrate);
         let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
         let can_tx = Arbiter::new(can_tx);
 
-        // Addressing inputs
+        // source address configuration
+        let source_address = match block_on(config.can_bus_source_address()) {
+            Ok(sa) => sa,
+            Err(err) => {
+                defmt::error!("Failed to read SA from flash: {}", err);
+                0x50
+            }
+        };
         let adr0 = Input::new(p.PF9, Pull::Up).is_low();
         let adr1 = Input::new(p.PF10, Pull::Up).is_low();
-        let source_address = (adr0 as u8) | ((adr1 as u8) << 1);
-        let source_address = source_address + 0x50;
+        let offset = (adr0 as u8) | ((adr1 as u8) << 1);
+        let source_address = source_address + offset;
         defmt::info!("Source address: 0x{:x}", source_address);
 
         // Inter-task communication

@@ -2,6 +2,7 @@ use crate::Mono;
 use crate::app::*;
 use messages::OutputState;
 use messages::pdm20::Configure;
+use messages::pdm20::ConfigureCanBitrate;
 use messages::pdm20::ConfigureMuxIndex;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxIndex;
@@ -118,6 +119,41 @@ pub async fn receive(cx: receive::Context<'_>) {
             pgn::CONFIGURE => {
                 if let Ok(mut output) = Configure::try_from(frame.data()) {
                     match output.mux() {
+                        Ok(ConfigureMuxIndex::M1(m1)) => {
+                            match m1.can_j1939_source_address() {
+                                0xFF => {} // no change
+                                0x00 => {} // reserved
+                                addr => {
+                                    if let Err(err) =
+                                        config.store_can_bus_source_address(&addr).await
+                                    {
+                                        error::spawn().ok();
+                                        defmt::error!("Failed to store source address: {}", err);
+                                    }
+                                }
+                            }
+
+                            let bitrate = match m1.can_bitrate() {
+                                ConfigureCanBitrate::X50KBitS => Some(50_000),
+                                ConfigureCanBitrate::X100KBitS => Some(100_000),
+                                ConfigureCanBitrate::X125KBitS => Some(125_000),
+                                ConfigureCanBitrate::X250KBitS => Some(250_000),
+                                ConfigureCanBitrate::X500KBitS => Some(500_000),
+                                ConfigureCanBitrate::X1MBitS => Some(1_000_000),
+                                ConfigureCanBitrate::NoChange => None,
+                                ConfigureCanBitrate::_Other(v) => {
+                                    error::spawn().ok();
+                                    defmt::error!("Unrecognised CAN bitrate enum selection: {}", v);
+                                    None
+                                }
+                            };
+                            if let Some(bitrate) = bitrate {
+                                if let Err(err) = config.store_can_bus_bitrate(&bitrate).await {
+                                    error::spawn().ok();
+                                    defmt::error!("Failed to store CAN bitrate: {}", err);
+                                }
+                            }
+                        }
                         Ok(ConfigureMuxIndex::M2(m2)) => {
                             if let Err(err) = match m2.analog_input_1_pull_up() {
                                 0 => config.store_ain1_pull_up_enabled(&false).await,

@@ -60,6 +60,8 @@ BO_ 2565821696 Control: 8 Vector__XXX
 
 BO_ 2582597632 Configure: 8 Vector__XXX
  SG_ Mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ CAN_Bitrate m1 : 4|4@1+ (1,0) [0|255] "CAN bitrate" Vector__XXX
+ SG_ CAN_J1939_Source_Address m1 : 8|8@1+ (1,0) [1|255] "J1939 source address" Vector__XXX
  SG_ Analog_Input_1_Pull_Up m2 : 4|2@1+ (1,0) [0|3] "Input 1 pull up enable" Vector__XXX
  SG_ Analog_Input_2_Pull_Up m2 : 6|2@1+ (1,0) [0|3] "Input 2 pull up enable" Vector__XXX
  SG_ Analog_Input_3_Pull_Up m2 : 8|2@1+ (1,0) [0|3] "Input 3 pull up enable" Vector__XXX
@@ -84,3 +86,5 @@ BO_ 419369296 Analog_Inputs: 6 Vector__XXX
  SG_ Input_1 : 0|16@1+ (1,0) [0|65535] "Analog input 1" Vector__XXX
  SG_ Input_2 : 16|16@1+ (1,0) [0|65535] "Analog input 2" Vector__XXX
  SG_ Input_3 : 32|16@1+ (1,0) [0|65535] "Analog input 3" Vector__XXX
+
+VAL_ 2582597632 CAN_Bitrate 0 "500 kBit/s" 1 "50 kBit/s" 2 "100 kBit/s" 3 "125 kBit/s" 4 "250 kBit/s" 5 "1 MBit/s" 255 "No change";
