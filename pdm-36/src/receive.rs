@@ -2,6 +2,9 @@ use crate::Mono;
 use crate::app::*;
 use crate::output;
 use crate::output::OUTPUT_MAP;
+use messages::pdm36::Control;
+use messages::pdm36::ControlMuxIndex;
+use messages::pdm36::pgn;
 use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
@@ -47,10 +50,10 @@ pub async fn receive(cx: receive::Context<'_>) {
             | Pgn::TransportProtocolDataTransfer => {
                 cx.local.updater_tx.send(frame).await.ok();
             }
-            messages::CONTROL => {
-                if let Ok(mut output) = messages::Control::try_from(frame.data()) {
+            pgn::CONTROL => {
+                if let Ok(mut output) = Control::try_from(frame.data()) {
                     match output.mux() {
-                        Ok(messages::ControlMuxIndex::M0(m)) => {
+                        Ok(ControlMuxIndex::M0(m)) => {
                             let duty = scale_pwm(m.pwm_duty_m0());
 
                             let states = [
@@ -92,7 +95,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 driver.pwm_sync().await.ok();
                             }
                         }
-                        Ok(messages::ControlMuxIndex::M1(m)) => {
+                        Ok(ControlMuxIndex::M1(m)) => {
                             let duty = scale_pwm(m.pwm_duty_m1());
 
                             let states = [
@@ -131,7 +134,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 driver.pwm_sync().await.ok();
                             }
                         }
-                        Ok(messages::ControlMuxIndex::M2(m)) => {
+                        Ok(ControlMuxIndex::M2(m)) => {
                             let duty = scale_pwm(m.pwm_duty_m2());
 
                             let states = [

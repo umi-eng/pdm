@@ -4,13 +4,14 @@ use crate::output::OUTPUT_MAP;
 use crate::{Mono, app::current};
 use core::array::from_fn;
 use hal::can::Frame;
-use messages::CurrentSense;
-use messages::CurrentSenseMuxM0;
-use messages::CurrentSenseMuxM1;
-use messages::CurrentSenseMuxM2;
-use messages::CurrentSenseMuxM3;
-use messages::CurrentSenseMuxM4;
-use messages::CurrentSenseMuxM5;
+use messages::pdm36::CurrentSense;
+use messages::pdm36::CurrentSenseMuxM0;
+use messages::pdm36::CurrentSenseMuxM1;
+use messages::pdm36::CurrentSenseMuxM2;
+use messages::pdm36::CurrentSenseMuxM3;
+use messages::pdm36::CurrentSenseMuxM4;
+use messages::pdm36::CurrentSenseMuxM5;
+use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Param8;
 use saelient::signal::Param10;
@@ -34,7 +35,7 @@ pub async fn current(cx: current::Context<'_>) {
 
     let id = saelient::Id::builder()
         .sa(*cx.shared.source_address)
-        .pgn(messages::CURRENT_SENSE)
+        .pgn(pgn::CURRENT_SENSE)
         .priority(6)
         .build()
         .unwrap();

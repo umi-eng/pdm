@@ -2,7 +2,8 @@ use crate::Mono;
 use crate::app::status;
 use crate::hal;
 use hal::can::Frame;
-use messages::SystemStatus;
+use messages::pdm36::SystemStatus;
+use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Signal;
 use saelient::slot::SaeTP01;
@@ -15,7 +16,7 @@ pub async fn status(cx: status::Context<'_>) {
     let can_stats = cx.shared.can_properties;
 
     let id = saelient::Id::builder()
-        .pgn(messages::SYSTEM_STATUS)
+        .pgn(pgn::SYSTEM_STATUS)
         .priority(6)
         .sa(*cx.shared.source_address)
         .build()

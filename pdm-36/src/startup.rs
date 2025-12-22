@@ -2,6 +2,8 @@ use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
+use messages::pdm36::Startup;
+use messages::pdm36::pgn;
 use vpd::otp::HardwareVersion;
 use vpd::otp::SerialNumber;
 
@@ -25,7 +27,7 @@ pub async fn startup(cx: startup::Context<'_>) {
     });
     defmt::info!("Hardware version: {:?}", hw);
 
-    let data = messages::Startup::new(
+    let data = Startup::new(
         hw.major,
         hw.minor,
         hw.patch,
@@ -46,7 +48,7 @@ pub async fn startup(cx: startup::Context<'_>) {
     defmt::info!("Serial number: {}", sn);
 
     let id = saelient::Id::builder()
-        .pgn(messages::STARTUP)
+        .pgn(pgn::STARTUP)
         .sa(source_address)
         .build()
         .unwrap();
