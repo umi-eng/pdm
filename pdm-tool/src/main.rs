@@ -37,7 +37,7 @@ pub(crate) fn maybe_hex(input: &str) -> Result<u8, String> {
     if let Some(stripped) = input.strip_prefix("0x") {
         u8::from_str_radix(stripped, 16)
     } else {
-        u8::from_str_radix(input, 10)
+        input.parse()
     }
     .map_err(|e| format!("{e}"))
 }
