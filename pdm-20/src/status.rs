@@ -1,4 +1,5 @@
 use crate::Mono;
+use crate::VREF_MV;
 use crate::app::status;
 use crate::hal;
 use hal::adc::SampleTime;
@@ -52,9 +53,7 @@ pub async fn status(cx: status::Context<'_>) {
 }
 
 pub fn convert_to_millivolts(sample: u16) -> u16 {
-    // External 2.5V voltage reference.
-    const VREFINT_MV: u32 = 2500; // mV
-    (u32::from(sample) * VREFINT_MV / 4095) as u16
+    (u32::from(sample) * VREF_MV / 4095) as u16
 }
 
 /// Convert ADC reading to degrees celcius.
