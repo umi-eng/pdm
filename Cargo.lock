@@ -2144,7 +2144,7 @@ dependencies = [
  "rtic-monotonics",
  "rtic-sync",
  "saelient",
- "sequential-storage",
+ "sequential-storage 7.0.0",
  "vpd",
 ]
 
@@ -2182,7 +2182,7 @@ dependencies = [
  "rtic-monotonics",
  "rtic-sync",
  "saelient",
- "sequential-storage",
+ "sequential-storage 4.0.3",
  "st-driver",
  "vpd",
 ]
@@ -2710,6 +2710,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "516ed74ad8268ec0d78c574af8fc7e09a9c3a0df63c7692c588a10d7097dea3b"
 dependencies = [
  "defmt 0.3.100",
+ "embedded-storage-async",
+]
+
+[[package]]
+name = "sequential-storage"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "634c2d26969edcb6b2c24c35cce4849c42199cd3ad32c69f6e5e02365ab60e76"
+dependencies = [
+ "defmt 1.0.1",
  "embedded-storage-async",
 ]
 

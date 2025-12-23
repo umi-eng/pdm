@@ -34,5 +34,5 @@ embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "defmt",
     "ed25519-salty",
 ] }
-sequential-storage = { version = "4.0.3", features = ["defmt-03"] }
+sequential-storage = { version = "7.0.0", features = ["defmt"] }
 paste = "1.0.15"
