@@ -158,7 +158,7 @@ mod app {
             can::filter::ExtendedFilterSlot::_0,
             can::filter::ExtendedFilter::accept_all_into_fifo0(),
         );
-        let bitrate = block_on(config.can_bus_bitrate()).unwrap_or(124_000);
+        let bitrate = block_on(config.can_bus_bitrate()).unwrap_or(500_000);
         can.set_bitrate(bitrate);
         let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
         let can_tx = Arbiter::new(can_tx);
