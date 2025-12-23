@@ -1,7 +1,7 @@
 use crate::AnalogCh;
 use crate::Mono;
-use crate::VREF_MV;
 use crate::app::current;
+use crate::convert_to_millivolts;
 use crate::hal;
 use hal::adc::SampleTime;
 use rtic::Mutex;
@@ -63,11 +63,7 @@ pub async fn current(cx: current::Context<'_>) {
     }
 }
 
-pub fn convert_to_millivolts(sample: u16) -> u16 {
-    (u32::from(sample) * VREF_MV / 4095) as u16
-}
-
-pub fn convert_to_amps(sample: u16, slope: f32) -> f32 {
+fn convert_to_amps(sample: u16, slope: f32) -> f32 {
     let sample_mv = convert_to_millivolts(sample) as i32;
     sample_mv as f32 / slope
 }

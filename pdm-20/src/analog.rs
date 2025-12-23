@@ -1,6 +1,8 @@
+use crate::AnalogCh;
+use crate::Mono;
 use crate::app::analog;
-use crate::{AnalogCh, VREF_MV};
-use crate::{Mono, hal};
+use crate::convert_to_millivolts;
+use crate::hal;
 use hal::adc::SampleTime;
 use hal::can::Frame;
 use messages::pdm20::{AnalogInputs, pgn};
@@ -112,16 +114,10 @@ pub async fn analog(cx: analog::Context<'_>) {
     }
 }
 
-/// Convert to the voltage read by the ADC input.
-#[inline]
-pub fn convert_to_raw_millivolts(sample: u16) -> u16 {
-    (u32::from(sample) * VREF_MV / 4095) as u16
-}
-
 /// Convert to the voltage at the analog input.
 #[inline]
-pub fn convert_to_volts(sample: u16) -> f32 {
-    let sample_mv = convert_to_raw_millivolts(sample) as i32;
+fn convert_to_volts(sample: u16) -> f32 {
+    let sample_mv = convert_to_millivolts(sample) as i32;
     const SLOPE: f32 = 500.0; // 500mV/1V
     sample_mv as f32 / SLOPE
 }

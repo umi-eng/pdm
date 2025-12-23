@@ -402,3 +402,9 @@ pub enum AnalogCh<'a> {
     Adc4(adc::AnyAdcChannel<'a, ADC4>),
     Adc5(adc::AnyAdcChannel<'a, ADC5>),
 }
+
+/// Convert an ADC sample to millivolts read at the pin.
+#[inline]
+pub fn convert_to_millivolts(sample: u16) -> u16 {
+    (u32::from(sample) * VREF_MV / 4095) as u16
+}

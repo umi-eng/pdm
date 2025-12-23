@@ -1,6 +1,6 @@
 use crate::Mono;
-use crate::VREF_MV;
 use crate::app::status;
+use crate::convert_to_millivolts;
 use crate::hal;
 use hal::adc::SampleTime;
 use hal::can::Frame;
@@ -52,15 +52,11 @@ pub async fn status(cx: status::Context<'_>) {
     }
 }
 
-pub fn convert_to_millivolts(sample: u16) -> u16 {
-    (u32::from(sample) * VREF_MV / 4095) as u16
-}
-
 /// Convert ADC reading to degrees celcius.
 ///
 /// From https://www.st.com/resource/en/datasheet/stm32g474ve.pdf
 /// 5.3.24 Temperature sensor characteristics
-pub fn convert_to_celcius(sample: u16) -> f32 {
+fn convert_to_celcius(sample: u16) -> f32 {
     const V30: i32 = 760; // mV
     const AVG_SLOPE: f32 = 2.5; // mV/C
     let sample_mv = convert_to_millivolts(sample) as i32;
