@@ -17,6 +17,8 @@ jobs:
         with:
           targets: thumbv7em-none-eabihf
           components: rustfmt
+      - name: Check format
+        run: cargo fmt --all -- --check
 
   check:
     name: Check
