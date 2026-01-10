@@ -104,6 +104,8 @@ mod app {
         ain2_pull: Output<'static>,
         ain3_pull: Output<'static>,
         analog_reconfigure: signal::SignalReader<'static, ()>,
+        shunt_in: AnalogCh<'static>,
+        shunt_fault: Input<'static>,
     }
 
     #[init(local = [
@@ -263,6 +265,9 @@ mod app {
 
         let (analog_reconfigure_send, analog_reconfigure) = make_signal!(());
 
+        let shunt_in = AnalogCh::Adc2(p.PC5.degrade_adc());
+        let shunt_fault = Input::new(p.PE13, Pull::Up);
+
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
 
@@ -299,6 +304,8 @@ mod app {
                 ain2_pull,
                 ain3_pull,
                 analog_reconfigure,
+                shunt_in,
+                shunt_fault,
             },
         )
     }
