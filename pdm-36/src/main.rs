@@ -135,7 +135,7 @@ mod app {
             });
             config.rcc.mux.fdcansel = mux::Fdcansel::PLL1_Q;
             config.rcc.mux.adc12sel = mux::Adcsel::PLL1_P;
-            config.rcc.mux.adc345sel = mux::Adcsel::SYS;
+            config.rcc.mux.adc345sel = mux::Adcsel::PLL1_P;
             config.rcc.sys = Sysclk::PLL1_R;
         }
         let p = hal::init(config);
