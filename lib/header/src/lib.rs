@@ -22,7 +22,7 @@ pub enum Error {
 #[repr(C)]
 #[derive(IntoBytes, FromBytes, KnownLayout, Immutable)]
 pub struct ImageHeader {
-    magic: u32,
+    pub magic: u32,
     /// Total firmware image length including this header.
     pub total_image_len: u32,
     /// Firmware version.
@@ -32,7 +32,7 @@ pub struct ImageHeader {
     /// Integrity signature for the following image.
     pub signature: [u8; 64],
     /// Integrity check for this header.
-    checksum: u32,
+    pub checksum: u32,
 }
 
 impl ImageHeader {
