@@ -8,6 +8,7 @@ messages = { workspace = true, features = ["defmt-1"] }
 saelient = { workspace = true, features = ["defmt-1"] }
 analog.workspace = true
 vpd.workspace = true
+header.workspace = true
 
 defmt = "1.0.1"
 defmt-rtt = "1.0.0"

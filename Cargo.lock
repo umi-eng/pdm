@@ -17,7 +17,7 @@ dependencies = [
  "cfg-if",
  "once_cell",
  "version_check",
- "zerocopy 0.8.31",
+ "zerocopy 0.8.33",
 ]
 
 [[package]]
@@ -1412,6 +1412,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "header"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.10.0",
+ "defmt 1.0.1",
+ "zerocopy 0.8.33",
+]
+
+[[package]]
 name = "heapless"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2137,6 +2146,7 @@ dependencies = [
  "embassy-stm32",
  "embassy-sync",
  "embedded-can",
+ "header",
  "messages",
  "panic-probe",
  "paste",
@@ -2146,6 +2156,7 @@ dependencies = [
  "saelient",
  "sequential-storage 7.0.0",
  "vpd",
+ "zerocopy 0.8.33",
 ]
 
 [[package]]
@@ -2345,7 +2356,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tracing",
  "uf2-decode",
- "zerocopy 0.8.31",
+ "zerocopy 0.8.33",
 ]
 
 [[package]]
@@ -3537,7 +3548,7 @@ dependencies = [
  "serde",
  "tlvc 0.3.1 (git+https://github.com/oxidecomputer/tlvc.git)",
  "tlvc-text 0.3.0 (git+https://github.com/oxidecomputer/tlvc.git)",
- "zerocopy 0.8.31",
+ "zerocopy 0.8.33",
 ]
 
 [[package]]
@@ -3856,7 +3867,7 @@ dependencies = [
  "tlvc-text 0.3.0 (git+https://github.com/oxidecomputer/tlvc?rev=e644a21)",
  "toml 0.9.10+spec-1.1.0",
  "vpd",
- "zerocopy 0.8.31",
+ "zerocopy 0.8.33",
 ]
 
 [[package]]
@@ -3911,11 +3922,11 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.31"
+version = "0.8.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd74ec98b9250adb3ca554bdde269adf631549f51d8a8f8f0a10b50f1cb298c3"
+checksum = "668f5168d10b9ee831de31933dc111a459c97ec93225beb307aed970d1372dfd"
 dependencies = [
- "zerocopy-derive 0.8.31",
+ "zerocopy-derive 0.8.33",
 ]
 
 [[package]]
@@ -3931,9 +3942,9 @@ dependencies = [
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.31"
+version = "0.8.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8a8d209fdf45cf5138cbb5a506f6b52522a25afccc534d1475dad8e31105c6a"
+checksum = "2c7962b26b0a8685668b671ee4b54d007a67d4eaf05fda79ac0ecf41e32270f1"
 dependencies = [
  "proc-macro2",
  "quote",

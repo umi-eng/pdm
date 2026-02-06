@@ -11,11 +11,17 @@ members = [
     "pdm-tool",
     "vpd",
     "xtask",
+    "lib/*",
 ]
 
 [workspace.dependencies]
+header = { path = "lib/header", features = ["defmt"] }
 messages = { path = "messages" }
 vpd = { path = "vpd", features = ["defmt-1"] }
 analog = { path = "analog" }
 pdm = { path = "pdm" }
 saelient = { git = "https://github.com/umi-eng/saelient.git", default-features = false }
+
+bitflags = "2.10.0"
+defmt = "1.0.1"
+zerocopy = { version = "0.8.33", features = ["derive"] }
