@@ -55,7 +55,6 @@ impl PatchHeader {
         println!("Image size: {} bytes", image_size);
 
         let header = header::ImageHeader::new(image_size, version, Flags::FIRMWARE_IMAGE, target);
-        println!("Header checksum: 0x{:X}", header.checksum);
 
         let mut file = File::options().write(true).open(self.firmware)?;
 

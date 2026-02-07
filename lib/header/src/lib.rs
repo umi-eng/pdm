@@ -25,7 +25,7 @@ pub enum Error {
 #[repr(C)]
 #[derive(IntoBytes, FromBytes, KnownLayout, Immutable)]
 pub struct ImageHeader {
-    pub magic: u32,
+    magic: u32,
     /// Total firmware image length including this header.
     pub total_image_len: u32,
     /// Firmware version.
@@ -35,7 +35,7 @@ pub struct ImageHeader {
     /// Tag indicating the intended recipient of this image.
     pub target: [u8; 4],
     /// Integrity check for this header.
-    pub checksum: u32,
+    checksum: u32,
 }
 
 impl ImageHeader {
@@ -62,12 +62,12 @@ impl ImageHeader {
         }
     }
 
-    pub fn magic_correct(&self) -> bool {
+    fn magic_correct(&self) -> bool {
         self.magic == HEADER_MAGIC
     }
 
     /// Calculates the 32-bit one's complement checksum with end-around carry.
-    pub fn calculate_checksum(&self) -> u32 {
+    fn calculate_checksum(&self) -> u32 {
         let bytes = self.as_bytes();
         let len = bytes.len();
         let bytes = &bytes[..len - 4]; // exclude the checksum field
@@ -90,7 +90,7 @@ impl ImageHeader {
         !sum
     }
 
-    pub fn verify_checksum(&self) -> bool {
+    fn verify_checksum(&self) -> bool {
         let calculated = self.calculate_checksum();
         calculated == self.checksum
     }
