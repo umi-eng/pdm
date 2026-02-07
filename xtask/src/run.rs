@@ -8,6 +8,7 @@ use xshell::Shell;
 pub struct Run {
     /// The path to the ELF file to flash and run.
     path: PathBuf,
+    /// Board config
     #[clap(long, default_value = "board.toml")]
     board: PathBuf,
 }

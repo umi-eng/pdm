@@ -8,7 +8,7 @@ use clap::Parser;
 
 #[derive(clap::Parser)]
 enum Cli {
-    /// Run firmware on target using `probe-rs run`.
+    /// Run firmware on target.
     Run(run::Run),
     /// Patch firmware image header.
     PatchHeader(patch_header::PatchHeader),
