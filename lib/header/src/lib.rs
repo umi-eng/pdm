@@ -29,8 +29,6 @@ pub struct ImageHeader {
     pub fw_version: Version,
     /// Firmware flags.
     pub flags: Flags,
-    /// Integrity signature for the following image.
-    pub signature: [u8; 64],
     /// Integrity check for this header.
     pub checksum: u32,
 }
@@ -141,7 +139,6 @@ mod tests {
                 patch: 2,
             },
             flags: Flags::FIRMWARE_IMAGE,
-            signature: [0; 64],
             checksum: 0,
         };
 
