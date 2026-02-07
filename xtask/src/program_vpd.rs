@@ -1,3 +1,4 @@
+use crate::config::VitalProductData;
 use anyhow::Result;
 use anyhow::anyhow;
 use base64::Engine;
@@ -6,15 +7,12 @@ use probe_rs::Session;
 use probe_rs::SessionConfig;
 use probe_rs::config::Registry;
 use probe_rs::flashing::DownloadOptions;
-use serde::Deserialize;
 use std::io::Read;
 use std::{fs::File, path::PathBuf};
 use tlvc_text::{Piece, Tag};
 use vpd::Item;
-use vpd::otp::HardwareVersion;
 use vpd::otp::PartNumber;
 use vpd::otp::PubKey;
-use vpd::otp::SerialNumber;
 use zerocopy::Immutable;
 use zerocopy::IntoBytes;
 
@@ -41,7 +39,7 @@ impl Cmd {
         let mut vpd_file = String::new();
         file.read_to_string(&mut vpd_file)?;
         let vpd: VitalProductData = toml::from_str(&vpd_file)?;
-        let vpd = vpd.pack(pubkey)?;
+        let vpd = pack_vpd(&vpd, pubkey)?;
         println!("{:#?}", vpd);
 
         let mut data = Vec::new();
@@ -99,30 +97,20 @@ fn chunk<T: Item + IntoBytes + Immutable>(item: &T) -> Piece {
     )
 }
 
-/// Vital product data.
-#[derive(Debug, Deserialize)]
-pub struct VitalProductData {
-    serial_number: SerialNumber,
-    hardware_version: HardwareVersion,
-}
+pub fn pack_vpd(vpd: &VitalProductData, pubkey: Vec<u8>) -> anyhow::Result<Piece> {
+    let piece = Piece::Chunk(
+        Tag::new(*b"VPD0"),
+        vec![
+            chunk(&vpd.hardware_version),
+            chunk(&PartNumber(*b"PDM36")),
+            chunk(&vpd.serial_number),
+            chunk(&PubKey {
+                key: pubkey
+                    .try_into()
+                    .map_err(|v: Vec<_>| anyhow!("Public key length: {} != 32", v.len()))?,
+            }),
+        ],
+    );
 
-impl VitalProductData {
-    /// Pack into TLV-C format.
-    pub fn pack(&self, pubkey: Vec<u8>) -> anyhow::Result<Piece> {
-        let piece = Piece::Chunk(
-            Tag::new(*b"VPD0"),
-            vec![
-                chunk(&self.hardware_version),
-                chunk(&PartNumber(*b"PDM36")),
-                chunk(&self.serial_number),
-                chunk(&PubKey {
-                    key: pubkey
-                        .try_into()
-                        .map_err(|v: Vec<_>| anyhow!("Public key length: {} != 32", v.len()))?,
-                }),
-            ],
-        );
-
-        Ok(piece)
-    }
+    Ok(piece)
 }

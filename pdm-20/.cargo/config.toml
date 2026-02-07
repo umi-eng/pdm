@@ -1,5 +1,5 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-runner = "probe-rs run --chip STM32G474VE --protocol swd"
+runner = "cargo xtask run"
 linker = "flip-link"
 rustflags = [
     "-C",
