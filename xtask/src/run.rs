@@ -14,6 +14,12 @@ pub struct Run {
 
 impl Run {
     pub fn run(self) -> anyhow::Result<()> {
+        // do this dance to avoid cargo_toml trying to resolve the whole workspace
+        let toml_content =
+            std::fs::read_to_string("./Cargo.toml").context("Could not read Cargo.toml")?;
+        let manifest = cargo_toml::Manifest::from_slice(toml_content.as_bytes())
+            .context("Could not read cargo manifest")?;
+
         let config = std::fs::read_to_string(&self.board).context(format!(
             "Can't access board config at: {}",
             self.board.display()
@@ -23,9 +29,10 @@ impl Run {
             self.board.display()
         ))?;
 
+        println!("Patching .header section");
         PatchHeader {
             firmware: self.path.clone(),
-            version: "0.1.0".to_owned(),
+            version: manifest.package().version().to_owned(),
             target: config.target,
         }
         .run()?;
