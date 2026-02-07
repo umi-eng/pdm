@@ -34,6 +34,18 @@ pub struct ImageHeader {
 }
 
 impl ImageHeader {
+    pub fn new(total_image_len: u32, fw_version: Version, flags: Flags) -> Self {
+        let mut new = Self {
+            magic: HEADER_MAGIC,
+            total_image_len,
+            fw_version,
+            flags,
+            checksum: 0,
+        };
+        new.checksum = new.calculate_checksum();
+        new
+    }
+
     pub fn validate(&self) -> Result<(), Error> {
         if !self.magic_correct() {
             Err(Error::Magic)
@@ -96,6 +108,16 @@ pub struct Version {
     pub major: u8,
     pub minor: u8,
     pub patch: u8,
+}
+
+impl Version {
+    pub fn new(major: u8, minor: u8, patch: u8) -> Self {
+        Self {
+            major,
+            minor,
+            patch,
+        }
+    }
 }
 
 impl PartialEq for Version {
