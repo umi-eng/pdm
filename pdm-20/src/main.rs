@@ -66,9 +66,12 @@ pub const VREF_MV: u32 = 2500;
 type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
 type FlashPartition = Partition<'static, NoopRawMutex, FlashBlockingAsync>;
 
-#[used]
-#[unsafe(link_section = ".header")]
-static HEADER: MaybeUninit<header::ImageHeader> = MaybeUninit::uninit();
+fn read_header() -> &'static header::ImageHeader {
+    unsafe extern "C" {
+        static HEADER: header::ImageHeader;
+    }
+    unsafe { &HEADER }
+}
 
 #[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
@@ -76,7 +79,7 @@ mod app {
 
     #[shared]
     struct Shared {
-        header: header::ImageHeader,
+        header: &'static header::ImageHeader,
         config: config::Config<'static>,
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
@@ -145,7 +148,7 @@ mod app {
         let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 1000000);
         wd.pet();
 
-        let header = unsafe { HEADER.assume_init_read() };
+        let header = read_header();
 
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);
