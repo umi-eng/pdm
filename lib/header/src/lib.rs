@@ -166,6 +166,7 @@ mod tests {
                 minor: 1,
                 patch: 2,
             },
+            target: *b"TEST",
             flags: Flags::FIRMWARE_IMAGE,
             checksum: 0,
         };
