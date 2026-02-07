@@ -8,22 +8,9 @@ fn main() {
 
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
 
-    let mut linker_script = Vec::from(include_bytes!("memory.x"));
-    writeln!(
-        linker_script,
-        "_HEADER_ALIGN = {:#x};",
-        std::mem::align_of::<header::ImageHeader>(),
-    )
-    .unwrap();
-    writeln!(
-        linker_script,
-        "_HEADER_SIZE = {:#x};",
-        std::mem::size_of::<header::ImageHeader>()
-    )
-    .unwrap();
     File::create(out.join("memory.x"))
         .unwrap()
-        .write_all(&linker_script)
+        .write_all(include_bytes!("memory.x"))
         .unwrap();
     println!("cargo:rustc-link-search={}", out.display());
 }

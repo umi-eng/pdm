@@ -500,6 +500,9 @@ dependencies = [
 [[package]]
 name = "cortex-m-link"
 version = "0.1.0"
+dependencies = [
+ "header",
+]
 
 [[package]]
 name = "cortex-m-rt"
@@ -2142,6 +2145,7 @@ version = "0.1.0"
 dependencies = [
  "analog",
  "cortex-m",
+ "cortex-m-link",
  "defmt 1.0.1",
  "defmt-rtt",
  "embassy-boot",
