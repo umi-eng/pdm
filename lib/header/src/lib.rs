@@ -9,6 +9,9 @@ use zerocopy::KnownLayout;
 /// Magic number to indicate the start of the header.
 pub const HEADER_MAGIC: u32 = 0xB2_87_51_3B;
 
+pub const TARGET_PDM36: [u8; 4] = *b"PD36";
+pub const TARGET_PDM20: [u8; 4] = *b"PD20";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Error {
@@ -29,17 +32,20 @@ pub struct ImageHeader {
     pub fw_version: Version,
     /// Firmware flags.
     pub flags: Flags,
+    /// Tag indicating the intended recipient of this image.
+    pub target: [u8; 4],
     /// Integrity check for this header.
     pub checksum: u32,
 }
 
 impl ImageHeader {
-    pub fn new(total_image_len: u32, fw_version: Version, flags: Flags) -> Self {
+    pub fn new(total_image_len: u32, fw_version: Version, flags: Flags, target: [u8; 4]) -> Self {
         let mut new = Self {
             magic: HEADER_MAGIC,
             total_image_len,
             fw_version,
             flags,
+            target,
             checksum: 0,
         };
         new.checksum = new.calculate_checksum();
