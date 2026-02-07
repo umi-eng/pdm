@@ -5,14 +5,8 @@ use std::path::PathBuf;
 
 fn main() {
     println!("cargo:rerun-if-changed=memory.x");
-    println!("cargo:rerun-if-changed=custom.x");
 
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-
-    File::create(out.join("custom.x"))
-        .unwrap()
-        .write_all(include_bytes!("custom.x"))
-        .unwrap();
 
     let mut linker_script = Vec::from(include_bytes!("memory.x"));
     writeln!(

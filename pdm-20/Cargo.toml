@@ -9,6 +9,7 @@ saelient = { workspace = true, features = ["defmt-1"] }
 analog.workspace = true
 vpd.workspace = true
 header.workspace = true
+cortex-m-link.workspace = true
 
 defmt = "1.0.1"
 defmt-rtt = "1.0.0"

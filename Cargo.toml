@@ -17,6 +17,7 @@ members = [
 [workspace.dependencies]
 header = { path = "lib/header", features = ["defmt"] }
 messages = { path = "messages" }
+cortex-m-link = { path = "lib/cortex-m-link" }
 vpd = { path = "vpd", features = ["defmt-1"] }
 analog = { path = "analog" }
 pdm = { path = "pdm" }
