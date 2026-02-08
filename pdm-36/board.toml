@@ -1,0 +1,2 @@
+target = "PD36"
+chip = "STM32G474CE"

@@ -2193,12 +2193,14 @@ name = "pdm-20-bootloader"
 version = "0.1.0"
 dependencies = [
  "cortex-m",
+ "cortex-m-link",
  "cortex-m-rt",
  "defmt 1.0.1",
  "defmt-rtt",
  "embassy-boot-stm32",
  "embassy-stm32",
  "embassy-sync",
+ "header",
 ]
 
 [[package]]
@@ -2207,6 +2209,7 @@ version = "0.1.3"
 dependencies = [
  "analog",
  "cortex-m",
+ "cortex-m-link",
  "defmt 1.0.1",
  "defmt-rtt",
  "embassy-boot",
@@ -2232,6 +2235,7 @@ name = "pdm-36-bootloader"
 version = "0.1.1"
 dependencies = [
  "cortex-m",
+ "cortex-m-link",
  "cortex-m-rt",
  "defmt 1.0.1",
  "defmt-rtt",
