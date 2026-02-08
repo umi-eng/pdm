@@ -26,3 +26,4 @@ saelient = { git = "https://github.com/umi-eng/saelient.git", default-features =
 bitflags = "2.10.0"
 defmt = "1.0.1"
 zerocopy = { version = "0.8.33", features = ["derive"] }
+crc = "3.4.0"

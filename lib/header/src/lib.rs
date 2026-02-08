@@ -6,6 +6,8 @@ use zerocopy::Immutable;
 use zerocopy::IntoBytes;
 use zerocopy::KnownLayout;
 
+const CRC: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISCSI);
+
 /// Magic number to indicate the start of the header.
 pub const HEADER_MAGIC: u32 = 0xB2_87_51_3B;
 
@@ -71,23 +73,7 @@ impl ImageHeader {
         let bytes = self.as_bytes();
         let len = bytes.len();
         let bytes = &bytes[..len - 4]; // exclude the checksum field
-
-        let mut sum: u32 = 0;
-        for chunk in bytes.chunks(4) {
-            let word = match chunk.len() {
-                4 => u32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]),
-                3 => {
-                    ((chunk[0] as u32) << 24) | ((chunk[1] as u32) << 16) | ((chunk[2] as u32) << 8)
-                }
-                2 => ((chunk[0] as u32) << 24) | ((chunk[1] as u32) << 16),
-                1 => (chunk[0] as u32) << 24,
-                _ => unreachable!("zero chunk length"),
-            };
-
-            sum = sum.wrapping_add(word);
-        }
-
-        !sum
+        CRC.checksum(bytes)
     }
 
     fn verify_checksum(&self) -> bool {
