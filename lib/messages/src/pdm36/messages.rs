@@ -15,7 +15,7 @@ use embedded_can::{Id, StandardId, ExtendedId};
 
 /// All messages
 #[derive(Clone)]
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Messages {
     /// Control
     Control(Control),
@@ -270,7 +270,7 @@ impl embedded_can::Frame for Control {
         &self.raw
     }
 }
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for Control {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
@@ -280,14 +280,14 @@ impl defmt::Format for Control {
 }
 
 /// Defined values for multiplexed signal Control
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ControlMuxIndex {
     M0(ControlMuxM0),
     M1(ControlMuxM1),
     M2(ControlMuxM2),
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct ControlMuxM0 { raw: [u8; 8] }
 
@@ -841,7 +841,7 @@ pub fn set_pwm_duty_m0(&mut self, value: u8) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct ControlMuxM1 { raw: [u8; 8] }
 
@@ -1395,7 +1395,7 @@ pub fn set_pwm_duty_m1(&mut self, value: u8) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct ControlMuxM2 { raw: [u8; 8] }
 
@@ -2399,7 +2399,7 @@ impl embedded_can::Frame for Startup {
         &self.raw
     }
 }
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for Startup {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
@@ -2627,7 +2627,7 @@ impl embedded_can::Frame for SystemStatus {
         &self.raw
     }
 }
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for SystemStatus {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
@@ -2891,7 +2891,7 @@ impl embedded_can::Frame for CurrentSense {
         &self.raw
     }
 }
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for CurrentSense {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
@@ -2901,7 +2901,7 @@ impl defmt::Format for CurrentSense {
 }
 
 /// Defined values for multiplexed signal Current_Sense
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum CurrentSenseMuxIndex {
     M0(CurrentSenseMuxM0),
     M1(CurrentSenseMuxM1),
@@ -2911,7 +2911,7 @@ pub enum CurrentSenseMuxIndex {
     M5(CurrentSenseMuxM5),
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct CurrentSenseMuxM0 { raw: [u8; 8] }
 
@@ -3171,7 +3171,7 @@ pub fn set_current_sense_6(&mut self, value: u16) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct CurrentSenseMuxM1 { raw: [u8; 8] }
 
@@ -3431,7 +3431,7 @@ pub fn set_current_sense_12(&mut self, value: u16) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct CurrentSenseMuxM2 { raw: [u8; 8] }
 
@@ -3691,7 +3691,7 @@ pub fn set_current_sense_18(&mut self, value: u16) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct CurrentSenseMuxM3 { raw: [u8; 8] }
 
@@ -3951,7 +3951,7 @@ pub fn set_current_sense_24(&mut self, value: u16) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct CurrentSenseMuxM4 { raw: [u8; 8] }
 
@@ -4211,7 +4211,7 @@ pub fn set_current_sense_30(&mut self, value: u16) -> Result<(), CanError> {
 
 }
 
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[derive(Default)]
 pub struct CurrentSenseMuxM5 { raw: [u8; 8] }
 
@@ -4681,7 +4681,7 @@ impl embedded_can::Frame for AnalogInputs {
         &self.raw
     }
 }
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for AnalogInputs {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,

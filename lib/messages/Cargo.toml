@@ -18,4 +18,4 @@ default = ["pdm20", "pdm36"]
 pdm20 = []
 pdm36 = []
 
-defmt-1 = ["dep:defmt"]
+defmt = ["dep:defmt"]

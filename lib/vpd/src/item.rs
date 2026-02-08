@@ -11,7 +11,7 @@ pub struct HardwareVersion {
     pub patch: u8,
 }
 
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for HardwareVersion {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(fmt, "v{}.{}.{}", self.major, self.minor, self.patch);
@@ -27,7 +27,7 @@ impl Item for HardwareVersion {
 /// Part number.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct PartNumber(pub [u8; 5]);
 
 impl PartNumber {
@@ -51,7 +51,7 @@ pub struct SerialNumber {
     pub sequence: u16,
 }
 
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl defmt::Format for SerialNumber {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(fmt, "{:02}{:02}-{:X}", self.year, self.week, self.sequence);
@@ -67,7 +67,7 @@ impl Item for SerialNumber {
 /// Public key for signing firmware.
 #[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-1", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct PubKey {
     pub key: [u8; 32],
 }

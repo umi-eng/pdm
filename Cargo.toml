@@ -10,7 +10,7 @@ members = [
 header = { path = "lib/header", features = ["defmt"] }
 messages = { path = "lib/messages" }
 cortex-m-link = { path = "lib/cortex-m-link" }
-vpd = { path = "lib/vpd", features = ["defmt-1"] }
+vpd = { path = "lib/vpd", features = ["defmt"] }
 analog = { path = "lib/analog" }
 pdm = { path = "lib/pdm" }
 

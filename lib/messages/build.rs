@@ -18,7 +18,7 @@ fn generate(name: &str) {
     let config = dbc_codegen::Config::builder()
         .dbc_name(name)
         .dbc_content(&file)
-        .impl_defmt(FeatureConfig::Gated("defmt-1"))
+        .impl_defmt(FeatureConfig::Gated("defmt"))
         .build();
     dbc_codegen::codegen(config, &mut out).unwrap();
 }

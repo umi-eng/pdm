@@ -14,4 +14,4 @@ tlvc.workspace = true
 tlvc-text.workspace = true
 
 [features]
-defmt-1 = ["dep:defmt"]
+defmt = ["dep:defmt"]

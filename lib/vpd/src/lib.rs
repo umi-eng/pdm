@@ -78,7 +78,7 @@ where
     ChunkSize,
 }
 
-#[cfg(feature = "defmt-1")]
+#[cfg(feature = "defmt")]
 impl<R: TlvcRead> defmt::Format for Error<R> {
     fn format(&self, fmt: defmt::Formatter) {
         use defmt::write;
