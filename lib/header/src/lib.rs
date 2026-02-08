@@ -193,7 +193,7 @@ mod tests {
                 patch: 2,
             },
             target: *b"TEST",
-            flags: Flags::FIRMWARE_IMAGE,
+            flags: Flags::BOOTLOADER_IMAGE,
             checksum: 0,
         };
 
