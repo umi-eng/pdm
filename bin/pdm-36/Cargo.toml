@@ -4,7 +4,7 @@ version = "0.1.3"
 edition = "2024"
 
 [dependencies]
-messages = { workspace = true, features = ["defmt-1"] }
+messages = { workspace = true, features = ["defmt"] }
 saelient = { workspace = true, features = ["defmt-1"] }
 analog.workspace = true
 vpd.workspace = true
