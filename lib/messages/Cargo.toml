@@ -4,15 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bitvec.workspace = true
+defmt = { workspace = true, optional = true }
+embedded-can.workspace = true
 saelient.workspace = true
-bitvec = { version = "1.0", default-features = false }
-defmt = { version = "1.0", optional = true }
-embedded-can = "0.4"
 
 [build-dependencies]
-dbc-codegen = { version = "0.3.0", features = [
-    "std",
-], git = "https://github.com/technocreatives/dbc-codegen.git", rev = "d1a0fd9" }
+dbc-codegen.workspace = true
 
 [features]
 default = ["pdm20", "pdm36"]

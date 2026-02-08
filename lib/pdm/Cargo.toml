@@ -4,15 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-embedded-can = "0.4.1"
+embedded-can.workspace = true
 saelient = { workspace = true, features = ["std"] }
-log = "0.4.27"
+log.workspace = true
 messages.workspace = true
-socketcan = { version = "3.5.0", features = ["tokio"] }
+socketcan.workspace = true
 
 [dev-dependencies]
-tokio = { version = "1.45.1", features = ["full"] }
-tracing-subscriber = "0.3.19"
+tokio.workspace = true
+tracing-subscriber.workspace = true
 
 [features]
 default = ["pdm20", "pdm36"]

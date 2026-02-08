@@ -11,14 +11,16 @@ vpd.workspace = true
 header.workspace = true
 cortex-m-link.workspace = true
 
-defmt = "1.0.1"
-defmt-rtt = "1.0.0"
+defmt.workspace = true
+defmt-rtt.workspace = true
+paste.workspace = true
+zerocopy.workspace = true
+embedded-can.workspace = true
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
 rtic = { version = "2.2.0", features = ["thumbv7-backend"] }
 rtic-monotonics = { version = "2.1.0", features = ["cortex-m-systick", "defmt"] }
 rtic-sync = { version = "1.4.0", features = ["defmt-03"] }
-embedded-can = "0.4.1"
 embassy-stm32 = { features = [
     "stm32g474ve",
     "single-bank",
@@ -37,8 +39,6 @@ embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "ed25519-salty",
 ] }
 sequential-storage = { version = "7.0.0", features = ["defmt"] }
-paste = "1.0.15"
-zerocopy = { version = "0.8.33", features = ["derive"] }
 
 [build-dependencies]
 header.workspace = true

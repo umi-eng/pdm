@@ -13,9 +13,29 @@ cortex-m-link = { path = "lib/cortex-m-link" }
 vpd = { path = "lib/vpd", features = ["defmt-1"] }
 analog = { path = "lib/analog" }
 pdm = { path = "lib/pdm" }
-saelient = { git = "https://github.com/umi-eng/saelient.git", default-features = false }
 
+saelient = { git = "https://github.com/umi-eng/saelient.git", default-features = false }
 bitflags = "2.10.0"
 defmt = "1.0.1"
+defmt-rtt = "1.0.0"
 zerocopy = { version = "0.8.33", features = ["derive"] }
 crc = "3.4.0"
+heapless = "0.8.0"
+dbc-codegen = { version = "0.3.0", features = [
+    "std",
+], git = "https://github.com/technocreatives/dbc-codegen.git", rev = "d1a0fd9" }
+bitvec = { version = "1.0", default-features = false }
+embedded-can = "0.4"
+log = "0.4.27"
+socketcan = { version = "3.5.0", features = ["tokio"] }
+tokio = { version = "1.45.1", features = ["full"] }
+tracing-subscriber = "0.3.19"
+clap = { version = "4.5.39", features = ["derive"] }
+anyhow = "1.0.98"
+st-driver = { git = "https://github.com/umi-eng/st-driver.git", version = "0.1.0", rev = "adbb026", features = [
+    "defmt-1",
+] }
+paste = "1.0.15"
+tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
+tlvc-text = { git = "https://github.com/oxidecomputer/tlvc.git" }
+serde = { version = "1.0.219", default-features = false, features = ["derive"] }
