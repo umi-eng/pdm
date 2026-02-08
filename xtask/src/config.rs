@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use vpd::otp::HardwareVersion;
-use vpd::otp::SerialNumber;
+use vpd::item::HardwareVersion;
+use vpd::item::SerialNumber;
 
 #[derive(Debug, Deserialize)]
 pub struct Board {

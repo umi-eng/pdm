@@ -11,8 +11,8 @@ use std::io::Read;
 use std::{fs::File, path::PathBuf};
 use tlvc_text::{Piece, Tag};
 use vpd::Item;
-use vpd::otp::PartNumber;
-use vpd::otp::PubKey;
+use vpd::item::PartNumber;
+use vpd::item::PubKey;
 use zerocopy::Immutable;
 use zerocopy::IntoBytes;
 

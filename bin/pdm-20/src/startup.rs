@@ -4,8 +4,8 @@ use crate::hal;
 use hal::can::Frame;
 use messages::pdm20::Startup;
 use messages::pdm20::pgn::STARTUP;
-use vpd::otp::HardwareVersion;
-use vpd::otp::SerialNumber;
+use vpd::item::HardwareVersion;
+use vpd::item::SerialNumber;
 
 pub async fn startup(cx: startup::Context<'_>) {
     let can = cx.shared.can_tx;
