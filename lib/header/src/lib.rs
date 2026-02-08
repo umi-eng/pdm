@@ -56,7 +56,7 @@ impl<'a> From<CastError<&'a [u8], ImageHeader>> for Error<'a> {
 ///
 /// Can be used for both bootloader and application images.
 #[repr(C)]
-#[derive(IntoBytes, FromBytes, KnownLayout, Immutable)]
+#[derive(Debug, IntoBytes, FromBytes, KnownLayout, Immutable)]
 pub struct ImageHeader {
     magic: u32,
     /// Total firmware image length including this header.
@@ -135,7 +135,7 @@ bitflags::bitflags! {
 }
 
 #[repr(C)]
-#[derive(IntoBytes, FromBytes, KnownLayout, Immutable)]
+#[derive(Debug, IntoBytes, FromBytes, KnownLayout, Immutable)]
 pub struct Version {
     pub major: u8,
     pub minor: u8,
