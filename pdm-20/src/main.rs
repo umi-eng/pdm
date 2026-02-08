@@ -72,6 +72,7 @@ mod app {
 
     #[shared]
     struct Shared {
+        header: &'static header::ImageHeader,
         config: config::Config<'static>,
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
@@ -140,6 +141,19 @@ mod app {
         let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 1000000);
         wd.pet();
 
+        // indicator leds
+        let mut led_err = Output::new(p.PD1, Level::Low, Speed::Low);
+        let led_act = Output::new(p.PD2, Level::Low, Speed::Low);
+
+        // read image header
+        let header = match header::read() {
+            Ok(h) => h,
+            Err(err) => {
+                led_err.set_high();
+                defmt::panic!("Failed to read image header: {}", err);
+            }
+        };
+
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);
         let flash = cx.local.flash.write(Mutex::new(BlockingAsync::new(flash)));
@@ -148,10 +162,6 @@ mod app {
 
         // configuration store
         let config = config::Config::new(flash);
-
-        // indicator leds
-        let led_err = Output::new(p.PD1, Level::Low, Speed::Low);
-        let led_act = Output::new(p.PD2, Level::Low, Speed::Low);
 
         // can bus
         let mut can = can::CanConfigurator::new(p.FDCAN1, p.PA11, p.PA12, Irqs);
@@ -274,6 +284,7 @@ mod app {
 
         (
             Shared {
+                header,
                 config,
                 can_tx,
                 can_properties,

@@ -1,0 +1,2 @@
+target = "PD20"
+chip = "STM32G474VE"

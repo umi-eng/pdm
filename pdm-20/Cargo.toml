@@ -8,6 +8,8 @@ messages = { workspace = true, features = ["defmt-1"] }
 saelient = { workspace = true, features = ["defmt-1"] }
 analog.workspace = true
 vpd.workspace = true
+header.workspace = true
+cortex-m-link.workspace = true
 
 defmt = "1.0.1"
 defmt-rtt = "1.0.0"
@@ -36,3 +38,7 @@ embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
 ] }
 sequential-storage = { version = "7.0.0", features = ["defmt"] }
 paste = "1.0.15"
+zerocopy = { version = "0.8.33", features = ["derive"] }
+
+[build-dependencies]
+header.workspace = true
