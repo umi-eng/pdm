@@ -55,24 +55,32 @@ impl<'a> From<CastError<&'a [u8], ImageHeader>> for Error<'a> {
 #[repr(C)]
 #[derive(Debug, IntoBytes, FromBytes, KnownLayout, Immutable)]
 pub struct ImageHeader {
+    /// Magic number chosen at random to verify the header start.
+    ///
+    /// New magic numbers can be chosen to superscede header formats.
     magic: u32,
-    /// Total firmware image length including this header.
-    pub total_image_len: u32,
+    /// Total firmware image length including the 64 byte signature at the end
+    /// of the image.
+    ///
+    /// This doesn't necessarily represend the total length of the firmware
+    /// binary as there may be TLV-C data appended.
+    pub image_len: u32,
     /// Firmware version.
     pub fw_version: Version,
     /// Firmware flags.
     pub flags: Flags,
     /// Tag indicating the intended recipient of this image.
     pub target: [u8; 4],
-    /// Integrity check for this header.
+    /// CRC-32 integrity for this header using the ISCSI polynomial.
     checksum: u32,
 }
 
 impl ImageHeader {
-    pub fn new(total_image_len: u32, fw_version: Version, flags: Flags, target: [u8; 4]) -> Self {
+    /// Create a new image header with the necessary magic number and generated checksum.
+    pub fn new(image_len: u32, fw_version: Version, flags: Flags, target: [u8; 4]) -> Self {
         let mut new = Self {
             magic: HEADER_MAGIC,
-            total_image_len,
+            image_len,
             fw_version,
             flags,
             target,
@@ -183,7 +191,7 @@ mod tests {
     fn header_checksum() {
         let mut header = ImageHeader {
             magic: HEADER_MAGIC,
-            total_image_len: 1024,
+            image_len: 1024,
             fw_version: Version {
                 major: 0,
                 minor: 1,
