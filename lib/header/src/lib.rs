@@ -103,8 +103,7 @@ pub struct Flags(u8);
 
 bitflags::bitflags! {
     impl Flags: u8 {
-        const FIRMWARE_IMAGE = 1 << 0;
-        const BOOTLOADER_IMAGE = 1 << 1;
+        const BOOTLOADER_IMAGE = 1 << 0;
     }
 }
 

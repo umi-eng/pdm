@@ -54,7 +54,7 @@ impl PatchHeader {
         let image_size = calculate_flash_image_size(&obj_file)?;
         println!("Image size: {} bytes", image_size);
 
-        let header = header::ImageHeader::new(image_size, version, Flags::FIRMWARE_IMAGE, target);
+        let header = header::ImageHeader::new(image_size, version, Flags::empty(), target);
 
         let mut file = File::options().write(true).open(self.firmware)?;
 
