@@ -1,10 +1,10 @@
 use crate::Item;
-use serde::Deserialize;
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout, Unaligned};
 
 /// Hardware semantic-version.
-#[derive(Debug, FromBytes, IntoBytes, Immutable, Unaligned, KnownLayout, Deserialize)]
-#[repr(C, packed)]
+#[derive(Debug, FromBytes, IntoBytes, Immutable, Unaligned, KnownLayout)]
+#[cfg_attr(feature = "std", derive(facet::Facet))]
+#[repr(C)]
 pub struct HardwareVersion {
     pub major: u8,
     pub minor: u8,
@@ -25,9 +25,10 @@ impl Item for HardwareVersion {
 }
 
 /// Part number.
-#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
-#[repr(C)]
+#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
+#[cfg_attr(feature = "std", derive(facet::Facet))]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[repr(C)]
 pub struct PartNumber(pub [u8; 5]);
 
 impl PartNumber {
@@ -43,7 +44,8 @@ impl Item for PartNumber {
 }
 
 /// Serial number.
-#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout, Deserialize)]
+#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
+#[cfg_attr(feature = "std", derive(facet::Facet))]
 #[repr(C)]
 pub struct SerialNumber {
     pub year: u8,

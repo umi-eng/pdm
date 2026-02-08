@@ -1,8 +1,8 @@
-use serde::Deserialize;
+use facet::Facet;
 use vpd::item::HardwareVersion;
 use vpd::item::SerialNumber;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Facet)]
 pub struct Board {
     /// Target tag
     pub target: String,
@@ -11,7 +11,7 @@ pub struct Board {
 }
 
 /// Vital product data.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Facet)]
 pub struct VitalProductData {
     pub serial_number: SerialNumber,
     pub hardware_version: HardwareVersion,

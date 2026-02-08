@@ -38,4 +38,5 @@ st-driver = { git = "https://github.com/umi-eng/st-driver.git", version = "0.1.0
 paste = "1.0.15"
 tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
 tlvc-text = { git = "https://github.com/oxidecomputer/tlvc.git" }
-serde = { version = "1.0.219", default-features = false, features = ["derive"] }
+facet = { version = "0.43.2", default-features = false }
+facet-toml = "0.43.2"

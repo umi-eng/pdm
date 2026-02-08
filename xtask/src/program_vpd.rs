@@ -38,7 +38,7 @@ impl Cmd {
         let mut file = File::open(self.vpd)?;
         let mut vpd_file = String::new();
         file.read_to_string(&mut vpd_file)?;
-        let vpd: VitalProductData = toml::from_str(&vpd_file)?;
+        let vpd: VitalProductData = facet_toml::from_str(&vpd_file)?;
         let vpd = pack_vpd(&vpd, pubkey)?;
         println!("{:#?}", vpd);
 

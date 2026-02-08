@@ -25,7 +25,7 @@ impl Run {
             "Can't access board config at: {}",
             self.board.display()
         ))?;
-        let config: Board = toml::from_str(&config).context(format!(
+        let config: Board = facet_toml::from_str(&config).context(format!(
             "Can't parse board config at: {}",
             self.board.display()
         ))?;
