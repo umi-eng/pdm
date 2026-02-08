@@ -1,6 +1,7 @@
 #![cfg_attr(not(test), no_std)]
 
 use core::cmp::Ordering;
+use zerocopy::CastError;
 use zerocopy::FromBytes;
 use zerocopy::Immutable;
 use zerocopy::IntoBytes;
@@ -14,11 +15,41 @@ pub const HEADER_MAGIC: u32 = 0xB2_87_51_3B;
 pub const TARGET_PDM36: [u8; 4] = *b"PD36";
 pub const TARGET_PDM20: [u8; 4] = *b"PD20";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum Error {
+pub fn read() -> Result<&'static ImageHeader, Error<'static>> {
+    unsafe extern "C" {
+        static HEADER: u8;
+    }
+
+    let header_ptr = core::ptr::addr_of!(HEADER);
+    // SAFETY: The following data doesn't get used until it has passed validation.
+    let header_bytes: &[u8] =
+        unsafe { core::slice::from_raw_parts(header_ptr, size_of::<ImageHeader>()) };
+    header_bytes.try_into()
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum Error<'a> {
     Magic,
     Checksum,
+    CastError(CastError<&'a [u8], ImageHeader>),
+}
+
+#[cfg(feature = "defmt")]
+impl defmt::Format for Error<'_> {
+    fn format(&self, fmt: defmt::Formatter) {
+        match self {
+            Self::Magic => defmt::write!(fmt, "Magic"),
+            Self::Checksum => defmt::write!(fmt, "Checksum"),
+            Self::CastError(e) => defmt::write!(fmt, "{}", defmt::Debug2Format(&e)),
+        }
+    }
+}
+
+impl<'a> From<CastError<&'a [u8], ImageHeader>> for Error<'a> {
+    fn from(value: CastError<&'a [u8], ImageHeader>) -> Self {
+        Error::CastError(value)
+    }
 }
 
 /// Firmware image header.
@@ -54,7 +85,7 @@ impl ImageHeader {
         new
     }
 
-    pub fn validate(&self) -> Result<(), Error> {
+    pub fn validate(&self) -> Result<(), Error<'_>> {
         if !self.magic_correct() {
             Err(Error::Magic)
         } else if !self.verify_checksum() {
@@ -79,6 +110,16 @@ impl ImageHeader {
     fn verify_checksum(&self) -> bool {
         let calculated = self.calculate_checksum();
         calculated == self.checksum
+    }
+}
+
+impl<'a> TryFrom<&'a [u8]> for &'a ImageHeader {
+    type Error = Error<'a>;
+
+    fn try_from(value: &'a [u8]) -> Result<Self, Self::Error> {
+        let this = ImageHeader::ref_from_bytes(value)?;
+        this.validate()?;
+        Ok(this)
     }
 }
 

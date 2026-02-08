@@ -66,13 +66,6 @@ pub const VREF_MV: u32 = 2500;
 type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
 type FlashPartition = Partition<'static, NoopRawMutex, FlashBlockingAsync>;
 
-fn read_header() -> &'static header::ImageHeader {
-    unsafe extern "C" {
-        static HEADER: header::ImageHeader;
-    }
-    unsafe { &HEADER }
-}
-
 #[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
     use super::*;
@@ -148,7 +141,18 @@ mod app {
         let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 1000000);
         wd.pet();
 
-        let header = read_header();
+        // indicator leds
+        let mut led_err = Output::new(p.PD1, Level::Low, Speed::Low);
+        let led_act = Output::new(p.PD2, Level::Low, Speed::Low);
+
+        // read image header
+        let header = match header::read() {
+            Ok(h) => h,
+            Err(err) => {
+                led_err.set_high();
+                defmt::panic!("Failed to read image header: {}", err);
+            }
+        };
 
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);
@@ -158,10 +162,6 @@ mod app {
 
         // configuration store
         let config = config::Config::new(flash);
-
-        // indicator leds
-        let led_err = Output::new(p.PD1, Level::Low, Speed::Low);
-        let led_act = Output::new(p.PD2, Level::Low, Speed::Low);
 
         // can bus
         let mut can = can::CanConfigurator::new(p.FDCAN1, p.PA11, p.PA12, Irqs);
