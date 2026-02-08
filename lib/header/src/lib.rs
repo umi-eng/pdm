@@ -12,9 +12,6 @@ const CRC: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISCSI);
 /// Magic number to indicate the start of the header.
 pub const HEADER_MAGIC: u32 = 0xB2_87_51_3B;
 
-pub const TARGET_PDM36: [u8; 4] = *b"PD36";
-pub const TARGET_PDM20: [u8; 4] = *b"PD20";
-
 pub fn read() -> Result<&'static ImageHeader, Error<'static>> {
     unsafe extern "C" {
         static HEADER: u8;
