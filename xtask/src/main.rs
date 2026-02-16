@@ -13,18 +13,16 @@ enum Cli {
     /// Patch firmware image header.
     PatchHeader(patch_header::PatchHeader),
     /// Write vital product data to OTP memory.
-    ProgramVpd(program_vpd::Cmd),
+    ProgramVpd(program_vpd::ProgramVpd),
     /// Sign a firmware binary.
-    Sign(sign::Cmd),
+    Sign(sign::Sign),
 }
 
 fn main() -> anyhow::Result<()> {
     match Cli::parse() {
-        Cli::Run(cmd) => cmd.run()?,
-        Cli::PatchHeader(cmd) => cmd.run()?,
-        Cli::ProgramVpd(cmd) => cmd.run()?,
-        Cli::Sign(cmd) => cmd.run()?,
+        Cli::Run(cmd) => cmd.run(),
+        Cli::PatchHeader(cmd) => cmd.run(),
+        Cli::ProgramVpd(cmd) => cmd.run(),
+        Cli::Sign(cmd) => cmd.run(),
     }
-
-    Ok(())
 }

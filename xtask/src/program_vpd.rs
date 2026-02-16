@@ -20,7 +20,7 @@ use zerocopy::IntoBytes;
 const OTP_ADDRESS: u64 = 0x1FFF7000;
 
 #[derive(Debug, clap::Parser)]
-pub struct Cmd {
+pub struct ProgramVpd {
     /// VPD file in RON format.
     #[clap(long)]
     vpd: PathBuf,
@@ -29,7 +29,7 @@ pub struct Cmd {
     dry_run: bool,
 }
 
-impl Cmd {
+impl ProgramVpd {
     pub fn run(self) -> Result<()> {
         let pubkey = BASE64_STANDARD
             .decode(include_str!("../public.key").trim())

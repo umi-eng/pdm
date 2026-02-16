@@ -8,7 +8,7 @@ use std::{
 };
 
 #[derive(Debug, clap::Parser)]
-pub struct Cmd {
+pub struct Sign {
     /// Base64 encoded private key seed.
     #[clap(long, env = "FIRMWARE_PRIVKEY_SEED")]
     privkey_seed: String,
@@ -16,7 +16,7 @@ pub struct Cmd {
     firmware: PathBuf,
 }
 
-impl Cmd {
+impl Sign {
     pub fn run(self) -> Result<()> {
         let privkey = BASE64_STANDARD.decode(self.privkey_seed)?;
         let keypair = salty::Keypair::from(&privkey.try_into().unwrap());
