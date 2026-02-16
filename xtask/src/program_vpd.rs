@@ -16,9 +16,6 @@ use vpd::item::PubKey;
 use zerocopy::Immutable;
 use zerocopy::IntoBytes;
 
-/// Start address of OTP memory.
-const OTP_ADDRESS: u64 = 0x1FFF7000;
-
 #[derive(Debug, clap::Parser)]
 pub struct ProgramVpd {
     /// VPD file in RON format.
@@ -69,7 +66,7 @@ impl ProgramVpd {
 
         let mut loader = session.target().flash_loader();
 
-        loader.add_data(OTP_ADDRESS, &data)?;
+        loader.add_data(vpd::VPD_START_ADDRESS, &data)?;
 
         let mut options = DownloadOptions::new();
         options.dry_run = self.dry_run;

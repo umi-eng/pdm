@@ -23,7 +23,7 @@ unsafe extern "C" {
 
 /// OTP memory as a slice.
 pub fn otp_slice() -> &'static [u8] {
-    unsafe { core::slice::from_raw_parts(0x1FFF7000 as *const u8, 1024) }
+    unsafe { core::slice::from_raw_parts(vpd::VPD_START_ADDRESS as *const u8, 1024) }
 }
 
 /// Get the address range for the configuration space.

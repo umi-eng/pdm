@@ -5,6 +5,9 @@ pub mod item;
 use tlvc::{ChunkHandle, TlvcRead, TlvcReadError, TlvcReader};
 use zerocopy::{FromBytes, IntoBytes};
 
+/// Start address of OTP memory.
+pub const VPD_START_ADDRESS: u64 = 0x1FFF7000;
+
 /// A vital product data item.
 pub trait Item {
     /// TLV-C tag for this item.
