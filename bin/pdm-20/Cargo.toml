@@ -8,7 +8,7 @@ messages = { workspace = true, features = ["defmt"] }
 saelient = { workspace = true, features = ["defmt-1"] }
 analog.workspace = true
 vpd.workspace = true
-header.workspace = true
+header = { workspace = true, features = ["defmt"] }
 cortex-m-link.workspace = true
 
 defmt.workspace = true

@@ -154,6 +154,8 @@ mod app {
             }
         };
 
+        defmt::info!("Firmware version: {}", header.fw_version);
+
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);
         let flash = cx.local.flash.write(Mutex::new(BlockingAsync::new(flash)));

@@ -147,6 +147,13 @@ pub struct Version {
     pub patch: u8,
 }
 
+#[cfg(feature = "defmt")]
+impl defmt::Format for Version {
+    fn format(&self, fmt: defmt::Formatter) {
+        defmt::write!(fmt, "v{}.{}.{}", self.major, self.minor, self.patch);
+    }
+}
+
 impl Version {
     pub fn new(major: u8, minor: u8, patch: u8) -> Self {
         Self {
