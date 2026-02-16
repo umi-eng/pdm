@@ -1,4 +1,5 @@
 mod config;
+mod generate_secret_key;
 mod patch_header;
 mod program_vpd;
 mod run;
@@ -16,6 +17,8 @@ enum Cli {
     ProgramVpd(program_vpd::ProgramVpd),
     /// Sign a firmware binary.
     Sign(sign::Sign),
+    /// Generate a new secret key for signing.
+    GenerateSecretKey(generate_secret_key::GenerateSecretKey),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -24,5 +27,6 @@ fn main() -> anyhow::Result<()> {
         Cli::PatchHeader(cmd) => cmd.run(),
         Cli::ProgramVpd(cmd) => cmd.run(),
         Cli::Sign(cmd) => cmd.run(),
+        Cli::GenerateSecretKey(cmd) => cmd.run(),
     }
 }
