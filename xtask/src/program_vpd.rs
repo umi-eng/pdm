@@ -18,6 +18,9 @@ use zerocopy::IntoBytes;
 
 #[derive(Debug, clap::Parser)]
 pub struct ProgramVpd {
+    /// Public key file.
+    #[clap(long)]
+    pub_key: PathBuf,
     /// VPD file in RON format.
     #[clap(long)]
     vpd: PathBuf,
@@ -28,9 +31,8 @@ pub struct ProgramVpd {
 
 impl ProgramVpd {
     pub fn run(self) -> Result<()> {
-        let pubkey = BASE64_STANDARD
-            .decode(include_str!("../public.key").trim())
-            .unwrap();
+        let pubkey = std::fs::read_to_string(self.pub_key)?;
+        let pubkey = BASE64_STANDARD.decode(pubkey.trim()).unwrap();
 
         let mut file = File::open(self.vpd)?;
         let mut vpd_file = String::new();
