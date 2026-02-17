@@ -1,4 +1,5 @@
 mod config;
+mod generate_public_key;
 mod generate_secret_key;
 mod patch_header;
 mod program_vpd;
@@ -19,6 +20,8 @@ enum Cli {
     Sign(sign::Sign),
     /// Generate a new secret key for signing.
     GenerateSecretKey(generate_secret_key::GenerateSecretKey),
+    /// Generate public key from a base64 encoded secret key.
+    GeneratePublicKey(generate_public_key::GeneratePublicKey),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -28,5 +31,6 @@ fn main() -> anyhow::Result<()> {
         Cli::ProgramVpd(cmd) => cmd.run(),
         Cli::Sign(cmd) => cmd.run(),
         Cli::GenerateSecretKey(cmd) => cmd.run(),
+        Cli::GeneratePublicKey(cmd) => cmd.run(),
     }
 }
