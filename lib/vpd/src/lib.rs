@@ -1,9 +1,9 @@
-#![cfg_attr(not(test), no_std)]
+#![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 
 pub mod item;
 
 use tlvc::{ChunkHandle, TlvcRead, TlvcReadError, TlvcReader};
-use zerocopy::{FromBytes, IntoBytes};
+use zerocopy::{FromBytes, Immutable, IntoBytes};
 
 /// Start address of OTP memory.
 pub const VPD_START_ADDRESS: u64 = 0x1FFF7000;
@@ -96,6 +96,24 @@ impl<R: TlvcRead> defmt::Format for Error<R> {
             Error::ChunkSize => write!(fmt, "Chunk size invalid"),
         }
     }
+}
+
+/// Only double words can be written to flash.
+#[cfg(feature = "std")]
+pub fn pad_to_double_word(data: &mut Vec<u8>) {
+    let len = data.len().div_ceil(8) * 8;
+    for _ in 0..(len - data.len()) {
+        println!("Padding");
+        data.push(0xFF);
+    }
+}
+
+#[cfg(feature = "std")]
+pub fn chunk<T: Item + IntoBytes + Immutable>(item: &T) -> tlvc_text::Piece {
+    tlvc_text::Piece::Chunk(
+        tlvc_text::Tag::new(T::tag()),
+        vec![tlvc_text::Piece::Bytes(Vec::from(item.as_bytes()))],
+    )
 }
 
 #[cfg(test)]

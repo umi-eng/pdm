@@ -10,17 +10,13 @@ use probe_rs::flashing::DownloadOptions;
 use std::io::Read;
 use std::{fs::File, path::PathBuf};
 use tlvc_text::{Piece, Tag};
-use vpd::Item;
+use vpd::chunk;
 use vpd::item::PartNumber;
 use vpd::item::PubKey;
-use zerocopy::Immutable;
-use zerocopy::IntoBytes;
+use vpd::pad_to_double_word;
 
 #[derive(Debug, clap::Parser)]
 pub struct ProgramVpd {
-    /// Public key file.
-    #[clap(long)]
-    pub_key: PathBuf,
     /// VPD file in RON format.
     #[clap(long)]
     vpd: PathBuf,
@@ -31,8 +27,9 @@ pub struct ProgramVpd {
 
 impl ProgramVpd {
     pub fn run(self) -> Result<()> {
-        let pubkey = std::fs::read_to_string(self.pub_key)?;
-        let pubkey = BASE64_STANDARD.decode(pubkey.trim()).unwrap();
+        let pubkey = BASE64_STANDARD
+            .decode(include_str!("../../pdm36.pub").trim())
+            .unwrap();
 
         let mut file = File::open(self.vpd)?;
         let mut vpd_file = String::new();
@@ -78,22 +75,6 @@ impl ProgramVpd {
 
         Ok(())
     }
-}
-
-/// Only double words can be written to flash.
-fn pad_to_double_word(data: &mut Vec<u8>) {
-    let len = data.len().div_ceil(8) * 8;
-    for _ in 0..(len - data.len()) {
-        println!("Padding");
-        data.push(0xFF);
-    }
-}
-
-fn chunk<T: Item + IntoBytes + Immutable>(item: &T) -> Piece {
-    Piece::Chunk(
-        Tag::new(T::tag()),
-        vec![Piece::Bytes(Vec::from(item.as_bytes()))],
-    )
 }
 
 pub fn pack_vpd(vpd: &VitalProductData, pubkey: Vec<u8>) -> anyhow::Result<Piece> {

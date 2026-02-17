@@ -7,6 +7,7 @@ edition = "2024"
 [dependencies]
 defmt = { workspace = true, optional = true }
 facet = { workspace = true, optional = true }
+tlvc-text = { workspace = true, optional = true }
 zerocopy.workspace = true
 tlvc.workspace = true
 
@@ -15,4 +16,4 @@ tlvc-text.workspace = true
 
 [features]
 defmt = ["dep:defmt"]
-std = ["dep:facet"]
+std = ["dep:facet", "dep:tlvc-text"]

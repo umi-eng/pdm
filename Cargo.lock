@@ -3476,16 +3476,6 @@ dependencies = [
 [[package]]
 name = "tlvc"
 version = "0.3.1"
-source = "git+https://github.com/oxidecomputer/tlvc?rev=e644a21#e644a21a7ca973ed31499106ea926bd63ebccc6f"
-dependencies = [
- "byteorder",
- "crc",
- "zerocopy 0.6.6",
-]
-
-[[package]]
-name = "tlvc"
-version = "0.3.1"
 source = "git+https://github.com/oxidecomputer/tlvc.git#e644a21a7ca973ed31499106ea926bd63ebccc6f"
 dependencies = [
  "byteorder",
@@ -3496,22 +3486,11 @@ dependencies = [
 [[package]]
 name = "tlvc-text"
 version = "0.3.0"
-source = "git+https://github.com/oxidecomputer/tlvc?rev=e644a21#e644a21a7ca973ed31499106ea926bd63ebccc6f"
-dependencies = [
- "ron",
- "serde",
- "tlvc 0.3.1 (git+https://github.com/oxidecomputer/tlvc?rev=e644a21)",
- "zerocopy 0.6.6",
-]
-
-[[package]]
-name = "tlvc-text"
-version = "0.3.0"
 source = "git+https://github.com/oxidecomputer/tlvc.git#e644a21a7ca973ed31499106ea926bd63ebccc6f"
 dependencies = [
  "ron",
  "serde",
- "tlvc 0.3.1 (git+https://github.com/oxidecomputer/tlvc.git)",
+ "tlvc",
  "zerocopy 0.6.6",
 ]
 
@@ -3888,8 +3867,8 @@ version = "0.1.0"
 dependencies = [
  "defmt 1.0.1",
  "facet",
- "tlvc 0.3.1 (git+https://github.com/oxidecomputer/tlvc.git)",
- "tlvc-text 0.3.0 (git+https://github.com/oxidecomputer/tlvc.git)",
+ "tlvc",
+ "tlvc-text",
  "zerocopy 0.8.33",
 ]
 
@@ -4366,7 +4345,7 @@ dependencies = [
  "probe-rs",
  "rand",
  "salty",
- "tlvc-text 0.3.0 (git+https://github.com/oxidecomputer/tlvc?rev=e644a21)",
+ "tlvc-text",
  "vpd",
  "xshell",
  "zerocopy 0.8.33",

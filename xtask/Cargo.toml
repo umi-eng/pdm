@@ -12,7 +12,7 @@ facet-toml.workspace = true
 anyhow = "1.0.98"
 clap = { version = "4.5.41", features = ["derive", "env"] }
 probe-rs = "0.29.0"
-tlvc-text = { git = "https://github.com/oxidecomputer/tlvc", rev = "e644a21", version = "0.3.0" }
+tlvc-text.workspace = true
 base64 = "0.22.1"
 salty = "0.3.0"
 object = "0.38.1"
