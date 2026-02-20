@@ -11,7 +11,7 @@ use std::io::Read;
 use std::{fs::File, path::PathBuf};
 use tlvc_text::{Piece, Tag};
 use vpd::chunk;
-use vpd::item::PartNumber;
+use vpd::item::Board;
 use vpd::item::PubKey;
 use vpd::pad_to_double_word;
 
@@ -82,7 +82,7 @@ pub fn pack_vpd(vpd: &VitalProductData, pubkey: Vec<u8>) -> anyhow::Result<Piece
         Tag::new(*b"VPD0"),
         vec![
             chunk(&vpd.hardware_version),
-            chunk(&PartNumber(*b"PDM36")),
+            chunk(&Board(*b"PD36")),
             chunk(&vpd.serial_number),
             chunk(&PubKey {
                 key: pubkey

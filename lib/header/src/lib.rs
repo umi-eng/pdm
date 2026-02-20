@@ -70,20 +70,20 @@ pub struct ImageHeader {
     /// Firmware flags.
     pub flags: Flags,
     /// Tag indicating the intended recipient of this image.
-    pub target: [u8; 4],
+    pub target_board: [u8; 4],
     /// CRC-32 integrity for this header using the ISCSI polynomial.
     checksum: u32,
 }
 
 impl ImageHeader {
     /// Create a new image header with the necessary magic number and generated checksum.
-    pub fn new(image_len: u32, fw_version: Version, flags: Flags, target: [u8; 4]) -> Self {
+    pub fn new(image_len: u32, fw_version: Version, flags: Flags, target_board: [u8; 4]) -> Self {
         let mut new = Self {
             magic: HEADER_MAGIC,
             image_len,
             fw_version,
             flags,
-            target,
+            target_board,
             checksum: 0,
         };
         new.checksum = new.calculate_checksum();
@@ -204,7 +204,7 @@ mod tests {
                 minor: 1,
                 patch: 2,
             },
-            target: *b"TEST",
+            target_board: *b"TEST",
             flags: Flags::BOOTLOADER_IMAGE,
             checksum: 0,
         };

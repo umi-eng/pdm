@@ -29,17 +29,11 @@ impl Item for HardwareVersion {
 #[cfg_attr(feature = "std", derive(facet::Facet))]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(C)]
-pub struct PartNumber(pub [u8; 5]);
+pub struct Board(pub [u8; 4]);
 
-impl PartNumber {
-    pub fn is_pdm36(&self) -> bool {
-        self.0 == *b"PDM36"
-    }
-}
-
-impl Item for PartNumber {
+impl Item for Board {
     fn tag() -> [u8; 4] {
-        *b"PART"
+        *b"BRD "
     }
 }
 
@@ -83,7 +77,7 @@ impl Item for PubKey {
 /// Check type sizes at compile time.
 const _CHECK_SIZE: () = {
     assert!(size_of::<HardwareVersion>() == 3);
-    assert!(size_of::<PartNumber>() == 5);
+    assert!(size_of::<Board>() == 4);
     assert!(size_of::<SerialNumber>() == 4);
     assert!(size_of::<PubKey>() == 32);
 };
