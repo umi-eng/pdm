@@ -65,6 +65,66 @@ variants:
   - stm32g47x-8x_512
   - stm32g47x-otp
   - stm32g4xx_db_opt
+- name: STM32G474VE
+  package_variants:
+  - STM32G474VETx
+  cores:
+    - name: main
+      type: armv7em
+      core_access_options: !Arm
+        ap: !v1 0
+  memory_map:
+  - !Nvm
+    name: BANK_1
+    range:
+      start: 0x8000000
+      end: 0x8080000
+    cores:
+    - main
+    access:
+      write: false
+      boot: true
+  - !Nvm
+    name: OTP
+    range:
+      start: 0x1FFF7000
+      end: 0x1FFF7400
+    cores:
+    - main
+    access:
+      write: false
+  - !Ram
+    name: CCMRAM_ICODE
+    range:
+      start: 0x10000000
+      end: 0x10008000
+    cores:
+    - main
+  - !Ram
+    name: SRAM1
+    range:
+      start: 0x20000000
+      end: 0x20014000
+    cores:
+    - main
+  - !Ram
+    name: SRAM2
+    range:
+      start: 0x20014000
+      end: 0x20018000
+    cores:
+    - main
+  - !Ram
+    name: CCMRAM_DCODE
+    range:
+      start: 0x20018000
+      end: 0x20020000
+    cores:
+    - main
+  flash_algorithms:
+  - stm32g47x-8x_512
+  - stm32g47x-otp
+  - stm32g4xx_db_opt
 flash_algorithms:
 - name: stm32g47x-8x_512
   description: STM32G47x-8x 512 KB Flash
