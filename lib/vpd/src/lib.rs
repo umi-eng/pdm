@@ -3,7 +3,7 @@
 pub mod item;
 
 use tlvc::{ChunkHandle, TlvcRead, TlvcReadError, TlvcReader};
-use zerocopy::{FromBytes, Immutable, IntoBytes};
+use zerocopy::{FromBytes, IntoBytes};
 
 /// Start address of OTP memory.
 pub const VPD_START_ADDRESS: u64 = 0x1FFF7000;
@@ -109,7 +109,7 @@ pub fn pad_to_double_word(data: &mut Vec<u8>) {
 }
 
 #[cfg(feature = "std")]
-pub fn chunk<T: Item + IntoBytes + Immutable>(item: &T) -> tlvc_text::Piece {
+pub fn chunk<T: Item + IntoBytes + zerocopy::Immutable>(item: &T) -> tlvc_text::Piece {
     tlvc_text::Piece::Chunk(
         tlvc_text::Tag::new(T::tag()),
         vec![tlvc_text::Piece::Bytes(Vec::from(item.as_bytes()))],

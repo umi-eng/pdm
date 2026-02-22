@@ -20,7 +20,6 @@ pub async fn receive(cx: receive::Context<'_>) {
     let source_address = *cx.shared.source_address;
     let mut drvh = cx.shared.drivers_high_current;
     let mut drvl = cx.shared.drivers_low_current;
-    let mut analog_reconfigure = cx.shared.analog_reconfigure.clone();
 
     loop {
         let frame = match can_rx.read().await {
@@ -167,30 +166,6 @@ pub async fn receive(cx: receive::Context<'_>) {
                                     defmt::error!("Failed to store CAN bitrate: {}", err);
                                 }
                             }
-                        }
-                        Ok(ConfigureMuxIndex::M2(m2)) => {
-                            if let Err(err) = match m2.analog_input_1_pull_up() {
-                                0 => config.store_ain1_pull_up_enabled(&false).await,
-                                1 => config.store_ain1_pull_up_enabled(&true).await,
-                                _ => Ok(()),
-                            } {
-                                defmt::error!("Failed to update config value: {}", err);
-                            }
-                            if let Err(err) = match m2.analog_input_2_pull_up() {
-                                0 => config.store_ain2_pull_up_enabled(&false).await,
-                                1 => config.store_ain2_pull_up_enabled(&true).await,
-                                _ => Ok(()),
-                            } {
-                                defmt::error!("Failed to update config value: {}", err);
-                            }
-                            if let Err(err) = match m2.analog_input_3_pull_up() {
-                                0 => config.store_ain3_pull_up_enabled(&false).await,
-                                1 => config.store_ain3_pull_up_enabled(&true).await,
-                                _ => Ok(()),
-                            } {
-                                defmt::error!("Failed to update config value: {}", err);
-                            }
-                            analog_reconfigure.write(());
                         }
                         Err(_) => {
                             defmt::error!(

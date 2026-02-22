@@ -64,9 +64,6 @@ BO_ 2582597632 Configure: 8 Vector__XXX
  SG_ System_Reset m0 : 6|2@1+ (1,0) [0|3] "Reset all configuration to factory defaults" Vector__XXX
  SG_ CAN_Bitrate m1 : 4|4@1+ (1,0) [0|255] "CAN bitrate" Vector__XXX
  SG_ CAN_J1939_Source_Address m1 : 8|8@1+ (1,0) [1|255] "J1939 source address" Vector__XXX
- SG_ Analog_Input_1_Pull_Up m2 : 4|2@1+ (1,0) [0|3] "Input 1 pull up enable" Vector__XXX
- SG_ Analog_Input_2_Pull_Up m2 : 6|2@1+ (1,0) [0|3] "Input 2 pull up enable" Vector__XXX
- SG_ Analog_Input_3_Pull_Up m2 : 8|2@1+ (1,0) [0|3] "Input 3 pull up enable" Vector__XXX
 
 BO_ 419364949 Startup: 8 Vector__XXX
  SG_ Hardware_Version_Major : 0|8@1+ (1,0) [0|255] "SemVer" Vector__XXX

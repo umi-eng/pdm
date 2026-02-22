@@ -44,8 +44,6 @@ use rtic_monotonics::systick_monotonic;
 use rtic_sync::arbiter::Arbiter;
 use rtic_sync::channel;
 use rtic_sync::make_channel;
-use rtic_sync::make_signal;
-use rtic_sync::signal;
 
 systick_monotonic!(Mono, 10_000);
 defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().to_micros());
@@ -84,7 +82,6 @@ mod app {
         adc3: adc::Adc<'static, ADC3>,
         adc4: adc::Adc<'static, ADC4>,
         adc5: adc::Adc<'static, ADC5>,
-        analog_reconfigure: signal::SignalWriter<'static, ()>,
     }
 
     #[local]
@@ -100,10 +97,6 @@ mod app {
         ain1: AnalogCh<'static>,
         ain2: AnalogCh<'static>,
         ain3: AnalogCh<'static>,
-        ain1_pull: Output<'static>,
-        ain2_pull: Output<'static>,
-        ain3_pull: Output<'static>,
-        analog_reconfigure: signal::SignalReader<'static, ()>,
         shunt_in: AnalogCh<'static>,
         shunt_fault: Input<'static>,
     }
@@ -270,11 +263,6 @@ mod app {
         let ain1 = AnalogCh::Adc2(p.PA6.degrade_adc());
         let ain2 = AnalogCh::Adc2(p.PA7.degrade_adc());
         let ain3 = AnalogCh::Adc2(p.PC4.degrade_adc());
-        let ain1_pull = Output::new(p.PC15, Level::High, Speed::Low);
-        let ain2_pull = Output::new(p.PC14, Level::High, Speed::Low);
-        let ain3_pull = Output::new(p.PC13, Level::High, Speed::Low);
-
-        let (analog_reconfigure_send, analog_reconfigure) = make_signal!(());
 
         let shunt_in = AnalogCh::Adc2(p.PC5.degrade_adc());
         let shunt_fault = Input::new(p.PE13, Pull::Up);
@@ -298,7 +286,6 @@ mod app {
                 adc3,
                 adc4,
                 adc5,
-                analog_reconfigure: analog_reconfigure_send,
             },
             Local {
                 wd,
@@ -312,10 +299,6 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
-                ain1_pull,
-                ain2_pull,
-                ain3_pull,
-                analog_reconfigure,
                 shunt_in,
                 shunt_fault,
             },
@@ -357,7 +340,6 @@ mod app {
                 &config,
                 &can_tx,
                 &source_address,
-                &analog_reconfigure,
                 drivers_high_current,
                 drivers_low_current
             ]
@@ -390,10 +372,6 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
-                ain1_pull,
-                ain2_pull,
-                ain3_pull,
-                analog_reconfigure,
             ],
             shared = [
                 &config,
