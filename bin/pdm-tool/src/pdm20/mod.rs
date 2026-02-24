@@ -1,5 +1,6 @@
 pub mod analog;
 pub mod output;
+pub mod update;
 
 use crate::maybe_hex;
 use anyhow::Result;
@@ -28,6 +29,7 @@ impl Cmd {
         match self.subcommand {
             Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
         }
     }
 }
@@ -38,4 +40,6 @@ enum Subcommand {
     Output(output::Cmd),
     /// Read analog inputs
     Analog(analog::Cmd),
+    /// Update firmware
+    Update(update::Cmd),
 }

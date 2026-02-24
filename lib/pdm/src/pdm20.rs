@@ -7,7 +7,16 @@ use messages::pdm20::ControlMuxM0;
 use messages::pdm20::pgn;
 use saelient::PduFormat;
 use saelient::Pgn;
+use saelient::diagnostic::Command;
+use saelient::diagnostic::MemoryAccessRequest;
+use saelient::diagnostic::MemoryAccessResponse;
+use saelient::diagnostic::Pointer;
+use saelient::diagnostic::Status;
 use saelient::prelude::*;
+use saelient::transport::ClearToSend;
+use saelient::transport::DataTransfer;
+use saelient::transport::EndOfMessageAck;
+use saelient::transport::RequestToSend;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
 
@@ -114,6 +123,80 @@ impl Pdm20 {
         Ok(reading)
     }
 
+    /// Perform the firmware update process.
+    pub async fn update_firmware(&self, firmware: &[u8]) -> Result<(), io::Error> {
+        let req_id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(Pgn::MemoryAccessRequest)
+            .priority(6)
+            .build()
+            .unwrap();
+
+        let chunk_size = 1024;
+        for (n, chunk) in firmware.chunks(chunk_size).enumerate() {
+            // request write
+            let offset = n * chunk_size;
+            let req = MemoryAccessRequest::new(
+                Command::Write,
+                Pointer::Direct(offset as u32),
+                chunk.len() as u16,
+                0,
+            );
+            log::debug!(
+                "Requesting memory access write with offset: {}, length: {}",
+                offset,
+                chunk.len()
+            );
+            self.interface
+                .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
+                .await?;
+
+            // get response
+            let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+            let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+                return Err(io::Error::other("Could not deserialize frame"));
+            };
+            match res.status() {
+                Status::Proceed => {}
+                Status::Busy => return Err(io::Error::other("Device busy")),
+                status => {
+                    return Err(io::Error::other(format!(
+                        "Memory access request failed: {:?}",
+                        status
+                    )));
+                }
+            }
+
+            // write binary data in transfer
+            self.transfer(chunk).await?;
+
+            // get memory access complete response
+            let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+            let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+                return Err(io::Error::other("Could not deserialize frame"));
+            };
+            match res.status() {
+                Status::OperationCompleted => {}
+                Status::Busy => return Err(io::Error::other("Device busy")),
+                status => {
+                    return Err(io::Error::other(format!(
+                        "Memory access request failed: {:?}",
+                        status
+                    )));
+                }
+            }
+        }
+
+        log::info!("Firmware load finished. Bootloading...");
+        let req = MemoryAccessRequest::new(Command::BootLoad, Pointer::Direct(0), 0, 0);
+        self.interface
+            .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
+            .await?;
+
+        Ok(())
+    }
+
     /// Wait for a message with a given PGN that is addressed to us.
     async fn wait_for_message(&self, pgn: Pgn) -> Result<CanFrame, io::Error> {
         log::debug!("Waiting for response with PGN: {:?}.", pgn);
@@ -136,5 +219,63 @@ impl Pdm20 {
                 return Ok(frame);
             }
         }
+    }
+
+    /// Do a TP transfer to the PDM.
+    async fn transfer(&self, payload: &[u8]) -> Result<(), io::Error> {
+        log::debug!("Starting transfer with length {}.", payload.len());
+
+        // send request-to-send
+        let id = saelient::Id::builder()
+            .sa(0)
+            .da(self.address)
+            .pgn(Pgn::TransportProtocolConnectionManagement)
+            .build()
+            .unwrap();
+        let rts = RequestToSend::new(payload.len() as u16, Some(1), Pgn::BinaryDataTransfer);
+        let data: [u8; 8] = rts.into();
+        self.interface
+            .write_frame(CanFrame::new(id, &data).unwrap())
+            .await?;
+
+        let res = self
+            .wait_for_message(Pgn::TransportProtocolConnectionManagement)
+            .await?;
+        let Ok(_) = ClearToSend::try_from(res.data()) else {
+            return Err(io::Error::other("Did not get clear to send response"));
+        };
+
+        let id = saelient::Id::builder()
+            .sa(0)
+            .da(self.address)
+            .pgn(Pgn::TransportProtocolDataTransfer)
+            .build()
+            .unwrap();
+        let mut sequence = 1;
+
+        for chunk in payload.chunks(7) {
+            // send data
+            let mut data = [0xFF; 7];
+            data[..chunk.len()].clone_from_slice(chunk);
+            let dt = DataTransfer::new(sequence, data);
+            self.interface
+                .write_frame(CanFrame::new(id, &<[u8; 8]>::from(&dt)).unwrap())
+                .await?;
+
+            // wait for cts response
+            let res = self
+                .wait_for_message(Pgn::TransportProtocolConnectionManagement)
+                .await?;
+            let Ok(cts) = ClearToSend::try_from(res.data()) else {
+                let Ok(_) = EndOfMessageAck::try_from(res.data()) else {
+                    return Err(io::Error::other("Did not get clear to send response"));
+                };
+
+                return Ok(());
+            };
+            sequence = cts.next_sequence();
+        }
+
+        Err(io::Error::other("Did not get final end of message ack"))
     }
 }
