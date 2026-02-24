@@ -11,6 +11,7 @@ pub struct PatchHeader {
     /// Firmware version.
     #[clap(long)]
     pub version: String,
+    /// Target board.
     #[clap(long)]
     pub target: String,
 }
