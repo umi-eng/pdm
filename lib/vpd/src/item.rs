@@ -50,7 +50,13 @@ pub struct SerialNumber {
 #[cfg(feature = "defmt")]
 impl defmt::Format for SerialNumber {
     fn format(&self, fmt: defmt::Formatter) {
-        defmt::write!(fmt, "{:02}{:02}-{:X}", self.year, self.week, self.sequence);
+        defmt::write!(
+            fmt,
+            "{:02}{:02}-{:04X}",
+            self.year,
+            self.week,
+            self.sequence
+        );
     }
 }
 
