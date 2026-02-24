@@ -31,13 +31,11 @@ pub async fn power(cx: power::Context<'_>) {
         let bus_voltage =
             adc3.lock(|adc| adc.blocking_read(cx.local.ain_bus, SampleTime::CYCLES92_5));
         let bus_voltage = convert_to_bus_volts(bus_voltage).clamp(0.0, 64.0);
-        defmt::info!("Bus voltage: {}V", bus_voltage);
         let bus_voltage = SaeEV06::from_f32(bus_voltage).unwrap().parameter().to_raw();
 
         let bus_current =
             adc2.lock(|adc| adc.blocking_read(cx.local.shunt_in, SampleTime::CYCLES92_5));
         let bus_current = convert_to_bus_amps(bus_current).clamp(0.0, 64.0);
-        defmt::info!("Bus current: {}A", bus_current);
         let bus_current = SaeEC06::from_f32(bus_current).unwrap().parameter().to_raw();
 
         let temperature =
