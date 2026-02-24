@@ -15,4 +15,6 @@ pub mod pgn {
     pub const STATUS: Pgn = Pgn::ProprietaryB(0x10);
     /// Analog readings message.
     pub const ANALOG: Pgn = Pgn::ProprietaryB(0x11);
+    /// Power message.
+    pub const POWER: Pgn = Pgn::ProprietaryB(0x12);
 }

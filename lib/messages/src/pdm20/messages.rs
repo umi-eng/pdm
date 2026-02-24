@@ -27,6 +27,8 @@ pub enum Messages {
     SystemStatus(SystemStatus),
     /// Analog_Inputs
     AnalogInputs(AnalogInputs),
+    /// Power
+    Power(Power),
 }
 
 impl Messages {
@@ -40,6 +42,7 @@ impl Messages {
             Startup::MESSAGE_ID => Messages::Startup(Startup::try_from(payload)?),
             SystemStatus::MESSAGE_ID => Messages::SystemStatus(SystemStatus::try_from(payload)?),
             AnalogInputs::MESSAGE_ID => Messages::AnalogInputs(AnalogInputs::try_from(payload)?),
+            Power::MESSAGE_ID => Messages::Power(Power::try_from(payload)?),
             id => return Err(CanError::UnknownMessageId(id)),
         };
         Ok(res)
@@ -1986,15 +1989,12 @@ impl SystemStatus {
     pub const CAN_RX_ERRORS_MAX: u8 = 255_u8;
     pub const CAN_TX_ERRORS_MIN: u8 = 0_u8;
     pub const CAN_TX_ERRORS_MAX: u8 = 255_u8;
-    pub const TEMPERATURE_MIN: u8 = 0_u8;
-    pub const TEMPERATURE_MAX: u8 = 255_u8;
     
     /// Construct new System_Status from values
-    pub fn new(can_rx_errors: u8, can_tx_errors: u8, temperature: u8) -> Result<Self, CanError> {
+    pub fn new(can_rx_errors: u8, can_tx_errors: u8) -> Result<Self, CanError> {
         let mut res = Self { raw: [0u8; 8] };
         res.set_can_rx_errors(can_rx_errors)?;
         res.set_can_tx_errors(can_tx_errors)?;
-        res.set_temperature(temperature)?;
         Ok(res)
     }
     
@@ -2087,48 +2087,6 @@ impl SystemStatus {
         Ok(())
     }
     
-    /// Temperature
-    ///
-    /// - Min: 0
-    /// - Max: 255
-    /// - Unit: "Celsius"
-    /// - Receivers: Vector__XXX
-    #[inline(always)]
-    pub fn temperature(&self) -> u8 {
-        self.temperature_raw()
-    }
-    
-    /// Get raw value of Temperature
-    ///
-    /// - Start bit: 24
-    /// - Signal size: 8 bits
-    /// - Factor: 1
-    /// - Offset: 0
-    /// - Byte order: LittleEndian
-    /// - Value type: Unsigned
-    #[inline(always)]
-    pub fn temperature_raw(&self) -> u8 {
-        let signal = self.raw.view_bits::<Lsb0>()[24..32].load_le::<u8>();
-        
-        let factor = 1;
-        u8::from(signal).saturating_mul(factor).saturating_add(0)
-    }
-    
-    /// Set value of Temperature
-    #[inline(always)]
-    pub fn set_temperature(&mut self, value: u8) -> Result<(), CanError> {
-        if value < 0_u8 || 255_u8 < value {
-            return Err(CanError::ParameterOutOfRange { message_id: SystemStatus::MESSAGE_ID });
-        }
-        let factor = 1;
-        let value = value.checked_sub(0)
-            .ok_or(CanError::ParameterOutOfRange { message_id: SystemStatus::MESSAGE_ID })?;
-        let value = (value / factor) as u8;
-        
-        self.raw.view_bits_mut::<Lsb0>()[24..32].store_le(value);
-        Ok(())
-    }
-    
 }
 
 impl core::convert::TryFrom<&[u8]> for SystemStatus {
@@ -2183,10 +2141,9 @@ impl embedded_can::Frame for SystemStatus {
 impl defmt::Format for SystemStatus {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f,
-            "SystemStatus {{ CAN_RX_Errors={:?} CAN_TX_Errors={:?} Temperature={:?} }}",
+            "SystemStatus {{ CAN_RX_Errors={:?} CAN_TX_Errors={:?} }}",
             self.can_rx_errors(),
             self.can_tx_errors(),
-            self.temperature(),
             );
         }
 }
@@ -2409,6 +2366,228 @@ impl defmt::Format for AnalogInputs {
             self.input_1(),
             self.input_2(),
             self.input_3(),
+            );
+        }
+}
+
+
+/// Power
+///
+/// - Standard ID: 4688 (0x1250)
+/// - Size: 6 bytes
+#[derive(Clone, Copy)]
+pub struct Power {
+    raw: [u8; 6],
+}
+
+impl Power {
+    pub const MESSAGE_ID: embedded_can::Id = Id::Standard(unsafe { StandardId::new_unchecked(0x1250)});
+    
+    pub const BUS_VOLTAGE_MIN: u16 = 0_u16;
+    pub const BUS_VOLTAGE_MAX: u16 = 65535_u16;
+    pub const BUS_CURRENT_MIN: u16 = 0_u16;
+    pub const BUS_CURRENT_MAX: u16 = 65535_u16;
+    pub const TEMPERATURE_MIN: u8 = 0_u8;
+    pub const TEMPERATURE_MAX: u8 = 255_u8;
+    
+    /// Construct new Power from values
+    pub fn new(bus_voltage: u16, bus_current: u16, temperature: u8) -> Result<Self, CanError> {
+        let mut res = Self { raw: [0u8; 6] };
+        res.set_bus_voltage(bus_voltage)?;
+        res.set_bus_current(bus_current)?;
+        res.set_temperature(temperature)?;
+        Ok(res)
+    }
+    
+    /// Access message payload raw value
+    pub fn raw(&self) -> &[u8; 6] {
+        &self.raw
+    }
+    
+    /// Bus_Voltage
+    ///
+    /// - Min: 0
+    /// - Max: 65535
+    /// - Unit: "Bus voltage in Volts"
+    /// - Receivers: Vector__XXX
+    #[inline(always)]
+    pub fn bus_voltage(&self) -> u16 {
+        self.bus_voltage_raw()
+    }
+    
+    /// Get raw value of Bus_Voltage
+    ///
+    /// - Start bit: 0
+    /// - Signal size: 16 bits
+    /// - Factor: 1
+    /// - Offset: 0
+    /// - Byte order: LittleEndian
+    /// - Value type: Unsigned
+    #[inline(always)]
+    pub fn bus_voltage_raw(&self) -> u16 {
+        let signal = self.raw.view_bits::<Lsb0>()[0..16].load_le::<u16>();
+        
+        let factor = 1;
+        u16::from(signal).saturating_mul(factor).saturating_add(0)
+    }
+    
+    /// Set value of Bus_Voltage
+    #[inline(always)]
+    pub fn set_bus_voltage(&mut self, value: u16) -> Result<(), CanError> {
+        if value < 0_u16 || 65535_u16 < value {
+            return Err(CanError::ParameterOutOfRange { message_id: Power::MESSAGE_ID });
+        }
+        let factor = 1;
+        let value = value.checked_sub(0)
+            .ok_or(CanError::ParameterOutOfRange { message_id: Power::MESSAGE_ID })?;
+        let value = (value / factor) as u16;
+        
+        self.raw.view_bits_mut::<Lsb0>()[0..16].store_le(value);
+        Ok(())
+    }
+    
+    /// Bus_Current
+    ///
+    /// - Min: 0
+    /// - Max: 65535
+    /// - Unit: "Bus current in Amps"
+    /// - Receivers: Vector__XXX
+    #[inline(always)]
+    pub fn bus_current(&self) -> u16 {
+        self.bus_current_raw()
+    }
+    
+    /// Get raw value of Bus_Current
+    ///
+    /// - Start bit: 16
+    /// - Signal size: 16 bits
+    /// - Factor: 1
+    /// - Offset: 0
+    /// - Byte order: LittleEndian
+    /// - Value type: Unsigned
+    #[inline(always)]
+    pub fn bus_current_raw(&self) -> u16 {
+        let signal = self.raw.view_bits::<Lsb0>()[16..32].load_le::<u16>();
+        
+        let factor = 1;
+        u16::from(signal).saturating_mul(factor).saturating_add(0)
+    }
+    
+    /// Set value of Bus_Current
+    #[inline(always)]
+    pub fn set_bus_current(&mut self, value: u16) -> Result<(), CanError> {
+        if value < 0_u16 || 65535_u16 < value {
+            return Err(CanError::ParameterOutOfRange { message_id: Power::MESSAGE_ID });
+        }
+        let factor = 1;
+        let value = value.checked_sub(0)
+            .ok_or(CanError::ParameterOutOfRange { message_id: Power::MESSAGE_ID })?;
+        let value = (value / factor) as u16;
+        
+        self.raw.view_bits_mut::<Lsb0>()[16..32].store_le(value);
+        Ok(())
+    }
+    
+    /// Temperature
+    ///
+    /// - Min: 0
+    /// - Max: 255
+    /// - Unit: "Celsius"
+    /// - Receivers: Vector__XXX
+    #[inline(always)]
+    pub fn temperature(&self) -> u8 {
+        self.temperature_raw()
+    }
+    
+    /// Get raw value of Temperature
+    ///
+    /// - Start bit: 32
+    /// - Signal size: 8 bits
+    /// - Factor: 1
+    /// - Offset: 0
+    /// - Byte order: LittleEndian
+    /// - Value type: Unsigned
+    #[inline(always)]
+    pub fn temperature_raw(&self) -> u8 {
+        let signal = self.raw.view_bits::<Lsb0>()[32..40].load_le::<u8>();
+        
+        let factor = 1;
+        u8::from(signal).saturating_mul(factor).saturating_add(0)
+    }
+    
+    /// Set value of Temperature
+    #[inline(always)]
+    pub fn set_temperature(&mut self, value: u8) -> Result<(), CanError> {
+        if value < 0_u8 || 255_u8 < value {
+            return Err(CanError::ParameterOutOfRange { message_id: Power::MESSAGE_ID });
+        }
+        let factor = 1;
+        let value = value.checked_sub(0)
+            .ok_or(CanError::ParameterOutOfRange { message_id: Power::MESSAGE_ID })?;
+        let value = (value / factor) as u8;
+        
+        self.raw.view_bits_mut::<Lsb0>()[32..40].store_le(value);
+        Ok(())
+    }
+    
+}
+
+impl core::convert::TryFrom<&[u8]> for Power {
+    type Error = CanError;
+    
+    #[inline(always)]
+    fn try_from(payload: &[u8]) -> Result<Self, Self::Error> {
+        if payload.len() != 6 { return Err(CanError::InvalidPayloadSize); }
+        let mut raw = [0u8; 6];
+        raw.copy_from_slice(&payload[..6]);
+        Ok(Self { raw })
+    }
+}
+
+impl embedded_can::Frame for Power {
+    fn new(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
+        if id.into() != Self::MESSAGE_ID {
+            None
+        } else {
+            data.try_into().ok()
+        }
+    }
+
+    fn new_remote(_id: impl Into<Id>, _dlc: usize) -> Option<Self> {
+        unimplemented!()
+    }
+
+    fn is_extended(&self) -> bool {
+        match self.id() {
+            Id::Standard(_) => false,
+            Id::Extended(_) => true,
+        }
+    }
+
+    fn is_remote_frame(&self) -> bool {
+        false
+    }
+
+    fn id(&self) -> Id {
+        Self::MESSAGE_ID
+    }
+
+    fn dlc(&self) -> usize {
+        self.raw.len()
+    }
+
+    fn data(&self) -> &[u8] {
+        &self.raw
+    }
+}
+#[cfg(feature = "defmt")]
+impl defmt::Format for Power {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f,
+            "Power {{ Bus_Voltage={:?} Bus_Current={:?} Temperature={:?} }}",
+            self.bus_voltage(),
+            self.bus_current(),
+            self.temperature(),
             );
         }
 }

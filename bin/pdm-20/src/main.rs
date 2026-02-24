@@ -6,6 +6,7 @@ pub(crate) mod blocking;
 mod config;
 mod current;
 mod driver;
+mod power;
 mod receive;
 mod startup;
 mod status;
@@ -13,6 +14,7 @@ mod updater;
 
 use analog::*;
 use current::*;
+use power::*;
 use receive::*;
 use startup::*;
 use status::*;
@@ -33,6 +35,7 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::adc;
 use hal::adc::AdcChannel as _;
+use hal::adc::AnyAdcChannel;
 use hal::can;
 use hal::flash;
 use hal::gpio::*;
@@ -97,8 +100,9 @@ mod app {
         ain1: AnalogCh<'static>,
         ain2: AnalogCh<'static>,
         ain3: AnalogCh<'static>,
-        shunt_in: AnalogCh<'static>,
-        shunt_fault: Input<'static>,
+        ain_bus: AnyAdcChannel<'static, ADC3>,
+        shunt_in: AnyAdcChannel<'static, ADC2>,
+        _shunt_fault: Input<'static>,
     }
 
     #[init(local = [
@@ -263,9 +267,10 @@ mod app {
         let ain1 = AnalogCh::Adc2(p.PA6.degrade_adc());
         let ain2 = AnalogCh::Adc2(p.PA7.degrade_adc());
         let ain3 = AnalogCh::Adc2(p.PC4.degrade_adc());
+        let ain_bus = p.PD14.degrade_adc();
 
-        let shunt_in = AnalogCh::Adc2(p.PC5.degrade_adc());
-        let shunt_fault = Input::new(p.PE13, Pull::Up);
+        let shunt_in = p.PC5.degrade_adc();
+        let _shunt_fault = Input::new(p.PE13, Pull::Up);
 
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
@@ -299,8 +304,9 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
+                ain_bus,
                 shunt_in,
-                shunt_fault,
+                _shunt_fault,
             },
         )
     }
@@ -349,8 +355,11 @@ mod app {
         #[task(local = [updater, updater_rx], shared = [&can_tx, &source_address])]
         async fn updater(cx: updater::Context);
 
-        #[task(local = [temperature], shared = [&can_tx, &can_properties, &source_address, adc1])]
+        #[task(shared = [&can_tx, &can_properties, &source_address])]
         async fn status(cx: status::Context);
+
+        #[task(local = [ain_bus, shunt_in, temperature], shared = [&can_tx, &source_address, adc1, adc2, adc3])]
+        async fn power(cx: power::Context);
 
         #[task(
             shared = [
