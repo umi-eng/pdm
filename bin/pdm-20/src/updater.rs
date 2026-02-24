@@ -122,7 +122,7 @@ pub async fn updater(cx: updater::Context<'_>) {
                             respond_complete(can, source_address, id.sa(), req.length()).await;
 
                             defmt::info!("Booting into new firmware.");
-                            Mono::delay(50.millis()).await;
+                            Mono::delay(5.millis()).await;
                             cortex_m::peripheral::SCB::sys_reset();
                         }
                         _ => {}
