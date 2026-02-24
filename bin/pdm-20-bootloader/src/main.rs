@@ -16,9 +16,6 @@ fn main() -> ! {
 
     defmt::info!("Bootloader start");
 
-    let mut wd = hal::wdg::IndependentWatchdog::new(p.IWDG, 8000000);
-    wd.unleash();
-
     let layout = Flash::new_blocking(p.FLASH).into_blocking_regions();
     let flash = Mutex::new(RefCell::new(layout.bank1_region));
 
