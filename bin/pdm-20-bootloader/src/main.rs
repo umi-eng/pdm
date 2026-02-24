@@ -45,6 +45,7 @@ unsafe fn DefaultHandler(_: i16) -> ! {
 }
 
 #[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    cortex_m::asm::udf()
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    defmt::error!("{}", info);
+    cortex_m::peripheral::SCB::sys_reset()
 }
