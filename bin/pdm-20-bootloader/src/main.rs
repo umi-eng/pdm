@@ -23,6 +23,7 @@ fn main() -> ! {
 
     let active_offset = config.active.offset();
     let bl = BootLoader::prepare::<_, _, _, { BANK1_REGION.erase_size as usize }>(config);
+    defmt::info!("Bootload action: {}", bl.state);
 
     defmt::info!("Launching application");
     unsafe { bl.load(BANK1_REGION.base + active_offset) }
