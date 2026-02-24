@@ -73,7 +73,7 @@ mod app {
 
     #[shared]
     struct Shared {
-        header: &'static header::ImageHeader,
+        _header: &'static header::ImageHeader,
         config: config::Config<'static>,
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
@@ -143,7 +143,7 @@ mod app {
         let led_act = Output::new(p.PD2, Level::Low, Speed::Low);
 
         // read image header
-        let header = match header::read() {
+        let _header = match header::read() {
             Ok(h) => h,
             Err(err) => {
                 led_err.set_high();
@@ -151,7 +151,7 @@ mod app {
             }
         };
 
-        defmt::info!("Firmware version: {}", header.fw_version);
+        defmt::info!("Firmware version: {}", _header.fw_version);
 
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);
@@ -279,7 +279,7 @@ mod app {
 
         (
             Shared {
-                header,
+                _header,
                 config,
                 can_tx,
                 can_properties,
