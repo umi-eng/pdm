@@ -136,7 +136,6 @@ mod app {
 
         // setup and start watchdog
         let mut wd = wdg::IndependentWatchdog::new(p.IWDG, 1000000);
-        wd.unleash();
         wd.pet();
 
         // indicator leds
