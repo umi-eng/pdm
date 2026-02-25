@@ -41,11 +41,7 @@ unsafe extern "C" fn HardFault() -> ! {
 
 #[cortex_m_rt::exception]
 unsafe fn DefaultHandler(_: i16) -> ! {
-    // Interrupt Control and State Register (SCB->ICSR)
-    const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
-    let irqn = unsafe { core::ptr::read_volatile(SCB_ICSR) } as u8 as i16 - 16;
-
-    panic!("DefaultHandler #{:?}", irqn)
+    cortex_m::peripheral::SCB::sys_reset();
 }
 
 #[panic_handler]
