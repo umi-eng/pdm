@@ -6,7 +6,6 @@ edition = "2024"
 [dependencies]
 cortex-m-link.workspace = true
 header.workspace = true
-
 defmt.workspace = true
 defmt-rtt.workspace = true
 cortex-m = { version = "0.7.6", features = ["critical-section-single-core"] }
