@@ -33,9 +33,8 @@ fn main() -> ! {
 }
 
 #[unsafe(no_mangle)]
-#[cfg_attr(target_os = "none", unsafe(link_section = ".HardFault.user"))]
+#[unsafe(link_section = ".HardFault.user")]
 unsafe extern "C" fn HardFault() -> ! {
-    defmt::error!("Hard fault!");
     cortex_m::peripheral::SCB::sys_reset();
 }
 
