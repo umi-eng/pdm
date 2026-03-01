@@ -2,7 +2,6 @@
 #![no_main]
 
 mod analog;
-pub(crate) mod blocking;
 mod config;
 mod current;
 mod driver;
@@ -24,7 +23,7 @@ use defmt_rtt as _;
 use embassy_stm32 as hal;
 use panic_probe as _;
 
-use blocking::block_on;
+use blocking_executor::block_on;
 use core::mem::MaybeUninit;
 use driver::DualChannel;
 use driver::SingleChannel;

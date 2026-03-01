@@ -10,6 +10,7 @@ analog.workspace = true
 vpd.workspace = true
 header = { workspace = true, features = ["defmt"] }
 cortex-m-link.workspace = true
+blocking-executor.workspace = true
 
 defmt.workspace = true
 defmt-rtt.workspace = true
@@ -42,3 +43,6 @@ sequential-storage = { version = "7.0.0", features = ["defmt"] }
 
 [build-dependencies]
 header.workspace = true
+
+[dev-dependencies]
+embedded-test = "0.7.0"
