@@ -29,7 +29,7 @@ pub async fn current(cx: current::Context<'_>) {
 
     loop {
         drvh.lock(|drv| {
-            const ILIM: f32 = 10.1;
+            const ILIM: f32 = 12.0;
             const AVG_SLOPE: f32 = 245.5; // mV/A
 
             for chan in drv {
@@ -43,7 +43,7 @@ pub async fn current(cx: current::Context<'_>) {
 
         drvl.lock(|drv| {
             for chan in drv {
-                const ILIM: f32 = 2.8;
+                const ILIM: f32 = 4.0;
                 const AVG_SLOPE: f32 = 660.0; // mV/A
 
                 let measurement_1 = convert_to_amps(read(&mut chan.current_sense1), AVG_SLOPE);
