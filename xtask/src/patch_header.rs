@@ -1,4 +1,4 @@
-use anyhow::{Context, ensure};
+use anyhow::Context;
 use header::Flags;
 use object::{Object, ObjectSection, ReadCacheOps, SectionKind, elf::SHF_ALLOC};
 use std::{fs::File, io::Write, path::PathBuf};
@@ -18,12 +18,13 @@ pub struct PatchHeader {
 
 impl PatchHeader {
     pub fn run(self) -> anyhow::Result<()> {
-        let version: Vec<u8> = self
+        let version: [u8; 3] = self
             .version
             .split(".")
             .map(|s| s.parse().expect("Convert to u8"))
-            .collect();
-        ensure!(version.len() == 3, "Version number malformed");
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("Version length");
         let version = header::Version::new(version[0], version[1], version[2]);
         println!(
             "Firmware version: v{}.{}.{}",
@@ -31,8 +32,7 @@ impl PatchHeader {
         );
 
         let target = self.target.into_bytes();
-        ensure!(target.len() == 4, "Target length incorrect");
-        let target = [target[0], target[1], target[2], target[3]];
+        let target: [u8; 4] = target.try_into().expect("Target length");
         println!("Target: {:?}", String::from_utf8_lossy(&target));
 
         println!("Patching firmware: {:?}", self.firmware);
