@@ -11,7 +11,7 @@ impl GeneratePublicKey {
         let mut seed = [0; 32];
         BASE64_STANDARD.decode_slice(input.trim(), &mut seed)?;
         let keypair = salty::Keypair::from(&seed);
-        assert_ne!(seed, [0; 32], "check seed as decoded");
+        assert_ne!(seed, [0; 32], "check seed is decoded");
 
         let encoded = BASE64_STANDARD.encode(&keypair.public.as_bytes());
         println!("{encoded}");
