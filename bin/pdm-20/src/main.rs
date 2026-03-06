@@ -113,7 +113,7 @@ mod app {
         {
             use embassy_stm32::rcc::*;
             config.rcc.hse = Some(Hse {
-                freq: Hertz(24_000_000), // 24 MHz
+                freq: Hertz::mhz(24),
                 mode: HseMode::Oscillator,
             });
             config.rcc.pll = Some(Pll {
