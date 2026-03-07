@@ -232,26 +232,26 @@ mod app {
         ];
 
         let outputs = [
-            Output::new(p.PB14, Level::Low, Speed::Low),
-            Output::new(p.PB15, Level::Low, Speed::Low),
-            Output::new(p.PC7, Level::Low, Speed::Low),
-            Output::new(p.PC6, Level::Low, Speed::Low),
-            Output::new(p.PC9, Level::Low, Speed::Low),
-            Output::new(p.PC8, Level::Low, Speed::Low),
-            Output::new(p.PB7, Level::Low, Speed::Low),
-            Output::new(p.PB6, Level::Low, Speed::Low),
-            Output::new(p.PB5, Level::Low, Speed::Low),
-            Output::new(p.PB4, Level::Low, Speed::Low),
-            Output::new(p.PD4, Level::Low, Speed::Low),
-            Output::new(p.PD3, Level::Low, Speed::Low),
-            Output::new(p.PC3, Level::Low, Speed::Low),
-            Output::new(p.PC2, Level::Low, Speed::Low),
-            Output::new(p.PC1, Level::Low, Speed::Low),
-            Output::new(p.PC0, Level::Low, Speed::Low),
-            Output::new(p.PE3, Level::Low, Speed::Low),
-            Output::new(p.PE2, Level::Low, Speed::Low),
-            Output::new(p.PB12, Level::Low, Speed::Low),
-            Output::new(p.PB13, Level::Low, Speed::Low),
+            Output::new(p.PB14, Level::Low, Speed::Low), // TIM15_CH1
+            Output::new(p.PB15, Level::Low, Speed::Low), // TIM15_CH2
+            Output::new(p.PC7, Level::Low, Speed::Low),  // TIM8_CH2
+            Output::new(p.PC6, Level::Low, Speed::Low),  // TIM8_CH1
+            Output::new(p.PC9, Level::Low, Speed::Low),  // TIM8_CH4
+            Output::new(p.PC8, Level::Low, Speed::Low),  // TIM8_CH3
+            Output::new(p.PB7, Level::Low, Speed::Low),  // TIM4_CH2
+            Output::new(p.PB6, Level::Low, Speed::Low),  // TIM4_CH1
+            Output::new(p.PB5, Level::Low, Speed::Low),  // TIM3_CH2
+            Output::new(p.PB4, Level::Low, Speed::Low),  // TIM3_CH1
+            Output::new(p.PD4, Level::Low, Speed::Low),  // TIM2_CH2
+            Output::new(p.PD3, Level::Low, Speed::Low),  // TIM2_CH1
+            Output::new(p.PC3, Level::Low, Speed::Low),  // TIM1_CH4
+            Output::new(p.PC2, Level::Low, Speed::Low),  // TIM1_CH3
+            Output::new(p.PC1, Level::Low, Speed::Low),  // TIM1_CH2
+            Output::new(p.PC0, Level::Low, Speed::Low),  // TIM1_CH1
+            Output::new(p.PE3, Level::Low, Speed::Low),  // TIM20_CH2
+            Output::new(p.PE2, Level::Low, Speed::Low),  // TIM20_CH1
+            Output::new(p.PB12, Level::Low, Speed::Low), // HRTIM1_CHC1
+            Output::new(p.PB13, Level::Low, Speed::Low), // HRTIM1_CHC2
         ];
 
         let temperature = adc1.enable_temperature();
