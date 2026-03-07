@@ -375,7 +375,6 @@ mod app {
                 ain3,
             ],
             shared = [
-                &config,
                 &can_tx,
                 &source_address,
                 adc1,
