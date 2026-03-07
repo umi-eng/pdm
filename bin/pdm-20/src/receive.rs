@@ -18,8 +18,7 @@ pub async fn receive(cx: receive::Context<'_>) {
     let config = cx.shared.config;
     let can_rx = cx.local.can_rx;
     let source_address = *cx.shared.source_address;
-    let mut drvh = cx.shared.drivers_high_current;
-    let mut drvl = cx.shared.drivers_low_current;
+    let mut outputs = cx.shared.outputs;
 
     loop {
         let frame = match can_rx.read().await {
@@ -59,52 +58,42 @@ pub async fn receive(cx: receive::Context<'_>) {
                 if let Ok(mut output) = Control::try_from(frame.data()) {
                     match output.mux() {
                         Ok(ControlMuxIndex::M0(m0)) => {
-                            let outputs =
-                                [m0.output_1(), m0.output_2(), m0.output_19(), m0.output_20()];
-
-                            for (n, output) in outputs.iter().enumerate() {
-                                match OutputState::try_from(*output) {
-                                    Ok(OutputState::On) => drvh.lock(|d| d[n].output.set_high()),
-                                    Ok(OutputState::Off) => drvh.lock(|d| d[n].output.set_low()),
-                                    Ok(_) => {}
-                                    Err(e) => defmt::error!(
-                                        "Got unexpected value {} for output state bitfield",
-                                        e
-                                    ),
-                                };
-                            }
-
-                            let outputs = [
-                                (m0.output_4(), m0.output_3()),
-                                (m0.output_6(), m0.output_5()),
-                                (m0.output_7(), m0.output_8()),
-                                (m0.output_9(), m0.output_10()),
-                                (m0.output_11(), m0.output_12()),
-                                (m0.output_13(), m0.output_14()),
-                                (m0.output_15(), m0.output_16()),
-                                (m0.output_17(), m0.output_18()),
+                            let states = [
+                                m0.output_1(),
+                                m0.output_2(),
+                                m0.output_3(),
+                                m0.output_4(),
+                                m0.output_5(),
+                                m0.output_6(),
+                                m0.output_7(),
+                                m0.output_8(),
+                                m0.output_9(),
+                                m0.output_10(),
+                                m0.output_11(),
+                                m0.output_12(),
+                                m0.output_13(),
+                                m0.output_14(),
+                                m0.output_15(),
+                                m0.output_16(),
+                                m0.output_17(),
+                                m0.output_18(),
+                                m0.output_19(),
+                                m0.output_20(),
                             ];
 
-                            for (n, (output1, output2)) in outputs.iter().enumerate() {
-                                match OutputState::try_from(*output1) {
-                                    Ok(OutputState::On) => drvl.lock(|d| d[n].output1.set_high()),
-                                    Ok(OutputState::Off) => drvl.lock(|d| d[n].output1.set_low()),
-                                    Ok(_) => {}
-                                    Err(e) => defmt::error!(
-                                        "Got unexpected value {} for output state bitfield",
-                                        e
-                                    ),
-                                };
-                                match OutputState::try_from(*output2) {
-                                    Ok(OutputState::On) => drvl.lock(|d| d[n].output2.set_high()),
-                                    Ok(OutputState::Off) => drvl.lock(|d| d[n].output2.set_low()),
-                                    Ok(_) => {}
-                                    Err(e) => defmt::error!(
-                                        "Got unexpected value {} for output state bitfield",
-                                        e
-                                    ),
-                                };
-                            }
+                            outputs.lock(|outputs| {
+                                for (n, output) in states.iter().enumerate() {
+                                    match OutputState::try_from(*output) {
+                                        Ok(OutputState::On) => outputs[n].set_high(),
+                                        Ok(OutputState::Off) => outputs[n].set_low(),
+                                        Ok(_) => {}
+                                        Err(e) => defmt::error!(
+                                            "Got unexpected value {} for output state bitfield",
+                                            e
+                                        ),
+                                    };
+                                }
+                            })
                         }
                         Err(_) => {
                             defmt::error!(

@@ -4,7 +4,6 @@
 mod analog;
 mod config;
 mod current;
-mod driver;
 mod power;
 mod receive;
 mod startup;
@@ -25,8 +24,6 @@ use panic_probe as _;
 
 use blocking_executor::block_on;
 use core::mem::MaybeUninit;
-use driver::DualChannel;
-use driver::SingleChannel;
 use embassy_boot_stm32::*;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::flash::partition::Partition;
@@ -77,8 +74,8 @@ mod app {
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
         source_address: u8,
-        drivers_high_current: [SingleChannel<'static>; 4],
-        drivers_low_current: [DualChannel<'static>; 8],
+        outputs: [Output<'static>; 20],
+        fault_reset: [Output<'static>; 12],
         adc1: adc::Adc<'static, ADC1>,
         adc2: adc::Adc<'static, ADC2>,
         adc3: adc::Adc<'static, ADC3>,
@@ -96,6 +93,7 @@ mod app {
         updater_tx: channel::Sender<'static, can::Frame, 8>,
         updater_rx: channel::Receiver<'static, can::Frame, 8>,
         temperature: adc::Temperature,
+        i_sense: [AnalogCh<'static>; 20],
         ain1: AnalogCh<'static>,
         ain2: AnalogCh<'static>,
         ain3: AnalogCh<'static>,
@@ -195,70 +193,65 @@ mod app {
         let adc4 = adc::Adc::new(p.ADC4, Default::default());
         let adc5 = adc::Adc::new(p.ADC5, Default::default());
 
-        let drivers_high_current = [
-            SingleChannel::new(p.PB14, p.PB10, AnalogCh::Adc3(p.PD12.degrade_adc())), // A (1)
-            SingleChannel::new(p.PB15, p.PB11, AnalogCh::Adc3(p.PD13.degrade_adc())), // B (2)
-            SingleChannel::new(p.PB12, p.PE14, AnalogCh::Adc3(p.PD10.degrade_adc())), // C (19)
-            SingleChannel::new(p.PB13, p.PE15, AnalogCh::Adc3(p.PD11.degrade_adc())), // D (20)
+        let fault_reset = [
+            Output::new(p.PB10, Level::High, Speed::Low),
+            Output::new(p.PB11, Level::High, Speed::Low),
+            Output::new(p.PA8, Level::High, Speed::Low),
+            Output::new(p.PA9, Level::High, Speed::Low),
+            Output::new(p.PD7, Level::High, Speed::Low),
+            Output::new(p.PD6, Level::High, Speed::Low),
+            Output::new(p.PD5, Level::High, Speed::Low),
+            Output::new(p.PE4, Level::High, Speed::Low),
+            Output::new(p.PE5, Level::High, Speed::Low),
+            Output::new(p.PE6, Level::High, Speed::Low),
+            Output::new(p.PE14, Level::High, Speed::Low),
+            Output::new(p.PE15, Level::High, Speed::Low),
         ];
 
-        let drivers_low_current = [
-            DualChannel::new(
-                p.PC7,
-                p.PC6,
-                p.PA8,
-                AnalogCh::Adc4(p.PD9.degrade_adc()),
-                AnalogCh::Adc4(p.PD8.degrade_adc()),
-            ), // A (4, 3)
-            DualChannel::new(
-                p.PC9,
-                p.PC8,
-                p.PA9,
-                AnalogCh::Adc4(p.PE11.degrade_adc()),
-                AnalogCh::Adc4(p.PE12.degrade_adc()),
-            ), // B (6, 5)
-            DualChannel::new(
-                p.PB7,
-                p.PB6,
-                p.PD7,
-                AnalogCh::Adc1(p.PB0.degrade_adc()),
-                AnalogCh::Adc1(p.PB1.degrade_adc()),
-            ), // C (7, 8)
-            DualChannel::new(
-                p.PB5,
-                p.PB4,
-                p.PD6,
-                AnalogCh::Adc3(p.PE7.degrade_adc()),
-                AnalogCh::Adc3(p.PE8.degrade_adc()),
-            ), // D (9, 10)
-            DualChannel::new(
-                p.PD4,
-                p.PD3,
-                p.PD5,
-                AnalogCh::Adc3(p.PE9.degrade_adc()),
-                AnalogCh::Adc3(p.PE10.degrade_adc()),
-            ), // E (11, 12)
-            DualChannel::new(
-                p.PC3,
-                p.PC2,
-                p.PE4,
-                AnalogCh::Adc2(p.PB2.degrade_adc()),
-                AnalogCh::Adc2(p.PA4.degrade_adc()),
-            ), // F (13, 14)
-            DualChannel::new(
-                p.PC1,
-                p.PC0,
-                p.PE5,
-                AnalogCh::Adc1(p.PA3.degrade_adc()),
-                AnalogCh::Adc1(p.PA2.degrade_adc()),
-            ), // G (15, 16)
-            DualChannel::new(
-                p.PE3,
-                p.PE2,
-                p.PE6,
-                AnalogCh::Adc1(p.PA1.degrade_adc()),
-                AnalogCh::Adc1(p.PA0.degrade_adc()),
-            ), // H (17, 18)
+        let i_sense = [
+            AnalogCh::Adc3(p.PD12.degrade_adc()),
+            AnalogCh::Adc3(p.PD13.degrade_adc()),
+            AnalogCh::Adc4(p.PD9.degrade_adc()),
+            AnalogCh::Adc4(p.PD8.degrade_adc()),
+            AnalogCh::Adc4(p.PE11.degrade_adc()),
+            AnalogCh::Adc4(p.PE12.degrade_adc()),
+            AnalogCh::Adc1(p.PB0.degrade_adc()),
+            AnalogCh::Adc1(p.PB1.degrade_adc()),
+            AnalogCh::Adc3(p.PE7.degrade_adc()),
+            AnalogCh::Adc3(p.PE8.degrade_adc()),
+            AnalogCh::Adc3(p.PE9.degrade_adc()),
+            AnalogCh::Adc3(p.PE10.degrade_adc()),
+            AnalogCh::Adc2(p.PB2.degrade_adc()),
+            AnalogCh::Adc2(p.PA4.degrade_adc()),
+            AnalogCh::Adc1(p.PA3.degrade_adc()),
+            AnalogCh::Adc1(p.PA2.degrade_adc()),
+            AnalogCh::Adc1(p.PA1.degrade_adc()),
+            AnalogCh::Adc1(p.PA0.degrade_adc()),
+            AnalogCh::Adc3(p.PD10.degrade_adc()),
+            AnalogCh::Adc3(p.PD11.degrade_adc()),
+        ];
+
+        let outputs = [
+            Output::new(p.PB14, Level::Low, Speed::Low),
+            Output::new(p.PB15, Level::Low, Speed::Low),
+            Output::new(p.PC7, Level::Low, Speed::Low),
+            Output::new(p.PC6, Level::Low, Speed::Low),
+            Output::new(p.PC9, Level::Low, Speed::Low),
+            Output::new(p.PC8, Level::Low, Speed::Low),
+            Output::new(p.PB7, Level::Low, Speed::Low),
+            Output::new(p.PB6, Level::Low, Speed::Low),
+            Output::new(p.PB5, Level::Low, Speed::Low),
+            Output::new(p.PB4, Level::Low, Speed::Low),
+            Output::new(p.PD4, Level::Low, Speed::Low),
+            Output::new(p.PD3, Level::Low, Speed::Low),
+            Output::new(p.PC3, Level::Low, Speed::Low),
+            Output::new(p.PC2, Level::Low, Speed::Low),
+            Output::new(p.PC1, Level::Low, Speed::Low),
+            Output::new(p.PC0, Level::Low, Speed::Low),
+            Output::new(p.PE3, Level::Low, Speed::Low),
+            Output::new(p.PE2, Level::Low, Speed::Low),
+            Output::new(p.PB12, Level::Low, Speed::Low),
+            Output::new(p.PB13, Level::Low, Speed::Low),
         ];
 
         let temperature = adc1.enable_temperature();
@@ -283,8 +276,8 @@ mod app {
                 can_tx,
                 can_properties,
                 source_address,
-                drivers_high_current,
-                drivers_low_current,
+                outputs,
+                fault_reset,
                 adc1,
                 adc2,
                 adc3,
@@ -300,6 +293,7 @@ mod app {
                 updater_tx,
                 updater_rx,
                 temperature,
+                i_sense,
                 ain1,
                 ain2,
                 ain3,
@@ -345,8 +339,7 @@ mod app {
                 &config,
                 &can_tx,
                 &source_address,
-                drivers_high_current,
-                drivers_low_current
+                outputs,
             ]
         )]
         async fn receive(cx: receive::Context);
@@ -361,11 +354,11 @@ mod app {
         async fn power(cx: power::Context);
 
         #[task(
+            local = [i_sense],
             shared = [
                 &can_tx,
                 &source_address,
-                drivers_high_current,
-                drivers_low_current,
+                outputs,
                 adc1,
                 adc2,
                 adc3,
@@ -412,4 +405,19 @@ pub enum AnalogCh<'a> {
 #[inline]
 pub fn convert_to_millivolts(sample: u16) -> u16 {
     (u32::from(sample) * VREF_MV / 4095) as u16
+}
+
+pub enum DriverKind {
+    HighCurrent,
+    LowCurrent,
+}
+
+impl DriverKind {
+    fn from_ch(ch: usize) -> Self {
+        match ch {
+            1 | 2 | 19 | 20 => Self::HighCurrent,
+            3..=18 => Self::LowCurrent,
+            _ => panic!("Channel number {} outside of bounds", ch),
+        }
+    }
 }

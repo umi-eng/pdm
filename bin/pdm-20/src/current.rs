@@ -1,4 +1,5 @@
 use crate::AnalogCh;
+use crate::DriverKind;
 use crate::Mono;
 use crate::app::current;
 use crate::convert_to_millivolts;
@@ -14,8 +15,8 @@ pub async fn current(cx: current::Context<'_>) {
     let mut adc3 = cx.shared.adc3;
     let mut adc4 = cx.shared.adc4;
     let mut adc5 = cx.shared.adc5;
-    let mut drvh = cx.shared.drivers_high_current;
-    let mut drvl = cx.shared.drivers_low_current;
+    let mut outputs = cx.shared.outputs;
+    let i_sense = cx.local.i_sense;
 
     const SAMPLE_TIME: SampleTime = SampleTime::CYCLES92_5;
 
@@ -28,38 +29,24 @@ pub async fn current(cx: current::Context<'_>) {
     };
 
     loop {
-        drvh.lock(|drv| {
-            const ILIM: f32 = 12.0;
-            const AVG_SLOPE: f32 = 245.5; // mV/A
+        let start = Mono::now();
 
-            for chan in drv {
-                let measurement = convert_to_amps(read(&mut chan.current_sense), AVG_SLOPE);
-                if measurement > ILIM {
-                    chan.output.set_low();
-                    defmt::warn!("Channel tripped");
-                }
+        for (n, mut sense) in i_sense.iter_mut().enumerate() {
+            let ch = n + 1;
+            let (i_lim, slope) = match DriverKind::from_ch(ch) {
+                DriverKind::HighCurrent => (10.6, 245.5),
+                DriverKind::LowCurrent => (2.2, 660.0),
+            };
+
+            let reading = read(&mut sense);
+            let measurement = convert_to_amps(reading, slope);
+
+            if measurement > i_lim {
+                outputs.lock(|out| out[n].set_low());
             }
-        });
+        }
 
-        drvl.lock(|drv| {
-            for chan in drv {
-                const ILIM: f32 = 4.0;
-                const AVG_SLOPE: f32 = 660.0; // mV/A
-
-                let measurement_1 = convert_to_amps(read(&mut chan.current_sense1), AVG_SLOPE);
-                if measurement_1 > ILIM {
-                    chan.output1.set_low();
-                    defmt::warn!("Channel tripped");
-                }
-                let measurement_2 = convert_to_amps(read(&mut chan.current_sense2), AVG_SLOPE);
-                if measurement_2 > ILIM {
-                    chan.output2.set_low();
-                    defmt::warn!("Channel tripped");
-                }
-            }
-        });
-
-        Mono::delay(5.millis()).await;
+        Mono::delay_until(start + 1.millis()).await;
     }
 }
 
