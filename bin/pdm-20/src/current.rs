@@ -7,6 +7,8 @@ use crate::hal;
 use hal::adc::SampleTime;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
+use rtic_monotonics::fugit::Duration;
+use rtic_monotonics::fugit::Instant;
 use rtic_monotonics::systick::prelude::*;
 
 pub async fn current(cx: current::Context<'_>) {
@@ -19,6 +21,9 @@ pub async fn current(cx: current::Context<'_>) {
     let i_sense = cx.local.i_sense;
 
     const SAMPLE_TIME: SampleTime = SampleTime::CYCLES92_5;
+    const T_BLANK: Duration<u32, 1, 10_000> = Duration::<u32, _, _>::millis(100);
+
+    let mut blank_start: [Option<Instant<u32, 1, 10_000>>; _] = [None; 20];
 
     let mut read = |ch: &mut _| match ch {
         AnalogCh::Adc1(ch) => adc1.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
@@ -42,7 +47,16 @@ pub async fn current(cx: current::Context<'_>) {
             let measurement = convert_to_amps(reading, slope);
 
             if measurement > i_lim {
-                outputs.lock(|out| out[n].set_low());
+                if let Some(blank_start) = blank_start[n] {
+                    if start.checked_duration_since(blank_start).unwrap() >= T_BLANK {
+                        outputs.lock(|out| out[n].set_low());
+                        defmt::info!("Blanking time exceeded ch {}", ch);
+                    }
+                } else {
+                    blank_start[n] = Some(start);
+                }
+            } else {
+                blank_start[n] = None;
             }
         }
 
