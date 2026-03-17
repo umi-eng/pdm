@@ -2483,6 +2483,7 @@ dependencies = [
  "embassy-stm32",
  "embassy-sync",
  "embedded-can",
+ "embedded-hal 1.0.0",
  "embedded-test",
  "header",
  "messages",

@@ -80,12 +80,20 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 m0.output_19(),
                                 m0.output_20(),
                             ];
+                            let pwm_duty = m0.pwm_duty();
 
                             outputs.lock(|outputs| {
                                 for (n, output) in states.iter().enumerate() {
                                     match OutputState::try_from(*output) {
-                                        Ok(OutputState::On) => outputs[n].set_high(),
-                                        Ok(OutputState::Off) => outputs[n].set_low(),
+                                        Ok(OutputState::On) => {
+                                            outputs[n].set_duty_cycle_fraction(
+                                                pwm_duty as u16,
+                                                u8::MAX as u16,
+                                            );
+                                        }
+                                        Ok(OutputState::Off) => {
+                                            outputs[n].set_duty_cycle_fully_off();
+                                        }
                                         Ok(_) => {}
                                         Err(e) => defmt::error!(
                                             "Got unexpected value {} for output state bitfield",

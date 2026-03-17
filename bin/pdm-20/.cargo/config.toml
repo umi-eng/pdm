@@ -23,4 +23,4 @@ lto = true
 opt-level = "z"
 
 [profile.dev]
-opt-level = 1
+opt-level = "z"

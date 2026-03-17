@@ -40,6 +40,7 @@ embassy-boot = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "ed25519-salty",
 ] }
 sequential-storage = { version = "7.0.0", features = ["defmt"] }
+embedded-hal = "1.0.0"
 
 [build-dependencies]
 header.workspace = true

@@ -12,6 +12,7 @@ mod updater;
 
 use analog::*;
 use current::*;
+use embedded_hal::pwm::SetDutyCycle;
 use power::*;
 use receive::*;
 use startup::*;
@@ -23,6 +24,7 @@ use embassy_stm32 as hal;
 use panic_probe as _;
 
 use blocking_executor::block_on;
+use core::convert::Infallible;
 use core::mem::MaybeUninit;
 use embassy_boot_stm32::*;
 use embassy_embedded_hal::adapter::BlockingAsync;
@@ -37,6 +39,9 @@ use hal::flash;
 use hal::gpio::*;
 use hal::peripherals::*;
 use hal::time::*;
+use hal::timer::simple_pwm::PwmPin;
+use hal::timer::simple_pwm::SimplePwm;
+use hal::timer::simple_pwm::SimplePwmChannels;
 use hal::wdg;
 use rtic_monotonics::systick::prelude::*;
 use rtic_monotonics::systick_monotonic;
@@ -62,6 +67,7 @@ pub const VREF_MV: u32 = 2500;
 
 type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
 type FlashPartition = Partition<'static, NoopRawMutex, FlashBlockingAsync>;
+type ErasedPwmPin = &'static mut (dyn SetDutyCycle<Error = Infallible> + Send);
 
 #[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
@@ -74,7 +80,7 @@ mod app {
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
         source_address: u8,
-        outputs: [Output<'static>; 20],
+        outputs: [ErasedPwmPin; 20],
         fault_reset: [Output<'static>; 12],
         adc1: adc::Adc<'static, ADC1>,
         adc2: adc::Adc<'static, ADC2>,
@@ -105,6 +111,15 @@ mod app {
     #[init(local = [
         aligned_buffer: AlignedBuffer<8> = AlignedBuffer([0; flash::WRITE_SIZE]),
         flash: MaybeUninit<Mutex<NoopRawMutex, FlashBlockingAsync>> = MaybeUninit::uninit(),
+        tim15: MaybeUninit<SimplePwmChannels<'static, TIM15>> = MaybeUninit::uninit(),
+        tim8: MaybeUninit<SimplePwmChannels<'static, TIM8>> = MaybeUninit::uninit(),
+        tim4: MaybeUninit<SimplePwmChannels<'static, TIM4>> = MaybeUninit::uninit(),
+        tim3: MaybeUninit<SimplePwmChannels<'static, TIM3>> = MaybeUninit::uninit(),
+        tim2: MaybeUninit<SimplePwmChannels<'static, TIM2>> = MaybeUninit::uninit(),
+        tim1: MaybeUninit<SimplePwmChannels<'static, TIM1>> = MaybeUninit::uninit(),
+        tim20: MaybeUninit<SimplePwmChannels<'static, TIM20>> = MaybeUninit::uninit(),
+        hrtim1_chc1: MaybeUninit<HrTimerOutput> = MaybeUninit::uninit(),
+        hrtim1_chc2: MaybeUninit<HrTimerOutput> = MaybeUninit::uninit(),
     ])]
     fn init(cx: init::Context) -> (Shared, Local) {
         let mut config = hal::Config::default();
@@ -231,27 +246,152 @@ mod app {
             AnalogCh::Adc3(p.PD11.degrade_adc()),
         ];
 
-        let outputs = [
-            Output::new(p.PB14, Level::Low, Speed::Low), // TIM15_CH1
-            Output::new(p.PB15, Level::Low, Speed::Low), // TIM15_CH2
-            Output::new(p.PC7, Level::Low, Speed::Low),  // TIM8_CH2
-            Output::new(p.PC6, Level::Low, Speed::Low),  // TIM8_CH1
-            Output::new(p.PC9, Level::Low, Speed::Low),  // TIM8_CH4
-            Output::new(p.PC8, Level::Low, Speed::Low),  // TIM8_CH3
-            Output::new(p.PB7, Level::Low, Speed::Low),  // TIM4_CH2
-            Output::new(p.PB6, Level::Low, Speed::Low),  // TIM4_CH1
-            Output::new(p.PB5, Level::Low, Speed::Low),  // TIM3_CH2
-            Output::new(p.PB4, Level::Low, Speed::Low),  // TIM3_CH1
-            Output::new(p.PD4, Level::Low, Speed::Low),  // TIM2_CH2
-            Output::new(p.PD3, Level::Low, Speed::Low),  // TIM2_CH1
-            Output::new(p.PC3, Level::Low, Speed::Low),  // TIM1_CH4
-            Output::new(p.PC2, Level::Low, Speed::Low),  // TIM1_CH3
-            Output::new(p.PC1, Level::Low, Speed::Low),  // TIM1_CH2
-            Output::new(p.PC0, Level::Low, Speed::Low),  // TIM1_CH1
-            Output::new(p.PE3, Level::Low, Speed::Low),  // TIM20_CH2
-            Output::new(p.PE2, Level::Low, Speed::Low),  // TIM20_CH1
-            Output::new(p.PB12, Level::Low, Speed::Low), // HRTIM1_CHC1
-            Output::new(p.PB13, Level::Low, Speed::Low), // HRTIM1_CHC2
+        let pwm_freq = khz(10);
+
+        let tim15_ch1 = PwmPin::new(p.PB14, OutputType::PushPull);
+        let tim15_ch2 = PwmPin::new(p.PB15, OutputType::PushPull);
+        let tim8_ch2 = PwmPin::new(p.PC7, OutputType::PushPull);
+        let tim8_ch1 = PwmPin::new(p.PC6, OutputType::PushPull);
+        let tim8_ch4 = PwmPin::new(p.PC9, OutputType::PushPull);
+        let tim8_ch3 = PwmPin::new(p.PC8, OutputType::PushPull);
+        let tim4_ch2 = PwmPin::new(p.PB7, OutputType::PushPull);
+        let tim4_ch1 = PwmPin::new(p.PB6, OutputType::PushPull);
+        let tim3_ch2 = PwmPin::new(p.PB5, OutputType::PushPull);
+        let tim3_ch1 = PwmPin::new(p.PB4, OutputType::PushPull);
+        let tim2_ch2 = PwmPin::new(p.PD4, OutputType::PushPull);
+        let tim2_ch1 = PwmPin::new(p.PD3, OutputType::PushPull);
+        let tim1_ch4 = PwmPin::new(p.PC3, OutputType::PushPull);
+        let tim1_ch3 = PwmPin::new(p.PC2, OutputType::PushPull);
+        let tim1_ch2 = PwmPin::new(p.PC1, OutputType::PushPull);
+        let tim1_ch1 = PwmPin::new(p.PC0, OutputType::PushPull);
+        let tim20_ch2 = PwmPin::new(p.PE3, OutputType::PushPull);
+        let tim20_ch1 = PwmPin::new(p.PE2, OutputType::PushPull);
+
+        let tim15 = SimplePwm::new(
+            p.TIM15,
+            Some(tim15_ch1),
+            Some(tim15_ch2),
+            None,
+            None,
+            pwm_freq,
+            Default::default(),
+        );
+        let tim15 = cx.local.tim15.write(tim15.split());
+        tim15.ch1.enable();
+        tim15.ch2.enable();
+
+        let tim8 = SimplePwm::new(
+            p.TIM8,
+            Some(tim8_ch1),
+            Some(tim8_ch2),
+            Some(tim8_ch3),
+            Some(tim8_ch4),
+            pwm_freq,
+            Default::default(),
+        );
+        let tim8 = cx.local.tim8.write(tim8.split());
+        tim8.ch1.enable();
+        tim8.ch2.enable();
+        tim8.ch3.enable();
+        tim8.ch4.enable();
+
+        let tim4 = SimplePwm::new(
+            p.TIM4,
+            Some(tim4_ch1),
+            Some(tim4_ch2),
+            None,
+            None,
+            pwm_freq,
+            Default::default(),
+        );
+        let tim4 = cx.local.tim4.write(tim4.split());
+        tim4.ch1.enable();
+        tim4.ch2.enable();
+
+        let tim3 = SimplePwm::new(
+            p.TIM3,
+            Some(tim3_ch1),
+            Some(tim3_ch2),
+            None,
+            None,
+            pwm_freq,
+            Default::default(),
+        );
+        let tim3 = cx.local.tim3.write(tim3.split());
+        tim3.ch1.enable();
+        tim3.ch2.enable();
+
+        let tim2 = SimplePwm::new(
+            p.TIM2,
+            Some(tim2_ch1),
+            Some(tim2_ch2),
+            None,
+            None,
+            pwm_freq,
+            Default::default(),
+        );
+        let tim2 = cx.local.tim2.write(tim2.split());
+        tim2.ch1.enable();
+        tim2.ch2.enable();
+
+        let tim1 = SimplePwm::new(
+            p.TIM1,
+            Some(tim1_ch1),
+            Some(tim1_ch2),
+            Some(tim1_ch3),
+            Some(tim1_ch4),
+            pwm_freq,
+            Default::default(),
+        );
+        let tim1 = cx.local.tim1.write(tim1.split());
+        tim1.ch1.enable();
+        tim1.ch2.enable();
+        tim1.ch3.enable();
+        tim1.ch4.enable();
+
+        let tim20 = SimplePwm::new(
+            p.TIM20,
+            Some(tim20_ch1),
+            Some(tim20_ch2),
+            None,
+            None,
+            pwm_freq,
+            Default::default(),
+        );
+        let tim20 = cx.local.tim20.write(tim20.split());
+        tim20.ch1.enable();
+        tim20.ch2.enable();
+
+        let hrtim1_chc1 =
+            cx.local
+                .hrtim1_chc1
+                .write(HrTimerOutput(Output::new(p.PB12, Level::Low, Speed::Low)));
+        let hrtim1_chc2 =
+            cx.local
+                .hrtim1_chc2
+                .write(HrTimerOutput(Output::new(p.PB13, Level::Low, Speed::Low)));
+
+        let outputs: [ErasedPwmPin; _] = [
+            &mut tim15.ch1,
+            &mut tim15.ch2,
+            &mut tim8.ch2,
+            &mut tim8.ch1,
+            &mut tim8.ch4,
+            &mut tim8.ch3,
+            &mut tim4.ch2,
+            &mut tim4.ch1,
+            &mut tim3.ch2,
+            &mut tim3.ch1,
+            &mut tim2.ch2,
+            &mut tim2.ch1,
+            &mut tim1.ch4,
+            &mut tim1.ch3,
+            &mut tim1.ch2,
+            &mut tim1.ch1,
+            &mut tim20.ch2,
+            &mut tim20.ch1,
+            hrtim1_chc1,
+            hrtim1_chc2,
         ];
 
         let temperature = adc1.enable_temperature();
@@ -418,5 +558,26 @@ impl DriverKind {
             3..=18 => Self::LowCurrent,
             _ => panic!("Channel number {} outside of bounds", ch),
         }
+    }
+}
+
+pub struct HrTimerOutput(Output<'static>);
+
+impl embedded_hal::pwm::ErrorType for HrTimerOutput {
+    type Error = Infallible;
+}
+
+// Dummy implementation until proper PWM support is sorted.
+impl SetDutyCycle for HrTimerOutput {
+    fn max_duty_cycle(&self) -> u16 {
+        1
+    }
+
+    fn set_duty_cycle(&mut self, duty: u16) -> Result<(), Self::Error> {
+        match duty {
+            1 => self.0.set_high(),
+            _ => self.0.set_low(),
+        }
+        Ok(())
     }
 }
