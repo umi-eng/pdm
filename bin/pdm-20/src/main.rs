@@ -409,7 +409,7 @@ mod app {
         watchdog::spawn().unwrap();
         startup::spawn().unwrap();
 
-        defmt::info!("init complete");
+        defmt::info!("Init complete");
 
         (
             Shared {

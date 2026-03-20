@@ -55,7 +55,7 @@ pub async fn startup(cx: startup::Context<'_>) {
 
     can.access().await.write(&frame).await;
 
-    defmt::info!("starting runtime tasks");
+    defmt::info!("Starting runtime tasks");
     receive::spawn().unwrap();
     updater::spawn().unwrap();
     status::spawn().unwrap();
@@ -63,5 +63,5 @@ pub async fn startup(cx: startup::Context<'_>) {
     current_status::spawn().unwrap();
     analog::spawn().unwrap();
     power::spawn().unwrap();
-    defmt::info!("startup complete");
+    defmt::info!("Startup complete");
 }
