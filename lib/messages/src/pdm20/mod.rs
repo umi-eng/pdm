@@ -17,4 +17,21 @@ pub mod pgn {
     pub const ANALOG: Pgn = Pgn::ProprietaryB(0x11);
     /// Power message.
     pub const POWER: Pgn = Pgn::ProprietaryB(0x12);
+    /// Outupt current message.
+    pub const OUTPUT_CURRENT: Pgn = Pgn::ProprietaryB(0x13);
+}
+
+pub mod slot {
+    use saelient::signal::Param8;
+    use saelient::slot::Slot;
+    use saelient::slot_impl;
+
+    slot_impl!(
+        OutputCurrent,
+        Param8,
+        0.0,
+        0.05,
+        "A",
+        "Current - 0.05 A per bit"
+    );
 }

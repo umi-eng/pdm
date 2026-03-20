@@ -4,7 +4,10 @@ use messages::OutputState;
 use messages::pdm20::AnalogInputs;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
+use messages::pdm20::CurrentSense;
+use messages::pdm20::CurrentSenseMuxIndex;
 use messages::pdm20::pgn;
+use messages::pdm20::slot;
 use saelient::PduFormat;
 use saelient::Pgn;
 use saelient::diagnostic::Command;
@@ -121,6 +124,52 @@ impl Pdm20 {
         };
 
         Ok(reading)
+    }
+
+    /// Get current sense reading for an output.
+    pub async fn current_sense(&self, output: usize) -> Result<f32, io::Error> {
+        loop {
+            let frame = self.wait_for_message(pgn::OUTPUT_CURRENT).await?;
+
+            let mut sense = CurrentSense::try_from(frame.data())
+                .map_err(|err| io::Error::other(err.to_string()))?;
+
+            let value = match (
+                output,
+                sense
+                    .mux()
+                    .map_err(|err| io::Error::other(err.to_string()))?,
+            ) {
+                (1, CurrentSenseMuxIndex::M0(m)) => m.current_sense_1(),
+                (2, CurrentSenseMuxIndex::M0(m)) => m.current_sense_2(),
+                (3, CurrentSenseMuxIndex::M0(m)) => m.current_sense_3(),
+                (4, CurrentSenseMuxIndex::M0(m)) => m.current_sense_4(),
+                (5, CurrentSenseMuxIndex::M0(m)) => m.current_sense_5(),
+                (6, CurrentSenseMuxIndex::M0(m)) => m.current_sense_6(),
+                (7, CurrentSenseMuxIndex::M1(m)) => m.current_sense_7(),
+                (8, CurrentSenseMuxIndex::M1(m)) => m.current_sense_8(),
+                (9, CurrentSenseMuxIndex::M1(m)) => m.current_sense_9(),
+                (10, CurrentSenseMuxIndex::M1(m)) => m.current_sense_10(),
+                (11, CurrentSenseMuxIndex::M1(m)) => m.current_sense_11(),
+                (12, CurrentSenseMuxIndex::M1(m)) => m.current_sense_12(),
+                (13, CurrentSenseMuxIndex::M2(m)) => m.current_sense_13(),
+                (14, CurrentSenseMuxIndex::M2(m)) => m.current_sense_14(),
+                (15, CurrentSenseMuxIndex::M2(m)) => m.current_sense_15(),
+                (16, CurrentSenseMuxIndex::M2(m)) => m.current_sense_16(),
+                (17, CurrentSenseMuxIndex::M2(m)) => m.current_sense_17(),
+                (18, CurrentSenseMuxIndex::M2(m)) => m.current_sense_18(),
+                (19, CurrentSenseMuxIndex::M3(m)) => m.current_sense_19(),
+                (20, CurrentSenseMuxIndex::M3(m)) => m.current_sense_20(),
+                _ => {
+                    continue;
+                }
+            };
+
+            // todo: handle other values by passing up to the caller.
+            if let Some(current) = slot::OutputCurrent::new(value.into()).as_f32() {
+                return Ok(current);
+            }
+        }
     }
 
     /// Perform the firmware update process.

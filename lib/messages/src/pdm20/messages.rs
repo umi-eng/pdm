@@ -29,6 +29,8 @@ pub enum Messages {
     AnalogInputs(AnalogInputs),
     /// Power
     Power(Power),
+    /// Current_Sense
+    CurrentSense(CurrentSense),
 }
 
 impl Messages {
@@ -43,6 +45,7 @@ impl Messages {
             SystemStatus::MESSAGE_ID => Messages::SystemStatus(SystemStatus::try_from(payload)?),
             AnalogInputs::MESSAGE_ID => Messages::AnalogInputs(AnalogInputs::try_from(payload)?),
             Power::MESSAGE_ID => Messages::Power(Power::try_from(payload)?),
+            CurrentSense::MESSAGE_ID => Messages::CurrentSense(CurrentSense::try_from(payload)?),
             id => return Err(CanError::UnknownMessageId(id)),
         };
         Ok(res)
@@ -2590,6 +2593,1094 @@ impl defmt::Format for Power {
             self.temperature(),
             );
         }
+}
+
+
+/// Current_Sense
+///
+/// - Standard ID: 4944 (0x1350)
+/// - Size: 8 bytes
+#[derive(Clone, Copy)]
+pub struct CurrentSense {
+    raw: [u8; 8],
+}
+
+impl CurrentSense {
+    pub const MESSAGE_ID: embedded_can::Id = Id::Standard(unsafe { StandardId::new_unchecked(0x1350)});
+    
+    pub const MUX_MIN: u8 = 0_u8;
+    pub const MUX_MAX: u8 = 15_u8;
+    pub const CURRENT_SENSE_1_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_1_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_2_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_2_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_3_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_3_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_4_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_4_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_5_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_5_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_6_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_6_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_7_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_7_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_8_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_8_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_9_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_9_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_10_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_10_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_11_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_11_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_12_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_12_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_13_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_13_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_14_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_14_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_15_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_15_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_16_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_16_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_17_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_17_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_18_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_18_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_19_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_19_MAX: u8 = 255_u8;
+    pub const CURRENT_SENSE_20_MIN: u8 = 0_u8;
+    pub const CURRENT_SENSE_20_MAX: u8 = 255_u8;
+    
+    /// Construct new Current_Sense from values
+    pub fn new(mux: u8) -> Result<Self, CanError> {
+        let mut res = Self { raw: [0u8; 8] };
+        res.set_mux(mux)?;
+        Ok(res)
+    }
+    
+    /// Access message payload raw value
+    pub fn raw(&self) -> &[u8; 8] {
+        &self.raw
+    }
+    
+    /// Get raw value of mux
+    ///
+    /// - Start bit: 0
+    /// - Signal size: 4 bits
+    /// - Factor: 1
+    /// - Offset: 0
+    /// - Byte order: LittleEndian
+    /// - Value type: Unsigned
+    #[inline(always)]
+    pub fn mux_raw(&self) -> u8 {
+        let signal = self.raw.view_bits::<Lsb0>()[0..4].load_le::<u8>();
+        
+        let factor = 1;
+        u8::from(signal).saturating_mul(factor).saturating_add(0)
+    }
+    
+    pub fn mux(&mut self) -> Result<CurrentSenseMuxIndex, CanError> {
+        match self.mux_raw() {
+            0 => Ok(CurrentSenseMuxIndex::M0(CurrentSenseMuxM0{ raw: self.raw })),
+            1 => Ok(CurrentSenseMuxIndex::M1(CurrentSenseMuxM1{ raw: self.raw })),
+            2 => Ok(CurrentSenseMuxIndex::M2(CurrentSenseMuxM2{ raw: self.raw })),
+            3 => Ok(CurrentSenseMuxIndex::M3(CurrentSenseMuxM3{ raw: self.raw })),
+            multiplexor => Err(CanError::InvalidMultiplexor { message_id: CurrentSense::MESSAGE_ID, multiplexor: multiplexor.into() }),
+        }
+    }
+    /// Set value of mux
+    #[inline(always)]
+    fn set_mux(&mut self, value: u8) -> Result<(), CanError> {
+        if value < 0_u8 || 15_u8 < value {
+            return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+        }
+        let factor = 1;
+        let value = value.checked_sub(0)
+            .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+        let value = (value / factor) as u8;
+        
+        self.raw.view_bits_mut::<Lsb0>()[0..4].store_le(value);
+        Ok(())
+    }
+    
+    /// Set value of mux
+    #[inline(always)]
+    pub fn set_m0(&mut self, value: CurrentSenseMuxM0) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(0)?;
+        Ok(())
+    }
+    
+    /// Set value of mux
+    #[inline(always)]
+    pub fn set_m1(&mut self, value: CurrentSenseMuxM1) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(1)?;
+        Ok(())
+    }
+    
+    /// Set value of mux
+    #[inline(always)]
+    pub fn set_m2(&mut self, value: CurrentSenseMuxM2) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(2)?;
+        Ok(())
+    }
+    
+    /// Set value of mux
+    #[inline(always)]
+    pub fn set_m3(&mut self, value: CurrentSenseMuxM3) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(3)?;
+        Ok(())
+    }
+    
+}
+
+impl core::convert::TryFrom<&[u8]> for CurrentSense {
+    type Error = CanError;
+    
+    #[inline(always)]
+    fn try_from(payload: &[u8]) -> Result<Self, Self::Error> {
+        if payload.len() != 8 { return Err(CanError::InvalidPayloadSize); }
+        let mut raw = [0u8; 8];
+        raw.copy_from_slice(&payload[..8]);
+        Ok(Self { raw })
+    }
+}
+
+impl embedded_can::Frame for CurrentSense {
+    fn new(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
+        if id.into() != Self::MESSAGE_ID {
+            None
+        } else {
+            data.try_into().ok()
+        }
+    }
+
+    fn new_remote(_id: impl Into<Id>, _dlc: usize) -> Option<Self> {
+        unimplemented!()
+    }
+
+    fn is_extended(&self) -> bool {
+        match self.id() {
+            Id::Standard(_) => false,
+            Id::Extended(_) => true,
+        }
+    }
+
+    fn is_remote_frame(&self) -> bool {
+        false
+    }
+
+    fn id(&self) -> Id {
+        Self::MESSAGE_ID
+    }
+
+    fn dlc(&self) -> usize {
+        self.raw.len()
+    }
+
+    fn data(&self) -> &[u8] {
+        &self.raw
+    }
+}
+#[cfg(feature = "defmt")]
+impl defmt::Format for CurrentSense {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f,
+            "CurrentSense {{ }}",
+            );
+        }
+}
+
+/// Defined values for multiplexed signal Current_Sense
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum CurrentSenseMuxIndex {
+    M0(CurrentSenseMuxM0),
+    M1(CurrentSenseMuxM1),
+    M2(CurrentSenseMuxM2),
+    M3(CurrentSenseMuxM3),
+}
+
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[derive(Default)]
+pub struct CurrentSenseMuxM0 { raw: [u8; 8] }
+
+impl CurrentSenseMuxM0 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// Current_Sense_1
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 1 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_1(&self) -> u8 {
+    self.current_sense_1_raw()
+}
+
+/// Get raw value of Current_Sense_1
+///
+/// - Start bit: 4
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_1_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..12].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_1
+#[inline(always)]
+pub fn set_current_sense_1(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..12].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_2
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 2 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_2(&self) -> u8 {
+    self.current_sense_2_raw()
+}
+
+/// Get raw value of Current_Sense_2
+///
+/// - Start bit: 12
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_2_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[12..20].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_2
+#[inline(always)]
+pub fn set_current_sense_2(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[12..20].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_3
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 3 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_3(&self) -> u8 {
+    self.current_sense_3_raw()
+}
+
+/// Get raw value of Current_Sense_3
+///
+/// - Start bit: 20
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_3_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[20..28].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_3
+#[inline(always)]
+pub fn set_current_sense_3(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[20..28].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_4
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 4 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_4(&self) -> u8 {
+    self.current_sense_4_raw()
+}
+
+/// Get raw value of Current_Sense_4
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_4_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_4
+#[inline(always)]
+pub fn set_current_sense_4(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_5
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 5 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_5(&self) -> u8 {
+    self.current_sense_5_raw()
+}
+
+/// Get raw value of Current_Sense_5
+///
+/// - Start bit: 36
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_5_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[36..44].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_5
+#[inline(always)]
+pub fn set_current_sense_5(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[36..44].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_6
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 6 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_6(&self) -> u8 {
+    self.current_sense_6_raw()
+}
+
+/// Get raw value of Current_Sense_6
+///
+/// - Start bit: 44
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_6_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[44..52].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_6
+#[inline(always)]
+pub fn set_current_sense_6(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[44..52].store_le(value);
+    Ok(())
+}
+
+}
+
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[derive(Default)]
+pub struct CurrentSenseMuxM1 { raw: [u8; 8] }
+
+impl CurrentSenseMuxM1 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// Current_Sense_7
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 7 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_7(&self) -> u8 {
+    self.current_sense_7_raw()
+}
+
+/// Get raw value of Current_Sense_7
+///
+/// - Start bit: 4
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_7_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..12].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_7
+#[inline(always)]
+pub fn set_current_sense_7(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..12].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_8
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 8 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_8(&self) -> u8 {
+    self.current_sense_8_raw()
+}
+
+/// Get raw value of Current_Sense_8
+///
+/// - Start bit: 12
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_8_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[12..20].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_8
+#[inline(always)]
+pub fn set_current_sense_8(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[12..20].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_9
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 9 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_9(&self) -> u8 {
+    self.current_sense_9_raw()
+}
+
+/// Get raw value of Current_Sense_9
+///
+/// - Start bit: 20
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_9_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[20..28].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_9
+#[inline(always)]
+pub fn set_current_sense_9(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[20..28].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_10
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 10 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_10(&self) -> u8 {
+    self.current_sense_10_raw()
+}
+
+/// Get raw value of Current_Sense_10
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_10_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_10
+#[inline(always)]
+pub fn set_current_sense_10(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_11
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 11 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_11(&self) -> u8 {
+    self.current_sense_11_raw()
+}
+
+/// Get raw value of Current_Sense_11
+///
+/// - Start bit: 36
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_11_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[36..44].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_11
+#[inline(always)]
+pub fn set_current_sense_11(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[36..44].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_12
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 12 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_12(&self) -> u8 {
+    self.current_sense_12_raw()
+}
+
+/// Get raw value of Current_Sense_12
+///
+/// - Start bit: 44
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_12_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[44..52].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_12
+#[inline(always)]
+pub fn set_current_sense_12(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[44..52].store_le(value);
+    Ok(())
+}
+
+}
+
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[derive(Default)]
+pub struct CurrentSenseMuxM2 { raw: [u8; 8] }
+
+impl CurrentSenseMuxM2 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// Current_Sense_13
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 13 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_13(&self) -> u8 {
+    self.current_sense_13_raw()
+}
+
+/// Get raw value of Current_Sense_13
+///
+/// - Start bit: 4
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_13_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..12].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_13
+#[inline(always)]
+pub fn set_current_sense_13(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..12].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_14
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 14 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_14(&self) -> u8 {
+    self.current_sense_14_raw()
+}
+
+/// Get raw value of Current_Sense_14
+///
+/// - Start bit: 12
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_14_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[12..20].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_14
+#[inline(always)]
+pub fn set_current_sense_14(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[12..20].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_15
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 15 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_15(&self) -> u8 {
+    self.current_sense_15_raw()
+}
+
+/// Get raw value of Current_Sense_15
+///
+/// - Start bit: 20
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_15_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[20..28].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_15
+#[inline(always)]
+pub fn set_current_sense_15(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[20..28].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_16
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 16 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_16(&self) -> u8 {
+    self.current_sense_16_raw()
+}
+
+/// Get raw value of Current_Sense_16
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_16_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_16
+#[inline(always)]
+pub fn set_current_sense_16(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_17
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 17 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_17(&self) -> u8 {
+    self.current_sense_17_raw()
+}
+
+/// Get raw value of Current_Sense_17
+///
+/// - Start bit: 36
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_17_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[36..44].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_17
+#[inline(always)]
+pub fn set_current_sense_17(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[36..44].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_18
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 18 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_18(&self) -> u8 {
+    self.current_sense_18_raw()
+}
+
+/// Get raw value of Current_Sense_18
+///
+/// - Start bit: 44
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_18_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[44..52].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_18
+#[inline(always)]
+pub fn set_current_sense_18(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[44..52].store_le(value);
+    Ok(())
+}
+
+}
+
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[derive(Default)]
+pub struct CurrentSenseMuxM3 { raw: [u8; 8] }
+
+impl CurrentSenseMuxM3 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// Current_Sense_19
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 19 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_19(&self) -> u8 {
+    self.current_sense_19_raw()
+}
+
+/// Get raw value of Current_Sense_19
+///
+/// - Start bit: 4
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_19_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..12].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_19
+#[inline(always)]
+pub fn set_current_sense_19(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..12].store_le(value);
+    Ok(())
+}
+
+/// Current_Sense_20
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output 20 current sense"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn current_sense_20(&self) -> u8 {
+    self.current_sense_20_raw()
+}
+
+/// Get raw value of Current_Sense_20
+///
+/// - Start bit: 12
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn current_sense_20_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[12..20].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Current_Sense_20
+#[inline(always)]
+pub fn set_current_sense_20(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: CurrentSense::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[12..20].store_le(value);
+    Ok(())
+}
+
 }
 
 

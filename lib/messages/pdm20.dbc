@@ -90,4 +90,27 @@ BO_ 419369552 Power: 6 Vector__XXX
  SG_ Bus_Current : 16|16@1+ (1,0) [0|65535] "Bus current in Amps" Vector__XXX
  SG_ Temperature : 32|8@1+ (1,0) [0|255] "Celsius" Vector__XXX
 
+BO_ 419369808 Current_Sense: 8 Vector__XXX
+ SG_ mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ Current_Sense_1 m0 : 4|8@1+ (1,0) [0|255] "Output 1 current sense" Vector__XXX
+ SG_ Current_Sense_2 m0 : 12|8@1+ (1,0) [0|255] "Output 2 current sense" Vector__XXX
+ SG_ Current_Sense_3 m0 : 20|8@1+ (1,0) [0|255] "Output 3 current sense" Vector__XXX
+ SG_ Current_Sense_4 m0 : 28|8@1+ (1,0) [0|255] "Output 4 current sense" Vector__XXX
+ SG_ Current_Sense_5 m0 : 36|8@1+  (1,0) [0|255] "Output 5 current sense" Vector__XXX
+ SG_ Current_Sense_6 m0 : 44|8@1+ (1,0) [0|255] "Output 6 current sense" Vector__XXX
+ SG_ Current_Sense_7 m1 : 4|8@1+ (1,0) [0|255] "Output 7 current sense" Vector__XXX
+ SG_ Current_Sense_8 m1 : 12|8@1+ (1,0) [0|255] "Output 8 current sense" Vector__XXX
+ SG_ Current_Sense_9 m1 : 20|8@1+ (1,0) [0|255] "Output 9 current sense" Vector__XXX
+ SG_ Current_Sense_10 m1 : 28|8@1+ (1,0) [0|255] "Output 10 current sense" Vector__XXX
+ SG_ Current_Sense_11 m1 : 36|8@1+ (1,0) [0|255] "Output 11 current sense" Vector__XXX
+ SG_ Current_Sense_12 m1 : 44|8@1+ (1,0) [0|255] "Output 12 current sense" Vector__XXX
+ SG_ Current_Sense_13 m2 : 4|8@1+ (1,0) [0|255] "Output 13 current sense" Vector__XXX
+ SG_ Current_Sense_14 m2 : 12|8@1+ (1,0) [0|255] "Output 14 current sense" Vector__XXX
+ SG_ Current_Sense_15 m2 : 20|8@1+ (1,0) [0|255] "Output 15 current sense" Vector__XXX
+ SG_ Current_Sense_16 m2 : 28|8@1+ (1,0) [0|255] "Output 16 current sense" Vector__XXX
+ SG_ Current_Sense_17 m2 : 36|8@1+ (1,0) [0|255] "Output 17 current sense" Vector__XXX
+ SG_ Current_Sense_18 m2 : 44|8@1+ (1,0) [0|255] "Output 18 current sense" Vector__XXX
+ SG_ Current_Sense_19 m3 : 4|8@1+ (1,0) [0|255] "Output 19 current sense" Vector__XXX
+ SG_ Current_Sense_20 m3 : 12|8@1+ (1,0) [0|255] "Output 20 current sense" Vector__XXX
+
 VAL_ 2582597632 CAN_Bitrate 0 "500 kBit/s" 1 "50 kBit/s" 2 "100 kBit/s" 3 "125 kBit/s" 4 "250 kBit/s" 5 "1 MBit/s" 255 "No change";

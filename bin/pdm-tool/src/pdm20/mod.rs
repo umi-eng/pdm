@@ -1,4 +1,5 @@
 pub mod analog;
+pub mod current;
 pub mod output;
 pub mod update;
 
@@ -29,6 +30,7 @@ impl Cmd {
         match self.subcommand {
             Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
         }
     }
@@ -40,6 +42,8 @@ enum Subcommand {
     Output(output::Cmd),
     /// Read analog inputs
     Analog(analog::Cmd),
+    /// Read output current
+    Current(current::Cmd),
     /// Update firmware
     Update(update::Cmd),
 }

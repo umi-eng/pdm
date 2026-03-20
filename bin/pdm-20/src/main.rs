@@ -81,6 +81,7 @@ mod app {
         can_properties: can::Properties,
         source_address: u8,
         outputs: [ErasedPwmPin; 20],
+        output_current: [f32; 20],
         fault_reset: [Output<'static>; 12],
         adc1: adc::Adc<'static, ADC1>,
         adc2: adc::Adc<'static, ADC2>,
@@ -417,6 +418,7 @@ mod app {
                 can_properties,
                 source_address,
                 outputs,
+                output_current: [0.0; 20],
                 fault_reset,
                 adc1,
                 adc2,
@@ -499,6 +501,7 @@ mod app {
                 &can_tx,
                 &source_address,
                 outputs,
+                output_current,
                 adc1,
                 adc2,
                 adc3,
@@ -507,6 +510,9 @@ mod app {
             ]
         )]
         async fn current(cx: current::Context);
+
+        #[task(shared = [&can_tx, &source_address, output_current])]
+        async fn current_status(cx: current_status::Context);
 
         #[task(
             local = [
