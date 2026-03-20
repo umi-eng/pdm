@@ -1,3 +1,6 @@
+<img src="assets/banner-light.png#gh-light-mode-only">
+<img src="assets/banner-dark.png#gh-dark-mode-only">
+
 # PDM Platform
 
 ## Firmware
