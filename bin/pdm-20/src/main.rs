@@ -194,9 +194,10 @@ mod app {
                 0x50
             }
         };
-        let adr0 = Input::new(p.PF9, Pull::Up).is_low();
-        let adr1 = Input::new(p.PF10, Pull::Up).is_low();
-        let offset = (adr0 as u8) | ((adr1 as u8) << 1);
+        let adr0 = Input::new(p.PF9, Pull::Up);
+        let adr1 = Input::new(p.PF10, Pull::Up);
+        block_on(Mono::delay(2.millis())); // wait for input to settle
+        let offset = (adr0.is_low() as u8) | ((adr1.is_low() as u8) << 1);
         let source_address = source_address + offset;
         defmt::info!("Source address: 0x{:x}", source_address);
 
