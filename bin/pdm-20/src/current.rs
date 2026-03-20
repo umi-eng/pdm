@@ -81,7 +81,7 @@ fn convert_to_amps(sample: u16, slope: f32) -> f32 {
 
 /// Convert real value to raw J1939 parameter value.
 fn to_oc_parameter(value: f32) -> Option<u8> {
-    pdm20::slot::OutputCurrent::from_f32(value).map(|s| s.parameter().to_raw())
+    pdm20::slot::OutputCurrent::from_f32(value.clamp(0.0, 12.5)).map(|s| s.parameter().to_raw())
 }
 
 pub async fn current_status(cx: current_status::Context<'_>) {
