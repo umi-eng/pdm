@@ -1,5 +1,5 @@
-<img src="assets/banner-light.png#gh-light-mode-only">
-<img src="assets/banner-dark.png#gh-dark-mode-only">
+<img src="assets/banner-light.png#gh-light-mode-only" alt="Power Distribution Module Firmware">
+<img src="assets/banner-dark.png#gh-dark-mode-only" alt="Power Distribution Module Firmware">
 
 ## Targets
 
