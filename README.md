@@ -1,13 +1,10 @@
 <img src="assets/banner-light.png#gh-light-mode-only">
 <img src="assets/banner-dark.png#gh-dark-mode-only">
 
-# PDM Platform
+## Targets
 
-## Firmware
-
-Firmware for the PDM36 can be found in the `pdm-36` crate and the bootloader in the `pdm-36-bootloader` crate.
-
-For more details on the firmware, see the readme within the `pdm-36` crate.
+- PDM20 - 4 high-current outputs, 16 low-current outputs, 3 analog inputs.
+- PDM36 - 6 high-current outputs, 30 low-current outputs, 3 analog inputs.
 
 ## Command Line Tool
 
