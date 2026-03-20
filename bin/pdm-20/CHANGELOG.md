@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+# v0.2.1
+
 - Fix address inputs not having enough time to settle.
 
 # v0.2.0
