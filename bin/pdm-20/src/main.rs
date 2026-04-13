@@ -252,10 +252,10 @@ mod app {
 
         let tim15_ch1 = PwmPin::new(p.PB14, OutputType::PushPull);
         let tim15_ch2 = PwmPin::new(p.PB15, OutputType::PushPull);
-        let tim8_ch2 = PwmPin::new(p.PC7, OutputType::PushPull);
         let tim8_ch1 = PwmPin::new(p.PC6, OutputType::PushPull);
-        let tim8_ch4 = PwmPin::new(p.PC9, OutputType::PushPull);
+        let tim8_ch2 = PwmPin::new(p.PC7, OutputType::PushPull);
         let tim8_ch3 = PwmPin::new(p.PC8, OutputType::PushPull);
+        let tim8_ch4 = PwmPin::new(p.PC9, OutputType::PushPull);
         let tim4_ch2 = PwmPin::new(p.PB7, OutputType::PushPull);
         let tim4_ch1 = PwmPin::new(p.PB6, OutputType::PushPull);
         let tim3_ch2 = PwmPin::new(p.PB5, OutputType::PushPull);
@@ -376,10 +376,10 @@ mod app {
         let outputs: [ErasedPwmPin; _] = [
             &mut tim15.ch1,
             &mut tim15.ch2,
-            &mut tim8.ch2,
             &mut tim8.ch1,
-            &mut tim8.ch4,
+            &mut tim8.ch2,
             &mut tim8.ch3,
+            &mut tim8.ch4,
             &mut tim4.ch2,
             &mut tim4.ch1,
             &mut tim3.ch2,
