@@ -228,10 +228,10 @@ mod app {
         let i_sense = [
             AnalogCh::Adc3(p.PD12.degrade_adc()),
             AnalogCh::Adc3(p.PD13.degrade_adc()),
-            AnalogCh::Adc4(p.PD9.degrade_adc()),
             AnalogCh::Adc4(p.PD8.degrade_adc()),
-            AnalogCh::Adc4(p.PE11.degrade_adc()),
+            AnalogCh::Adc4(p.PD9.degrade_adc()),
             AnalogCh::Adc4(p.PE12.degrade_adc()),
+            AnalogCh::Adc4(p.PE11.degrade_adc()),
             AnalogCh::Adc1(p.PB0.degrade_adc()),
             AnalogCh::Adc1(p.PB1.degrade_adc()),
             AnalogCh::Adc3(p.PE7.degrade_adc()),
