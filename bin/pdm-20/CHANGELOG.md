@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+- Fix output 3-4 and 5-6 being swapped.
+
 # v0.2.1
 
 - Fix address inputs not having enough time to settle.
