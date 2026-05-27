@@ -41,10 +41,8 @@ jobs:
           fi
         # Strips 'pdm-20-bootloader/v' prefix on tag builds, leaving e.g. '1.2.3'
       - name: Build pdm-20 bootloader
-        run: |
-          cargo build --release --locked \
-            --target thumbv7em-none-eabihf \
-            -p pdm-20-bootloader
+        working-directory: bin/pdm-20-bootloader
+        run: cargo build --release --locked
       - name: Patch bootloader header
         run: |
           cargo xtask patch-header \
