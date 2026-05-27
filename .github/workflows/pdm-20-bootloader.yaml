@@ -19,7 +19,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v6
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: thumbv7em-none-eabihf
       - name: Cache Rust
