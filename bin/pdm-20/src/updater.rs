@@ -171,8 +171,8 @@ pub async fn updater(cx: updater::Context<'_>) {
                     .build()
                     .unwrap();
 
-                if let Some(transfer) = &mut transfer {
-                    if let Ok(dt) = DataTransfer::try_from(frame.data()) {
+                if let Some(transfer) = &mut transfer
+                    && let Ok(dt) = DataTransfer::try_from(frame.data()) {
                         match transfer.next(dt) {
                             Ok(Some(cts)) => {
                                 let data: [u8; 8] = (&cts).into();
@@ -192,15 +192,14 @@ pub async fn updater(cx: updater::Context<'_>) {
                             }
                         }
                     }
-                }
             }
             _ => {}
         }
 
         // when the transfer is finished we write the firmware to flash and
         // respond accordingly.
-        if let Some(ongoing) = &mut transfer {
-            if let Some(data) = ongoing.finished() {
+        if let Some(ongoing) = &mut transfer
+            && let Some(data) = ongoing.finished() {
                 match updater.write_firmware(offset as usize, data).await {
                     Ok(_) => {
                         respond_complete(can, source_address, id.sa(), data.len() as u16).await;
@@ -220,7 +219,6 @@ pub async fn updater(cx: updater::Context<'_>) {
                     }
                 }
             }
-        }
     }
 }
 

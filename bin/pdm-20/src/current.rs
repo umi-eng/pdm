@@ -49,7 +49,7 @@ pub async fn current(mut cx: current::Context<'_>) {
                 DriverKind::LowCurrent => (2.2, 660.0),
             };
 
-            let reading = read(&mut sense);
+            let reading = read(sense);
             let measurement = convert_to_amps(reading, slope);
 
             if measurement > i_lim {
@@ -97,7 +97,7 @@ pub async fn current_status(cx: current_status::Context<'_>) {
     loop {
         let start = Mono::now();
 
-        let oc = output_current.lock(|oc| oc.clone());
+        let oc = output_current.lock(|oc| *oc);
 
         let mut mux0 = pdm20::CurrentSenseMuxM0::new();
         mux0.set_current_sense_1(to_oc_parameter(oc[0]).unwrap())
