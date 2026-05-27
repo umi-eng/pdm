@@ -31,6 +31,8 @@ jobs:
             binutils-arm-none-eabi \
             libudev-dev \
             pkg-config
+      - name: Install flip-link
+        run: cargo install flip-link --version 0.1.12
       - name: Extract version from tag
         id: version
         run: |
