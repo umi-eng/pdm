@@ -33,7 +33,7 @@ impl Sign {
         firmware.extend(&sig.to_bytes());
 
         // write signed firmware file
-        let path = self.firmware.clone().with_extension("bin.signed");
+        let path = self.firmware.clone().with_extension("signed.bin");
         let mut signed_file = File::create(&path)?;
         signed_file.write(&firmware)?;
         println!("Written {} bytes to {:?}", firmware.len(), path);
