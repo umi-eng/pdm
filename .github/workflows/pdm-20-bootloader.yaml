@@ -24,10 +24,13 @@ jobs:
           targets: thumbv7em-none-eabihf
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
-      - name: Install binutils (objcopy)
+      - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y binutils-arm-none-eabi
+          sudo apt-get install -y \
+            binutils-arm-none-eabi \
+            libudev-dev \
+            pkg-config
       - name: Extract version from tag
         id: version
         run: |
