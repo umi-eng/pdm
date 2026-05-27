@@ -20,31 +20,6 @@ jobs:
       - name: Check format
         run: cargo fmt --all -- --check
 
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v6
-      - name: Cache Rust
-        uses: swatinem/rust-cache@v2
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: thumbv7em-none-eabihf
-      - run: cargo install flip-link --version 0.1.10
-      - name: std crates
-        run: |
-          cargo check \
-            -p messages \
-            -p pdm \
-            -p pdm-tool
-      - name: no_std crates
-        run: |
-          cargo check --target thumbv7em-none-eabihf \
-          -p pdm-20 \
-          -p pdm-20-bootloader \
-
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
