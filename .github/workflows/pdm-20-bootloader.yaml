@@ -2,7 +2,9 @@ name: PDM20 Bootloader Release
 
 on:
   push:
+    branches: [main]
     tags: ['pdm-20-bootloader/v[0-9]+.[0-9]+.[0-9]+']
+  pull_request:
 
 jobs:
   ci:
@@ -28,8 +30,13 @@ jobs:
           sudo apt-get install -y binutils-arm-none-eabi
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#pdm-20/v}" >> "$GITHUB_OUTPUT"
-        # Strips 'pdm-20/v' prefix, leaving e.g. '1.2.3'
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#pdm-20-bootloader/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=0.0.0" >> "$GITHUB_OUTPUT"
+          fi
+        # Strips 'pdm-20-bootloader/v' prefix on tag builds, leaving e.g. '1.2.3'
       - name: Build pdm-20 bootloader
         run: |
           cargo build --release --locked \
@@ -64,6 +71,7 @@ jobs:
   release:
     name: Create release
     needs: build
+    if: startsWith(github.ref, 'refs/tags/pdm-20-bootloader/v') && github.ref_type == 'tag'
     runs-on: ubuntu-latest
     permissions:
       contents: write
