@@ -62,13 +62,13 @@ jobs:
           arm-none-eabi-objcopy \
             -O binary \
             target/thumbv7em-none-eabihf/release/pdm-20 \
-            dist/pdm-20-${{ steps.version.outputs.VERSION }}.bin
+            dist/pdm-20-v${{ steps.version.outputs.VERSION }}.bin
       - name: Sign firmware
         env:
           FIRMWARE_PRIVKEY_SEED: ${{ secrets.SECRET_KEY_PDM20 }}
         run: |
           cargo xtask sign \
-            dist/pdm-20-${{ steps.version.outputs.VERSION }}.bin
+            dist/pdm-20-v${{ steps.version.outputs.VERSION }}.bin
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:

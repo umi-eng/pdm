@@ -58,13 +58,13 @@ jobs:
           arm-none-eabi-objcopy \
             -O binary \
             target/thumbv7em-none-eabihf/release/pdm-20-bootloader \
-            dist/pdm-20-bootloader-${{ steps.version.outputs.VERSION }}.bin
+            dist/pdm-20-bootloader-v${{ steps.version.outputs.VERSION }}.bin
       - name: Sign bootloader
         env:
           FIRMWARE_PRIVKEY_SEED: ${{ secrets.SECRET_KEY_PDM20 }}
         run: |
           cargo xtask sign \
-            dist/pdm-20-bootloader-${{ steps.version.outputs.VERSION }}.bin
+            dist/pdm-20-bootloader-v${{ steps.version.outputs.VERSION }}.bin
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
