@@ -76,8 +76,8 @@ jobs:
           path: dist/
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#pdm-20/v}" >> "$GITHUB_OUTPUT"
-        # Strips 'pdm-20/v' prefix, leaving e.g. '1.2.3'
+        run: echo "VERSION=${GITHUB_REF_NAME#pdm-20-bootloader/v}" >> "$GITHUB_OUTPUT"
+        # Strips 'pdm-20-bootloader/v' prefix, leaving e.g. '1.2.3' (always a tag in this job)
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
