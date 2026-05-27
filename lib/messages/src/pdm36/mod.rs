@@ -1,5 +1,8 @@
+#[rustfmt::skip]
 #[allow(warnings)]
+#[allow(clippy)]
 mod messages;
+
 pub use messages::*;
 
 pub mod pgn {
