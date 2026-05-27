@@ -82,8 +82,7 @@ mod app {
         source_address: u8,
         outputs: [ErasedPwmPin; 20],
         output_current: [f32; 20],
-        #[allow(unused)]
-        fault_reset: [Output<'static>; 12],
+        _fault_reset: [Output<'static>; 12],
         adc1: adc::Adc<'static, ADC1>,
         adc2: adc::Adc<'static, ADC2>,
         adc3: adc::Adc<'static, ADC3>,
@@ -421,7 +420,7 @@ mod app {
                 source_address,
                 outputs,
                 output_current: [0.0; 20],
-                fault_reset,
+                _fault_reset: fault_reset,
                 adc1,
                 adc2,
                 adc3,

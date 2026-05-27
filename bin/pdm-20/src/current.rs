@@ -42,7 +42,7 @@ pub async fn current(mut cx: current::Context<'_>) {
 
         let mut measurements = [0.0; 20];
 
-        for (n, mut sense) in i_sense.iter_mut().enumerate() {
+        for (n, sense) in i_sense.iter_mut().enumerate() {
             let ch = n + 1;
             let (i_lim, slope) = match DriverKind::from_ch(ch) {
                 DriverKind::HighCurrent => (10.6, 245.5),
