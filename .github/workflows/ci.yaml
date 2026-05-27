@@ -42,8 +42,8 @@ jobs:
       - name: no_std crates
         run: |
           cargo check --target thumbv7em-none-eabihf \
-          -p pdm-36 \
-          -p pdm-36-bootloader \
+          -p pdm-20 \
+          -p pdm-20-bootloader \
 
   clippy:
     name: Clippy
@@ -67,6 +67,6 @@ jobs:
       - name: no_std crates
         run: |
           cargo clippy --all-features --locked \
-          -p pdm-36 \
-          -p pdm-36-bootloader \
+          -p pdm-20 \
+          -p pdm-20-bootloader \
           -- -D warnings --target thumbv7em-none-eabihf
