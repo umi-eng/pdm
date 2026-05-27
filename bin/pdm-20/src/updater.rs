@@ -172,26 +172,27 @@ pub async fn updater(cx: updater::Context<'_>) {
                     .unwrap();
 
                 if let Some(transfer) = &mut transfer
-                    && let Ok(dt) = DataTransfer::try_from(frame.data()) {
-                        match transfer.next(dt) {
-                            Ok(Some(cts)) => {
-                                let data: [u8; 8] = (&cts).into();
-                                let frame = can::Frame::new_data(response_id, &data).unwrap();
-                                can.access().await.write(&frame).await;
+                    && let Ok(dt) = DataTransfer::try_from(frame.data())
+                {
+                    match transfer.next(dt) {
+                        Ok(Some(cts)) => {
+                            let data: [u8; 8] = (&cts).into();
+                            let frame = can::Frame::new_data(response_id, &data).unwrap();
+                            can.access().await.write(&frame).await;
 
-                                if let Response::End(_) = cts {
-                                    defmt::info!("Writing firmware block.");
-                                }
-                            }
-                            Ok(None) => {}
-                            Err((_, abort)) => {
-                                defmt::error!("Transfer aborted: {}", abort.reason());
-                                let data: [u8; 8] = (&abort).into();
-                                let frame = can::Frame::new_data(response_id, &data).unwrap();
-                                can.access().await.write(&frame).await;
+                            if let Response::End(_) = cts {
+                                defmt::info!("Writing firmware block.");
                             }
                         }
+                        Ok(None) => {}
+                        Err((_, abort)) => {
+                            defmt::error!("Transfer aborted: {}", abort.reason());
+                            let data: [u8; 8] = (&abort).into();
+                            let frame = can::Frame::new_data(response_id, &data).unwrap();
+                            can.access().await.write(&frame).await;
+                        }
                     }
+                }
             }
             _ => {}
         }
@@ -199,26 +200,27 @@ pub async fn updater(cx: updater::Context<'_>) {
         // when the transfer is finished we write the firmware to flash and
         // respond accordingly.
         if let Some(ongoing) = &mut transfer
-            && let Some(data) = ongoing.finished() {
-                match updater.write_firmware(offset as usize, data).await {
-                    Ok(_) => {
-                        respond_complete(can, source_address, id.sa(), data.len() as u16).await;
-                        firmware_size += data.len() as u32;
-                        // transfer finished
-                        transfer = None;
-                    }
-                    Err(err) => {
-                        defmt::error!("Failed to write firmware block: {}", err);
-                        respond_failed(
-                            can,
-                            source_address,
-                            id.sa(),
-                            ErrorIndicator::AbortFromSoftwareProcess,
-                        )
-                        .await
-                    }
+            && let Some(data) = ongoing.finished()
+        {
+            match updater.write_firmware(offset as usize, data).await {
+                Ok(_) => {
+                    respond_complete(can, source_address, id.sa(), data.len() as u16).await;
+                    firmware_size += data.len() as u32;
+                    // transfer finished
+                    transfer = None;
+                }
+                Err(err) => {
+                    defmt::error!("Failed to write firmware block: {}", err);
+                    respond_failed(
+                        can,
+                        source_address,
+                        id.sa(),
+                        ErrorIndicator::AbortFromSoftwareProcess,
+                    )
+                    .await
                 }
             }
+        }
     }
 }
 

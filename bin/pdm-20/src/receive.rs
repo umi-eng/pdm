@@ -158,10 +158,11 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 }
                             };
                             if let Some(bitrate) = bitrate
-                                && let Err(err) = config.store_can_bus_bitrate(&bitrate).await {
-                                    error::spawn().ok();
-                                    defmt::error!("Failed to store CAN bitrate: {}", err);
-                                }
+                                && let Err(err) = config.store_can_bus_bitrate(&bitrate).await
+                            {
+                                error::spawn().ok();
+                                defmt::error!("Failed to store CAN bitrate: {}", err);
+                            }
                         }
                         Err(_) => {
                             defmt::error!(
