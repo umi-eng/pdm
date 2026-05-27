@@ -14,6 +14,9 @@ pub struct PatchHeader {
     /// Target board.
     #[clap(long)]
     pub target: String,
+    /// This is a bootloader image.
+    #[clap(long)]
+    pub bootloader: bool,
 }
 
 impl PatchHeader {
@@ -55,7 +58,13 @@ impl PatchHeader {
         let image_size = calculate_flash_image_size(&obj_file)?;
         println!("Image size: {} bytes", image_size);
 
-        let header = header::ImageHeader::new(image_size, version, Flags::empty(), target);
+        let mut flags = Flags::empty();
+
+        if self.bootloader {
+            flags |= Flags::BOOTLOADER_IMAGE;
+        }
+
+        let header = header::ImageHeader::new(image_size, version, flags, target);
 
         let mut file = File::options().write(true).open(self.firmware)?;
 
