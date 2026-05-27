@@ -35,6 +35,7 @@ impl Run {
             firmware: self.path.clone(),
             version: manifest.package().version().to_owned(),
             target: config.target,
+            bootloader: false,
         }
         .run()?;
 
