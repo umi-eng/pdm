@@ -1,8 +1,8 @@
-name: PDM20 Release
+name: PDM20 Bootloader Release
 
 on:
   push:
-    tags: ['pdm-20/v[0-9]+.[0-9]+.[0-9]+']
+    tags: ['pdm-20-bootloader/v[0-9]+.[0-9]+.[0-9]+']
 
 jobs:
   ci:
@@ -10,7 +10,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml
 
   build:
-    name: Build firmware
+    name: Build bootloader
     needs: ci
     runs-on: ubuntu-latest
     steps:
@@ -30,35 +30,31 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#pdm-20/v}" >> "$GITHUB_OUTPUT"
         # Strips 'pdm-20/v' prefix, leaving e.g. '1.2.3'
-      - name: Build pdm-20 firmware
+      - name: Build pdm-20 bootloader
         run: |
           cargo build --release --locked \
             --target thumbv7em-none-eabihf \
-            -p pdm-20
-      - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pdm-20-firmware
-          path: target/thumbv7em-none-eabihf/release/pdm-20
-      - name: Patch firmware header
+            -p pdm-20-bootloader
+      - name: Patch bootloader header
         run: |
           cargo xtask patch-header \
             --version ${{ steps.version.outputs.VERSION }} \
             --target PD20 \
-            target/thumbv7em-none-eabihf/release/pdm-20
+            --bootloader \
+            target/thumbv7em-none-eabihf/release/pdm-20-bootloader
       - run: mkdir dist
-      - name: Extract firmware binary
+      - name: Extract bootloader binary
         run: |
           arm-none-eabi-objcopy \
             -O binary \
-            target/thumbv7em-none-eabihf/release/pdm-20 \
-            dist/pdm-20-${{ steps.version.outputs.VERSION }}.bin
-      - name: Sign firmware
+            target/thumbv7em-none-eabihf/release/pdm-20-bootloader \
+            dist/pdm-20-bootloader-${{ steps.version.outputs.VERSION }}.bin
+      - name: Sign bootloader
         env:
           FIRMWARE_PRIVKEY_SEED: ${{ secrets.SECRET_KEY_PDM20 }}
         run: |
           cargo xtask sign \
-            dist/pdm-20-${{ steps.version.outputs.VERSION }}.bin
+            dist/pdm-20-bootloader-${{ steps.version.outputs.VERSION }}.bin
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -72,10 +68,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download firmware
+      - name: Download bootloader
         uses: actions/download-artifact@v4
         with:
-          name: pdm-20-release
+          name: pdm-20-bootloader
           merge-multiple: true
           path: dist/
       - name: Extract version from tag
@@ -86,6 +82,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "pdm-20-release/*.signed.bin"
-          name: "PDM20 Firmware Release v${{ steps.version.outputs.VERSION }}"
+          name: "PDM20 Bootloader Release v${{ steps.version.outputs.VERSION }}"
           body: |
-            See the [changelog](https://github.com/umi-eng/pdm/blob/main/bin/pdm-20/CHANGELOG.md).
+            See the [changelog](https://github.com/umi-eng/pdm/blob/main/bin/pdm-20-bootloader/CHANGELOG.md).
