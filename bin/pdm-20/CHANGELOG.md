@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+# v0.2.2
+
 - Fix output 3-4 and 5-6 being swapped.
 
 # v0.2.1
