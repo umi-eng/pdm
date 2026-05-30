@@ -92,7 +92,8 @@ jobs:
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "pdm-20-release/*.signed.bin"
+          artifacts: dist/*.signed.bin"
+          artifactErrorsFailBuild: true
           name: "PDM20 Bootloader Release v${{ steps.version.outputs.VERSION }}"
           body: |
             See the [changelog](https://github.com/umi-eng/pdm/blob/main/bin/pdm-20-bootloader/CHANGELOG.md).
