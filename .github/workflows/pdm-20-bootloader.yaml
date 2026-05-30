@@ -66,7 +66,7 @@ jobs:
           cargo xtask sign \
             dist/pdm-20-bootloader-v${{ steps.version.outputs.VERSION }}.bin
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pdm-20-release
           path: dist/
