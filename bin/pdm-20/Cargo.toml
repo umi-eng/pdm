@@ -44,6 +44,3 @@ embedded-hal = "1.0.0"
 
 [build-dependencies]
 header.workspace = true
-
-[dev-dependencies]
-embedded-test = "0.7.0"
