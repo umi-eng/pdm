@@ -29,7 +29,7 @@ fn main() -> ! {
     wd.unleash();
 
     defmt::info!("Launching application");
-    unsafe { bl.load(BANK1_REGION.base + active_offset) }
+    unsafe { bl.load(BANK1_REGION.base() + active_offset) }
 }
 
 #[unsafe(no_mangle)]
