@@ -136,7 +136,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 0x00 => {} // reserved
                                 address => {
                                     if let Err(err) = config
-                                        .store_can_bus_source_address(&config::CanBusAddress {
+                                        .store_can_bus_source_address(&config::J1939SourceAddress {
                                             address,
                                         })
                                         .await

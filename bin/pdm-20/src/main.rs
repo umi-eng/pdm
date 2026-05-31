@@ -197,7 +197,7 @@ mod app {
             Ok(res) => res,
             Err(err) => {
                 defmt::error!("Failed to read SA from flash: {}", err);
-                messages::pdm20::config::CanBusAddress::default()
+                messages::pdm20::config::J1939SourceAddress::default()
             }
         };
         let adr0 = Input::new(p.PF9, Pull::Up);

@@ -97,5 +97,5 @@ impl<'f> Config<'f> {
 
     // CAN/J1939
     config_key!(can_bus_bitrate, config::CanBusBitrate);
-    config_key!(can_bus_source_address, config::CanBusAddress);
+    config_key!(can_bus_source_address, config::J1939SourceAddress);
 }
