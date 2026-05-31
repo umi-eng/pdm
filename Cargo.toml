@@ -15,7 +15,7 @@ analog = { path = "lib/analog" }
 pdm = { path = "lib/pdm" }
 blocking-executor = { path = "lib/blocking-executor" }
 
-saelient = { git = "https://github.com/umi-eng/saelient.git", default-features = false }
+saelient = { version = "0.2.1", default-features = false }
 bitflags = "2.10.0"
 defmt = "1.1.0"
 defmt-rtt = "1.2.0"
@@ -41,3 +41,4 @@ tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
 tlvc-text = { git = "https://github.com/oxidecomputer/tlvc.git" }
 facet = { version = "0.43.2", default-features = false }
 facet-toml = "0.43.2"
+postcard = { version = "1.1.3", default-features = false }

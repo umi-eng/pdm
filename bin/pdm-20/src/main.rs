@@ -11,6 +11,7 @@ mod status;
 mod updater;
 
 use analog::*;
+use config::*;
 use current::*;
 use embedded_hal::pwm::SetDutyCycle;
 use power::*;
@@ -76,7 +77,7 @@ mod app {
     #[shared]
     struct Shared {
         _header: &'static header::ImageHeader,
-        config: config::Config<'static>,
+        config: Config<'static>,
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
         source_address: u8,
@@ -99,6 +100,8 @@ mod app {
         can_rx: can::CanRx<'static>,
         updater_tx: channel::Sender<'static, can::Frame, 8>,
         updater_rx: channel::Receiver<'static, can::Frame, 8>,
+        config_tx: channel::Sender<'static, can::Frame, 8>,
+        config_rx: channel::Receiver<'static, can::Frame, 8>,
         temperature: adc::Temperature,
         i_sense: [AnalogCh<'static>; 20],
         ain1: AnalogCh<'static>,
@@ -173,7 +176,7 @@ mod app {
         let updater = FirmwareUpdater::new(config, &mut cx.local.aligned_buffer.0);
 
         // configuration store
-        let config = config::Config::new(flash);
+        let config = Config::new(flash);
 
         // can bus
         let mut can = can::CanConfigurator::new(p.FDCAN1, p.PA11, p.PA12, Irqs);
@@ -181,28 +184,35 @@ mod app {
             can::filter::ExtendedFilterSlot::_0,
             can::filter::ExtendedFilter::accept_all_into_fifo0(),
         );
-        let bitrate = block_on(config.can_bus_bitrate()).unwrap_or(500_000);
-        can.set_bitrate(bitrate);
+        let bitrate = match block_on(config.can_bus_bitrate()) {
+            Ok(br) => br,
+            Err(err) => {
+                defmt::error!("Failed to read can bus bitrate from flash: {}", err);
+                messages::pdm20::config::CanBusBitrate::default()
+            }
+        };
+        can.set_bitrate(bitrate.bitrate);
         let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
         let can_tx = Arbiter::new(can_tx);
 
         // source address configuration
         let source_address = match block_on(config.can_bus_source_address()) {
-            Ok(sa) => sa,
+            Ok(res) => res,
             Err(err) => {
                 defmt::error!("Failed to read SA from flash: {}", err);
-                0x50
+                messages::pdm20::config::J1939SourceAddress::default()
             }
         };
         let adr0 = Input::new(p.PF9, Pull::Up);
         let adr1 = Input::new(p.PF10, Pull::Up);
         block_on(Mono::delay(2.millis())); // wait for input to settle
         let offset = (adr0.is_low() as u8) | ((adr1.is_low() as u8) << 1);
-        let source_address = source_address + offset;
+        let source_address = source_address.address + offset;
         defmt::info!("Source address: 0x{:x}", source_address);
 
-        // Inter-task communication
+        // inter-task communication
         let (updater_tx, updater_rx) = make_channel!(can::Frame, 8);
+        let (config_tx, config_rx) = make_channel!(can::Frame, 8);
 
         let adc1 = adc::Adc::new(p.ADC1, Default::default());
         let adc2 = adc::Adc::new(p.ADC2, Default::default());
@@ -435,6 +445,8 @@ mod app {
                 can_rx,
                 updater_tx,
                 updater_rx,
+                config_tx,
+                config_rx,
                 temperature,
                 i_sense,
                 ain1,
@@ -477,7 +489,7 @@ mod app {
 
         #[task(
             priority = 1,
-            local = [can_rx, updater_tx],
+            local = [can_rx, updater_tx, config_tx],
             shared = [
                 &config,
                 &can_tx,
@@ -489,6 +501,9 @@ mod app {
 
         #[task(local = [updater, updater_rx], shared = [&can_tx, &source_address])]
         async fn updater(cx: updater::Context);
+
+        #[task(local = [config_rx], shared = [&config, &can_tx, &source_address])]
+        async fn config(cx: config::Context);
 
         #[task(shared = [&can_tx, &can_properties, &source_address])]
         async fn status(cx: status::Context);

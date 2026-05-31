@@ -1,17 +1,14 @@
 pub mod analog;
+pub mod config;
 pub mod current;
 pub mod output;
+pub mod reset;
 pub mod update;
 
 use crate::maybe_hex;
 use anyhow::Result;
 use pdm::pdm20::Pdm20;
 use socketcan::tokio::CanSocket;
-
-fn open_pdm(interface: &str, address: u8) -> Result<Pdm20> {
-    let socket = CanSocket::open(interface)?;
-    Ok(Pdm20::new(socket, address))
-}
 
 #[derive(clap::Parser)]
 pub struct Cmd {
@@ -27,23 +24,32 @@ pub struct Cmd {
 
 impl Cmd {
     pub async fn run(self) -> Result<()> {
+        let socket = CanSocket::open(&self.interface)?;
+        let pdm = Pdm20::new(socket, self.address);
+
         match self.subcommand {
-            Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Reset(cmd) => cmd.run(pdm).await,
+            Subcommand::Output(cmd) => cmd.run(pdm).await,
+            Subcommand::Analog(cmd) => cmd.run(pdm).await,
+            Subcommand::Current(cmd) => cmd.run(pdm).await,
+            Subcommand::Config(cmd) => cmd.run(pdm).await,
+            Subcommand::Update(cmd) => cmd.run(pdm).await,
         }
     }
 }
 
 #[derive(clap::Subcommand)]
 enum Subcommand {
+    /// Reset the device
+    Reset(reset::Cmd),
     /// Control outputs
     Output(output::Cmd),
     /// Read analog inputs
     Analog(analog::Cmd),
     /// Read output current
     Current(current::Cmd),
+    /// Configuration
+    Config(config::Cmd),
     /// Update firmware
     Update(update::Cmd),
 }

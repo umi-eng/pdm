@@ -3,6 +3,8 @@
 #[allow(clippy)]
 mod messages;
 
+pub mod config;
+
 pub use messages::*;
 
 pub mod pgn {

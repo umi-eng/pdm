@@ -1,8 +1,10 @@
 use crate::Mono;
 use crate::app::*;
+use embassy_stm32 as hal;
+use hal::can;
+use hal::can::CanTx;
 use messages::OutputState;
 use messages::pdm20::Configure;
-use messages::pdm20::ConfigureCanBitrate;
 use messages::pdm20::ConfigureMuxIndex;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxIndex;
@@ -10,8 +12,10 @@ use messages::pdm20::pgn;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
+use rtic_sync::arbiter::Arbiter;
 use saelient::Id;
 use saelient::Pgn;
+use saelient::diagnostic::*;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -19,6 +23,11 @@ pub async fn receive(cx: receive::Context<'_>) {
     let can_rx = cx.local.can_rx;
     let source_address = *cx.shared.source_address;
     let mut outputs = cx.shared.outputs;
+
+    // Set after a spatial MemoryAccessRequest with a small payload (≤ 8 bytes).
+    let mut config_data_pending = false;
+    // Set after a spatial MemoryAccessRequest with a large payload (> 8 bytes, uses TP).
+    let mut config_tp_active = false;
 
     loop {
         let frame = match can_rx.read().await {
@@ -49,10 +58,36 @@ pub async fn receive(cx: receive::Context<'_>) {
         activity::spawn().ok();
 
         match id.pgn() {
-            Pgn::MemoryAccessRequest
-            | Pgn::TransportProtocolConnectionManagement
-            | Pgn::TransportProtocolDataTransfer => {
-                cx.local.updater_tx.send(frame).await.ok();
+            Pgn::MemoryAccessRequest => {
+                let (is_spatial, is_large) = MemoryAccessRequest::try_from(frame.data())
+                    .map(|req| {
+                        let spatial = matches!(req.pointer(), Pointer::Spatial(_));
+                        (spatial, req.length() > 8)
+                    })
+                    .unwrap_or((false, false));
+
+                config_data_pending = is_spatial && !is_large;
+                config_tp_active = is_spatial && is_large;
+                if is_spatial {
+                    cx.local.config_tx.send(frame).await.ok();
+                } else {
+                    cx.local.updater_tx.send(frame).await.ok();
+                }
+            }
+            Pgn::TransportProtocolConnectionManagement | Pgn::TransportProtocolDataTransfer => {
+                if config_tp_active {
+                    cx.local.config_tx.send(frame).await.ok();
+                } else {
+                    cx.local.updater_tx.send(frame).await.ok();
+                }
+            }
+            Pgn::BinaryDataTransfer => {
+                if config_data_pending {
+                    config_data_pending = false;
+                    cx.local.config_tx.send(frame).await.ok();
+                } else {
+                    defmt::warn!("Unexpected binary data transfer frame");
+                }
             }
             pgn::CONTROL => {
                 if let Ok(mut output) = Control::try_from(frame.data()) {
@@ -116,7 +151,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                 if let Ok(mut output) = Configure::try_from(frame.data()) {
                     match output.mux() {
                         Ok(ConfigureMuxIndex::M0(m0)) => {
-                            if m0.system_reset() == 1 {
+                            if m0.system_erase() == saelient::signal::Command::Enable as u8 {
                                 if let Err(err) = config.erase().await {
                                     error::spawn().ok();
                                     defmt::error!("Failed to erase config: {}", err);
@@ -125,48 +160,13 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 }
                             }
 
-                            if m0.system_restart() == 1 {
+                            if m0.system_reset() == saelient::signal::Command::Enable as u8 {
                                 cortex_m::peripheral::SCB::sys_reset();
-                            }
-                        }
-                        Ok(ConfigureMuxIndex::M1(m1)) => {
-                            match m1.can_j1939_source_address() {
-                                0xFF => {} // no change
-                                0x00 => {} // reserved
-                                addr => {
-                                    if let Err(err) =
-                                        config.store_can_bus_source_address(&addr).await
-                                    {
-                                        error::spawn().ok();
-                                        defmt::error!("Failed to store source address: {}", err);
-                                    }
-                                }
-                            }
-
-                            let bitrate = match m1.can_bitrate() {
-                                ConfigureCanBitrate::X50KBitS => Some(50_000),
-                                ConfigureCanBitrate::X100KBitS => Some(100_000),
-                                ConfigureCanBitrate::X125KBitS => Some(125_000),
-                                ConfigureCanBitrate::X250KBitS => Some(250_000),
-                                ConfigureCanBitrate::X500KBitS => Some(500_000),
-                                ConfigureCanBitrate::X1MBitS => Some(1_000_000),
-                                ConfigureCanBitrate::NoChange => None,
-                                ConfigureCanBitrate::_Other(v) => {
-                                    error::spawn().ok();
-                                    defmt::error!("Unrecognised CAN bitrate enum selection: {}", v);
-                                    None
-                                }
-                            };
-                            if let Some(bitrate) = bitrate
-                                && let Err(err) = config.store_can_bus_bitrate(&bitrate).await
-                            {
-                                error::spawn().ok();
-                                defmt::error!("Failed to store CAN bitrate: {}", err);
                             }
                         }
                         Err(_) => {
                             defmt::error!(
-                                "Failed to parse control mux value {} for config message",
+                                "Failed to parse control mux {} for config message",
                                 output.mux_raw()
                             )
                         }
@@ -176,4 +176,41 @@ pub async fn receive(cx: receive::Context<'_>) {
             _ => {}
         }
     }
+}
+
+pub async fn respond<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, response: MemoryAccessResponse) {
+    let id = saelient::Id::builder()
+        .pgn(Pgn::MemoryAccessResponse)
+        .sa(sa)
+        .da(da)
+        .build()
+        .unwrap();
+    let data: [u8; 8] = (&response).into();
+    let frame = can::Frame::new_data(id, &data).unwrap();
+    can.access().await.write(&frame).await;
+}
+
+pub async fn respond_complete<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, len: u16) {
+    let response = MemoryAccessResponse::new(
+        Status::OperationCompleted,
+        ErrorIndicator::None,
+        len,
+        0xFFFF,
+    );
+    respond(can, sa, da, response).await
+}
+
+pub async fn respond_proceed<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, len: u16) {
+    let response = MemoryAccessResponse::new(Status::Proceed, ErrorIndicator::None, len, 0xFFFF);
+    respond(can, sa, da, response).await
+}
+
+pub async fn respond_failed<'a>(
+    can: &Arbiter<CanTx<'a>>,
+    sa: u8,
+    da: u8,
+    indicator: ErrorIndicator,
+) {
+    let response = MemoryAccessResponse::new(Status::OperationFailed, indicator, 0x0, 0xFFFF);
+    respond(can, sa, da, response).await
 }

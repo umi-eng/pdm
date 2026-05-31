@@ -4,7 +4,7 @@ version = "0.2.2"
 edition = "2024"
 
 [dependencies]
-messages = { workspace = true, features = ["defmt"] }
+messages = { workspace = true, features = ["defmt", "device"] }
 saelient = { workspace = true, features = ["defmt-1"] }
 analog.workspace = true
 vpd.workspace = true
@@ -39,8 +39,10 @@ embassy-boot = { version = "0.7.0", features = [
     "defmt",
     "ed25519-salty",
 ] }
-sequential-storage = { version = "7.0.0", features = ["defmt"] }
+sequential-storage = { version = "7.2.0", features = ["defmt", "postcard"] }
 embedded-hal = "1.0.0"
+postcard = "1.1.3"
+serde = { version = "1.0.228", default-features = false }
 
 [build-dependencies]
 header.workspace = true

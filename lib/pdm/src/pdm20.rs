@@ -2,10 +2,14 @@ use embedded_can::Frame;
 use embedded_can::Id;
 use messages::OutputState;
 use messages::pdm20::AnalogInputs;
+use messages::pdm20::Configure;
+use messages::pdm20::ConfigureMuxM0;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::CurrentSense;
 use messages::pdm20::CurrentSenseMuxIndex;
+use messages::pdm20::config::J1939SourceAddress;
+use messages::pdm20::config::{CanBusBitrate, ConfigKey};
 use messages::pdm20::pgn;
 use messages::pdm20::slot;
 use saelient::PduFormat;
@@ -20,6 +24,7 @@ use saelient::transport::ClearToSend;
 use saelient::transport::DataTransfer;
 use saelient::transport::EndOfMessageAck;
 use saelient::transport::RequestToSend;
+use serde::Serialize;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
 
@@ -169,6 +174,132 @@ impl Pdm20 {
             if let Some(current) = slot::OutputCurrent::new(value.into()).as_f32() {
                 return Ok(current);
             }
+        }
+    }
+
+    /// Perform a hot-reset.
+    pub async fn reset(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_reset(saelient::signal::Command::Enable as u8)
+            .unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).expect("set mux");
+
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        let frame = Frame::new(id, frame.data()).expect("build frame");
+
+        self.interface.write_frame(frame).await
+    }
+
+    /// Erase all device configuration returning to defaults on next reset.
+    pub async fn config_erase(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_erase(saelient::signal::Command::Enable as u8)
+            .unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).expect("set mux");
+
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        let frame = Frame::new(id, frame.data()).expect("build frame");
+
+        self.interface.write_frame(frame).await
+    }
+
+    /// Configure the CAN bus bitrate.
+    ///
+    /// Changes are only applied after reset.
+    pub async fn set_canbus_bitrate(&self, bitrate: u32) -> Result<(), io::Error> {
+        self.write_config(CanBusBitrate { bitrate }).await
+    }
+
+    /// Configure the J1939 source address.
+    ///
+    /// Changes are only applied after reset.
+    pub async fn set_j1939_source_address(&self, address: u8) -> Result<(), io::Error> {
+        self.write_config(J1939SourceAddress { address }).await
+    }
+
+    /// Write a config value to the device using a spatial memory access write.
+    async fn write_config<C>(&self, config: C) -> Result<(), io::Error>
+    where
+        C: ConfigKey + Serialize,
+    {
+        let payload =
+            postcard::to_allocvec(&config).map_err(|err| io::Error::other(err.to_string()))?;
+
+        let key = u32::from_le_bytes(C::key());
+
+        let req_id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(Pgn::MemoryAccessRequest)
+            .priority(6)
+            .build()
+            .unwrap();
+
+        let req = MemoryAccessRequest::new(
+            Command::Write,
+            Pointer::Spatial(key),
+            payload.len() as u16,
+            0,
+        );
+        self.interface
+            .write_frame(CanFrame::new(req_id, &<[u8; 8]>::from(&req)).unwrap())
+            .await?;
+
+        let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+        let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+            return Err(io::Error::other("Could not deserialize frame"));
+        };
+        match res.status() {
+            Status::Proceed => {}
+            Status::Busy => return Err(io::Error::other("Device busy")),
+            status => {
+                return Err(io::Error::other(format!(
+                    "Memory access request failed: {:?}",
+                    status
+                )));
+            }
+        }
+
+        if payload.len() <= 8 {
+            let data_id = saelient::Id::builder()
+                .da(self.address)
+                .sa(0)
+                .pgn(Pgn::BinaryDataTransfer)
+                .priority(6)
+                .build()
+                .unwrap();
+            self.interface
+                .write_frame(CanFrame::new(data_id, &payload).unwrap())
+                .await?;
+        } else {
+            self.transfer(&payload).await?;
+        }
+
+        let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
+        let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
+            return Err(io::Error::other("Could not deserialize frame"));
+        };
+        match res.status() {
+            Status::OperationCompleted => Ok(()),
+            Status::Busy => Err(io::Error::other("Device busy")),
+            status => Err(io::Error::other(format!(
+                "Memory access request failed: {:?}",
+                status
+            ))),
         }
     }
 
