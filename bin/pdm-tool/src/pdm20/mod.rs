@@ -9,11 +9,6 @@ use anyhow::Result;
 use pdm::pdm20::Pdm20;
 use socketcan::tokio::CanSocket;
 
-fn open_pdm(interface: &str, address: u8) -> Result<Pdm20> {
-    let socket = CanSocket::open(interface)?;
-    Ok(Pdm20::new(socket, address))
-}
-
 #[derive(clap::Parser)]
 pub struct Cmd {
     /// CAN bus interface
@@ -28,12 +23,15 @@ pub struct Cmd {
 
 impl Cmd {
     pub async fn run(self) -> Result<()> {
+        let socket = CanSocket::open(&self.interface)?;
+        let pdm = Pdm20::new(socket, self.address);
+
         match self.subcommand {
-            Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Config(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Output(cmd) => cmd.run(pdm).await,
+            Subcommand::Analog(cmd) => cmd.run(pdm).await,
+            Subcommand::Current(cmd) => cmd.run(pdm).await,
+            Subcommand::Config(cmd) => cmd.run(pdm).await,
+            Subcommand::Update(cmd) => cmd.run(pdm).await,
         }
     }
 }
