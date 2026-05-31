@@ -6,6 +6,7 @@ use messages::pdm20::ConfigureCanBitrate;
 use messages::pdm20::ConfigureMuxIndex;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxIndex;
+use messages::pdm20::config;
 use messages::pdm20::pgn;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
@@ -133,9 +134,12 @@ pub async fn receive(cx: receive::Context<'_>) {
                             match m1.can_j1939_source_address() {
                                 0xFF => {} // no change
                                 0x00 => {} // reserved
-                                addr => {
-                                    if let Err(err) =
-                                        config.store_can_bus_source_address(&addr).await
+                                address => {
+                                    if let Err(err) = config
+                                        .store_can_bus_source_address(&config::CanBusAddress {
+                                            address,
+                                        })
+                                        .await
                                     {
                                         error::spawn().ok();
                                         defmt::error!("Failed to store source address: {}", err);
@@ -158,7 +162,9 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 }
                             };
                             if let Some(bitrate) = bitrate
-                                && let Err(err) = config.store_can_bus_bitrate(&bitrate).await
+                                && let Err(err) = config
+                                    .store_can_bus_bitrate(&config::CanBusBitrate { bitrate })
+                                    .await
                             {
                                 error::spawn().ok();
                                 defmt::error!("Failed to store CAN bitrate: {}", err);

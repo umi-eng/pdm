@@ -181,24 +181,30 @@ mod app {
             can::filter::ExtendedFilterSlot::_0,
             can::filter::ExtendedFilter::accept_all_into_fifo0(),
         );
-        let bitrate = block_on(config.can_bus_bitrate()).unwrap_or(500_000);
-        can.set_bitrate(bitrate);
+        let bitrate = match block_on(config.can_bus_bitrate()) {
+            Ok(br) => br,
+            Err(err) => {
+                defmt::error!("Failed to read can bus bitrate from flash: {}", err);
+                messages::pdm20::config::CanBusBitrate::default()
+            }
+        };
+        can.set_bitrate(bitrate.bitrate);
         let (can_tx, can_rx, can_properties) = can.into_normal_mode().split();
         let can_tx = Arbiter::new(can_tx);
 
         // source address configuration
         let source_address = match block_on(config.can_bus_source_address()) {
-            Ok(sa) => sa,
+            Ok(res) => res,
             Err(err) => {
                 defmt::error!("Failed to read SA from flash: {}", err);
-                0x50
+                messages::pdm20::config::CanBusAddress::default()
             }
         };
         let adr0 = Input::new(p.PF9, Pull::Up);
         let adr1 = Input::new(p.PF10, Pull::Up);
         block_on(Mono::delay(2.millis())); // wait for input to settle
         let offset = (adr0.is_low() as u8) | ((adr1.is_low() as u8) << 1);
-        let source_address = source_address + offset;
+        let source_address = source_address.address + offset;
         defmt::info!("Source address: 0x{:x}", source_address);
 
         // Inter-task communication

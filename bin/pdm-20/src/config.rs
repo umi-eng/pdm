@@ -8,11 +8,15 @@ use embassy_stm32::flash::Blocking;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::flash;
+use messages::pdm20::config;
 use rtic_sync::arbiter::Arbiter;
 use sequential_storage::cache::KeyPointerCache;
 use sequential_storage::map::MapConfig;
 use sequential_storage::map::MapStorage;
+use sequential_storage::map::PostcardValue;
 use sequential_storage::map::Value;
+use serde::Deserialize;
+use serde::Serialize;
 
 unsafe extern "C" {
     // These symbols come from the linker script (memory.x)
@@ -40,22 +44,23 @@ type Error = sequential_storage::Error<partition::Error<flash::Error>>;
 /// Generator for gettter and setter functions.
 #[macro_export]
 macro_rules! config_key {
-    ($fn_name:ident, $key:expr, $type:ty, $default:expr) => {
-        pub async fn $fn_name(&self) -> Result<$type, Error> {
-            let mut buffer = [0; 128];
-            self.store
-                .access()
-                .await
-                .fetch_item(&mut buffer, $key)
-                .await
-                .map(|r| r.unwrap_or($default))
-        }
-
+    ($fn_name:ident, $type:ty) => {
         paste::paste! {
+            pub async fn $fn_name(&self) -> Result<$type, Error> {
+                let mut buffer = [0; core::mem::size_of::<$type>()];
+                self.store
+                    .access()
+                    .await
+                    .fetch_item(&mut buffer, &<$type as config::ConfigKey>::key())
+                    .await
+                    .map(|r| r.unwrap_or_default())
+            }
+
+
             pub async fn [<store_ $fn_name>](&self, value: &$type) -> Result<(), Error> {
                 let mut buffer = [0; 128];
                 self.store.access().await
-                    .store_item(&mut buffer, $key, value)
+                    .store_item(&mut buffer, &<$type as config::ConfigKey>::key(), value)
                     .await
             }
         }
@@ -91,6 +96,6 @@ impl<'f> Config<'f> {
     }
 
     // CAN/J1939
-    config_key!(can_bus_bitrate, b"CBBR", u32, 500_000);
-    config_key!(can_bus_source_address, b"CBSA", u8, 0x50);
+    config_key!(can_bus_bitrate, config::CanBusBitrate);
+    config_key!(can_bus_source_address, config::CanBusAddress);
 }
