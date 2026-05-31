@@ -8,6 +8,8 @@ embedded-can.workspace = true
 saelient = { workspace = true, features = ["std"] }
 log.workspace = true
 messages.workspace = true
+postcard = { workspace = true, features = ["alloc"] }
+serde = { version = "1.0", default-features = false }
 socketcan.workspace = true
 
 [dev-dependencies]

@@ -41,3 +41,4 @@ tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
 tlvc-text = { git = "https://github.com/oxidecomputer/tlvc.git" }
 facet = { version = "0.43.2", default-features = false }
 facet-toml = "0.43.2"
+postcard = { version = "1.1.3", default-features = false }

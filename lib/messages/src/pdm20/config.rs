@@ -28,21 +28,21 @@ impl ConfigKey for CanBusBitrate {
 impl<'a> sequential_storage::map::PostcardValue<'a> for CanBusBitrate {}
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CanBusAddress {
+pub struct J1939SourceAddress {
     pub address: u8,
 }
 
-impl Default for CanBusAddress {
+impl Default for J1939SourceAddress {
     fn default() -> Self {
         Self { address: 0x50 }
     }
 }
 
-impl ConfigKey for CanBusAddress {
+impl ConfigKey for J1939SourceAddress {
     fn key() -> [u8; 4] {
         *b"CBSA"
     }
 }
 
 #[cfg(feature = "device")]
-impl<'a> sequential_storage::map::PostcardValue<'a> for CanBusAddress {}
+impl<'a> sequential_storage::map::PostcardValue<'a> for J1939SourceAddress {}
