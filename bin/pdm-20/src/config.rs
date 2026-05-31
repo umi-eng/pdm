@@ -47,7 +47,8 @@ macro_rules! config_key {
     ($fn_name:ident, $type:ty) => {
         paste::paste! {
             pub async fn $fn_name(&self) -> Result<$type, Error> {
-                let mut buffer = [0; core::mem::size_of::<$type>()];
+                const SIZE: usize = core::mem::size_of::<$type>().next_multiple_of(8);
+                let mut buffer = [0; SIZE];
                 self.store
                     .access()
                     .await
