@@ -52,7 +52,7 @@ fn j1939_address_in_range(s: &str) -> Result<u8, String> {
     if (1..=250).contains(&address) {
         Ok(address)
     } else {
-        Err(format!("Address must be between 1 and 250"))
+        Err("Address must be between 1 and 250".to_string())
     }
 }
 
