@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+- Update saelient crate to v0.2.1.
+
 # v0.2.2
 
 - Fix output 3-4 and 5-6 being swapped.
