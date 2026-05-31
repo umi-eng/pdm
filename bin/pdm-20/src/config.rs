@@ -14,7 +14,6 @@ use hal::flash;
 use messages::pdm20::config::CanBusBitrate;
 use messages::pdm20::config::ConfigKey;
 use messages::pdm20::config::J1939SourceAddress;
-use postcard;
 use rtic_sync::arbiter::Arbiter;
 use saelient::Pgn;
 use saelient::diagnostic::Command;
