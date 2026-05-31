@@ -176,11 +176,15 @@ impl Pdm20 {
     }
 
     /// Configure the CAN bus bitrate.
+    ///
+    /// Changes are only applied after reset.
     pub async fn set_canbus_bitrate(&self, bitrate: u32) -> Result<(), io::Error> {
         self.write_config(CanBusBitrate { bitrate }).await
     }
 
     /// Configure the J1939 source address.
+    ///
+    /// Changes are only applied after reset.
     pub async fn set_j1939_source_address(&self, address: u8) -> Result<(), io::Error> {
         self.write_config(J1939SourceAddress { address }).await
     }
