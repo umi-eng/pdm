@@ -59,7 +59,8 @@ macro_rules! config_key {
 
 
             pub async fn [<store_ $fn_name>](&self, value: &$type) -> Result<(), Error> {
-                let mut buffer = [0; 128];
+                const SIZE: usize = core::mem::size_of::<$type>().next_multiple_of(8);
+                let mut buffer = [0; SIZE];
                 self.store.access().await
                     .store_item(&mut buffer, &<$type as config::ConfigKey>::key(), value)
                     .await
