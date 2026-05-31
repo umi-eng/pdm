@@ -2,6 +2,7 @@ pub mod analog;
 pub mod config;
 pub mod current;
 pub mod output;
+pub mod reset;
 pub mod update;
 
 use crate::maybe_hex;
@@ -27,6 +28,7 @@ impl Cmd {
         let pdm = Pdm20::new(socket, self.address);
 
         match self.subcommand {
+            Subcommand::Reset(cmd) => cmd.run(pdm).await,
             Subcommand::Output(cmd) => cmd.run(pdm).await,
             Subcommand::Analog(cmd) => cmd.run(pdm).await,
             Subcommand::Current(cmd) => cmd.run(pdm).await,
@@ -38,6 +40,8 @@ impl Cmd {
 
 #[derive(clap::Subcommand)]
 enum Subcommand {
+    /// Reset the device
+    Reset(reset::Cmd),
     /// Control outputs
     Output(output::Cmd),
     /// Read analog inputs

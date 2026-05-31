@@ -177,6 +177,26 @@ impl Pdm20 {
         }
     }
 
+    /// Perform a hot-reset.
+    pub async fn reset(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_reset(saelient::signal::Command::Enable as u8)
+            .unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).expect("set mux");
+
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        let frame = Frame::new(id, frame.data()).expect("build frame");
+
+        self.interface.write_frame(frame).await
+    }
+
     /// Erase all device configuration returning to defaults on next reset.
     pub async fn config_erase(&self) -> Result<(), io::Error> {
         let mut mux = ConfigureMuxM0::new();
