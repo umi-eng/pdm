@@ -15,11 +15,7 @@ use rtic_monotonics::systick::prelude::*;
 use rtic_sync::arbiter::Arbiter;
 use saelient::Id;
 use saelient::Pgn;
-use saelient::diagnostic::ErrorIndicator;
-use saelient::diagnostic::MemoryAccessRequest;
-use saelient::diagnostic::MemoryAccessResponse;
-use saelient::diagnostic::Pointer;
-use saelient::diagnostic::Status;
+use saelient::diagnostic::*;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
