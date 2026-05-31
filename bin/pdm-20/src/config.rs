@@ -2,6 +2,9 @@
 
 use crate::app::config;
 use crate::hal;
+use crate::receive::respond_complete;
+use crate::receive::respond_failed;
+use crate::receive::respond_proceed;
 use core::ops::Range;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::flash::partition;
@@ -282,36 +285,4 @@ async fn try_store_config(
         }
         _ => Err(ErrorIndicator::AddressingOutOfBounds),
     }
-}
-
-async fn respond(can: &Arbiter<CanTx<'static>>, sa: u8, da: u8, response: MemoryAccessResponse) {
-    let id = saelient::Id::builder()
-        .pgn(Pgn::MemoryAccessResponse)
-        .sa(sa)
-        .da(da)
-        .build()
-        .unwrap();
-    let data: [u8; 8] = (&response).into();
-    let frame = can::Frame::new_data(id, &data).unwrap();
-    can.access().await.write(&frame).await;
-}
-
-async fn respond_complete(can: &Arbiter<CanTx<'static>>, sa: u8, da: u8, len: u16) {
-    let response = MemoryAccessResponse::new(
-        Status::OperationCompleted,
-        ErrorIndicator::None,
-        len,
-        0xFFFF,
-    );
-    respond(can, sa, da, response).await
-}
-
-async fn respond_proceed(can: &Arbiter<CanTx<'static>>, sa: u8, da: u8, len: u16) {
-    let response = MemoryAccessResponse::new(Status::Proceed, ErrorIndicator::None, len, 0xFFFF);
-    respond(can, sa, da, response).await
-}
-
-async fn respond_failed(can: &Arbiter<CanTx<'static>>, sa: u8, da: u8, indicator: ErrorIndicator) {
-    let response = MemoryAccessResponse::new(Status::OperationFailed, indicator, 0, 0xFFFF);
-    respond(can, sa, da, response).await
 }

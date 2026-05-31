@@ -2,11 +2,12 @@ use crate::Mono;
 use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
+use crate::receive::respond_complete;
+use crate::receive::respond_failed;
+use crate::receive::respond_proceed;
 use embassy_boot::FirmwareUpdaterError;
-use embassy_stm32::can::CanTx;
 use hal::can;
 use rtic_monotonics::systick::prelude::*;
-use rtic_sync::arbiter::Arbiter;
 use saelient::Pgn;
 use saelient::diagnostic::*;
 use saelient::transport::*;
@@ -222,36 +223,4 @@ pub async fn updater(cx: updater::Context<'_>) {
             }
         }
     }
-}
-
-async fn respond<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, response: MemoryAccessResponse) {
-    let id = saelient::Id::builder()
-        .pgn(Pgn::MemoryAccessResponse)
-        .sa(sa)
-        .da(da)
-        .build()
-        .unwrap();
-    let data: [u8; 8] = (&response).into();
-    let frame = can::Frame::new_data(id, &data).unwrap();
-    can.access().await.write(&frame).await;
-}
-
-async fn respond_complete<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, len: u16) {
-    let response = MemoryAccessResponse::new(
-        Status::OperationCompleted,
-        ErrorIndicator::None,
-        len,
-        0xFFFF,
-    );
-    respond(can, sa, da, response).await
-}
-
-async fn respond_proceed<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, len: u16) {
-    let response = MemoryAccessResponse::new(Status::Proceed, ErrorIndicator::None, len, 0xFFFF);
-    respond(can, sa, da, response).await
-}
-
-async fn respond_failed<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, indicator: ErrorIndicator) {
-    let response = MemoryAccessResponse::new(Status::OperationFailed, indicator, 0x0, 0xFFFF);
-    respond(can, sa, da, response).await
 }

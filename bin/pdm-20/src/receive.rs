@@ -1,5 +1,8 @@
 use crate::Mono;
 use crate::app::*;
+use embassy_stm32 as hal;
+use hal::can;
+use hal::can::CanTx;
 use messages::OutputState;
 use messages::pdm20::Configure;
 use messages::pdm20::ConfigureMuxIndex;
@@ -9,10 +12,14 @@ use messages::pdm20::pgn;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
+use rtic_sync::arbiter::Arbiter;
 use saelient::Id;
 use saelient::Pgn;
+use saelient::diagnostic::ErrorIndicator;
 use saelient::diagnostic::MemoryAccessRequest;
+use saelient::diagnostic::MemoryAccessResponse;
 use saelient::diagnostic::Pointer;
+use saelient::diagnostic::Status;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -173,4 +180,41 @@ pub async fn receive(cx: receive::Context<'_>) {
             _ => {}
         }
     }
+}
+
+pub async fn respond<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, response: MemoryAccessResponse) {
+    let id = saelient::Id::builder()
+        .pgn(Pgn::MemoryAccessResponse)
+        .sa(sa)
+        .da(da)
+        .build()
+        .unwrap();
+    let data: [u8; 8] = (&response).into();
+    let frame = can::Frame::new_data(id, &data).unwrap();
+    can.access().await.write(&frame).await;
+}
+
+pub async fn respond_complete<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, len: u16) {
+    let response = MemoryAccessResponse::new(
+        Status::OperationCompleted,
+        ErrorIndicator::None,
+        len,
+        0xFFFF,
+    );
+    respond(can, sa, da, response).await
+}
+
+pub async fn respond_proceed<'a>(can: &Arbiter<CanTx<'a>>, sa: u8, da: u8, len: u16) {
+    let response = MemoryAccessResponse::new(Status::Proceed, ErrorIndicator::None, len, 0xFFFF);
+    respond(can, sa, da, response).await
+}
+
+pub async fn respond_failed<'a>(
+    can: &Arbiter<CanTx<'a>>,
+    sa: u8,
+    da: u8,
+    indicator: ErrorIndicator,
+) {
+    let response = MemoryAccessResponse::new(Status::OperationFailed, indicator, 0x0, 0xFFFF);
+    respond(can, sa, da, response).await
 }
