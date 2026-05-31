@@ -228,7 +228,20 @@ impl Pdm20 {
             }
         }
 
-        self.transfer(&payload).await?;
+        if payload.len() <= 8 {
+            let data_id = saelient::Id::builder()
+                .da(self.address)
+                .sa(0)
+                .pgn(Pgn::BinaryDataTransfer)
+                .priority(6)
+                .build()
+                .unwrap();
+            self.interface
+                .write_frame(CanFrame::new(data_id, &payload).unwrap())
+                .await?;
+        } else {
+            self.transfer(&payload).await?;
+        }
 
         let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
         let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
