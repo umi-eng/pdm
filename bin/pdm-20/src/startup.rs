@@ -58,6 +58,7 @@ pub async fn startup(cx: startup::Context<'_>) {
     defmt::info!("Starting runtime tasks");
     receive::spawn().unwrap();
     updater::spawn().unwrap();
+    config::spawn().unwrap();
     status::spawn().unwrap();
     current::spawn().unwrap();
     current_status::spawn().unwrap();

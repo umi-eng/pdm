@@ -13,6 +13,8 @@ use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;
+use saelient::diagnostic::MemoryAccessRequest;
+use saelient::diagnostic::Pointer;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -20,6 +22,11 @@ pub async fn receive(cx: receive::Context<'_>) {
     let can_rx = cx.local.can_rx;
     let source_address = *cx.shared.source_address;
     let mut outputs = cx.shared.outputs;
+
+    // Set after a spatial MemoryAccessRequest with a small payload (≤ 8 bytes).
+    let mut config_data_pending = false;
+    // Set after a spatial MemoryAccessRequest with a large payload (> 8 bytes, uses TP).
+    let mut config_tp_active = false;
 
     loop {
         let frame = match can_rx.read().await {
@@ -50,10 +57,34 @@ pub async fn receive(cx: receive::Context<'_>) {
         activity::spawn().ok();
 
         match id.pgn() {
-            Pgn::MemoryAccessRequest
-            | Pgn::TransportProtocolConnectionManagement
-            | Pgn::TransportProtocolDataTransfer => {
-                cx.local.updater_tx.send(frame).await.ok();
+            Pgn::MemoryAccessRequest => {
+                let (is_spatial, is_large) = MemoryAccessRequest::try_from(frame.data())
+                    .map(|req| {
+                        let spatial = matches!(req.pointer(), Pointer::Spatial(_));
+                        (spatial, req.length() > 8)
+                    })
+                    .unwrap_or((false, false));
+
+                config_data_pending = is_spatial && !is_large;
+                config_tp_active = is_spatial && is_large;
+                if is_spatial {
+                    cx.local.config_tx.send(frame).await.ok();
+                } else {
+                    cx.local.updater_tx.send(frame).await.ok();
+                }
+            }
+            Pgn::TransportProtocolConnectionManagement | Pgn::TransportProtocolDataTransfer => {
+                if config_tp_active {
+                    cx.local.config_tx.send(frame).await.ok();
+                } else {
+                    cx.local.updater_tx.send(frame).await.ok();
+                }
+            }
+            Pgn::BinaryDataTransfer => {
+                if config_data_pending {
+                    config_data_pending = false;
+                    cx.local.config_tx.send(frame).await.ok();
+                }
             }
             pgn::CONTROL => {
                 if let Ok(mut output) = Control::try_from(frame.data()) {
