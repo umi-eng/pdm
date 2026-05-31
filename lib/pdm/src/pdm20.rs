@@ -2,6 +2,8 @@ use embedded_can::Frame;
 use embedded_can::Id;
 use messages::OutputState;
 use messages::pdm20::AnalogInputs;
+use messages::pdm20::Configure;
+use messages::pdm20::ConfigureMuxM0;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::CurrentSense;
@@ -173,6 +175,26 @@ impl Pdm20 {
                 return Ok(current);
             }
         }
+    }
+
+    /// Erase all device configuration returning to defaults on next reset.
+    pub async fn config_erase(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_erase(saelient::signal::Command::Enable as u8)
+            .unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).expect("set mux");
+
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        let frame = Frame::new(id, frame.data()).expect("build frame");
+
+        self.interface.write_frame(frame).await
     }
 
     /// Configure the CAN bus bitrate.

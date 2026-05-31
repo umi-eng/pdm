@@ -9,6 +9,11 @@ pub struct Cmd {
 impl Cmd {
     pub async fn run(self, pdm: Pdm20) -> anyhow::Result<()> {
         match self.subcommand {
+            Subcommand::Erase => {
+                pdm.config_erase().await?;
+                println!("Done");
+                Ok(())
+            }
             Subcommand::CanbusBitrate(cmd) => {
                 pdm.set_canbus_bitrate(cmd.bitrate).await?;
                 println!("Done");
@@ -25,6 +30,10 @@ impl Cmd {
 
 #[derive(clap::Subcommand)]
 enum Subcommand {
+    /// Erase all configuration.
+    ///
+    /// Not applied until next reset.
+    Erase,
     /// CAN bus bitrate in bits/s.
     CanbusBitrate(CanbusBitrate),
     /// J1939 source address.

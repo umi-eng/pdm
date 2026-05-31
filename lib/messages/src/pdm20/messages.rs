@@ -1138,10 +1138,10 @@ impl Configure {
     
     pub const MUX_MIN: u8 = 0_u8;
     pub const MUX_MAX: u8 = 15_u8;
-    pub const SYSTEM_RESTART_MIN: u8 = 0_u8;
-    pub const SYSTEM_RESTART_MAX: u8 = 3_u8;
     pub const SYSTEM_RESET_MIN: u8 = 0_u8;
     pub const SYSTEM_RESET_MAX: u8 = 3_u8;
+    pub const SYSTEM_ERASE_MIN: u8 = 0_u8;
+    pub const SYSTEM_ERASE_MAX: u8 = 3_u8;
     
     /// Construct new Configure from values
     pub fn new(mux: u8) -> Result<Self, CanError> {
@@ -1273,18 +1273,18 @@ pub struct ConfigureMuxM0 { raw: [u8; 8] }
 
 impl ConfigureMuxM0 {
 pub fn new() -> Self { Self { raw: [0u8; 8] } }
-/// System_Restart
+/// System_Reset
 ///
 /// - Min: 0
 /// - Max: 3
-/// - Unit: "Perform a firmware restart after applying configuration"
+/// - Unit: "Perform a hot-reset"
 /// - Receivers: Vector__XXX
 #[inline(always)]
-pub fn system_restart(&self) -> u8 {
-    self.system_restart_raw()
+pub fn system_reset(&self) -> u8 {
+    self.system_reset_raw()
 }
 
-/// Get raw value of System_Restart
+/// Get raw value of System_Reset
 ///
 /// - Start bit: 4
 /// - Signal size: 2 bits
@@ -1293,16 +1293,16 @@ pub fn system_restart(&self) -> u8 {
 /// - Byte order: LittleEndian
 /// - Value type: Unsigned
 #[inline(always)]
-pub fn system_restart_raw(&self) -> u8 {
+pub fn system_reset_raw(&self) -> u8 {
     let signal = self.raw.view_bits::<Lsb0>()[4..6].load_le::<u8>();
     
     let factor = 1;
     u8::from(signal).saturating_mul(factor).saturating_add(0)
 }
 
-/// Set value of System_Restart
+/// Set value of System_Reset
 #[inline(always)]
-pub fn set_system_restart(&mut self, value: u8) -> Result<(), CanError> {
+pub fn set_system_reset(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
         return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
     }
@@ -1315,18 +1315,18 @@ pub fn set_system_restart(&mut self, value: u8) -> Result<(), CanError> {
     Ok(())
 }
 
-/// System_Reset
+/// System_Erase
 ///
 /// - Min: 0
 /// - Max: 3
-/// - Unit: "Reset all configuration to factory defaults"
+/// - Unit: "Erase all configuration"
 /// - Receivers: Vector__XXX
 #[inline(always)]
-pub fn system_reset(&self) -> u8 {
-    self.system_reset_raw()
+pub fn system_erase(&self) -> u8 {
+    self.system_erase_raw()
 }
 
-/// Get raw value of System_Reset
+/// Get raw value of System_Erase
 ///
 /// - Start bit: 6
 /// - Signal size: 2 bits
@@ -1335,16 +1335,16 @@ pub fn system_reset(&self) -> u8 {
 /// - Byte order: LittleEndian
 /// - Value type: Unsigned
 #[inline(always)]
-pub fn system_reset_raw(&self) -> u8 {
+pub fn system_erase_raw(&self) -> u8 {
     let signal = self.raw.view_bits::<Lsb0>()[6..8].load_le::<u8>();
     
     let factor = 1;
     u8::from(signal).saturating_mul(factor).saturating_add(0)
 }
 
-/// Set value of System_Reset
+/// Set value of System_Erase
 #[inline(always)]
-pub fn set_system_reset(&mut self, value: u8) -> Result<(), CanError> {
+pub fn set_system_erase(&mut self, value: u8) -> Result<(), CanError> {
     if value < 0_u8 || 3_u8 < value {
         return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
     }
