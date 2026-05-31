@@ -84,6 +84,8 @@ pub async fn receive(cx: receive::Context<'_>) {
                 if config_data_pending {
                     config_data_pending = false;
                     cx.local.config_tx.send(frame).await.ok();
+                } else {
+                    defmt::warn!("Unexpected binary data transfer frame");
                 }
             }
             pgn::CONTROL => {
