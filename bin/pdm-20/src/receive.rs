@@ -151,7 +151,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                 if let Ok(mut output) = Configure::try_from(frame.data()) {
                     match output.mux() {
                         Ok(ConfigureMuxIndex::M0(m0)) => {
-                            if m0.system_reset() == 1 {
+                            if m0.system_erase() == saelient::signal::Command::Enable as u8 {
                                 if let Err(err) = config.erase().await {
                                     error::spawn().ok();
                                     defmt::error!("Failed to erase config: {}", err);
@@ -160,7 +160,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 }
                             }
 
-                            if m0.system_restart() == 1 {
+                            if m0.system_reset() == saelient::signal::Command::Enable as u8 {
                                 cortex_m::peripheral::SCB::sys_reset();
                             }
                         }
