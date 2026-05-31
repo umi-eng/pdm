@@ -2,8 +2,6 @@ use embedded_can::Frame;
 use embedded_can::Id;
 use messages::OutputState;
 use messages::pdm20::AnalogInputs;
-use messages::pdm20::Configure;
-use messages::pdm20::ConfigureMuxM2;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::CurrentSense;
@@ -18,14 +16,12 @@ use saelient::diagnostic::MemoryAccessResponse;
 use saelient::diagnostic::Pointer;
 use saelient::diagnostic::Status;
 use saelient::prelude::*;
-use saelient::signal::Param8;
 use saelient::transport::ClearToSend;
 use saelient::transport::DataTransfer;
 use saelient::transport::EndOfMessageAck;
 use saelient::transport::RequestToSend;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
-use std::time::Duration;
 
 pub type Outputs = crate::Outputs<20>;
 
