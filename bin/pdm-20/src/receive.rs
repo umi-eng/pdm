@@ -12,6 +12,8 @@ use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;
+use saelient::signal::Param8;
+use saelient::signal::Signal;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -162,6 +164,47 @@ pub async fn receive(cx: receive::Context<'_>) {
                             {
                                 error::spawn().ok();
                                 defmt::error!("Failed to store CAN bitrate: {}", err);
+                            }
+                        }
+                        Ok(ConfigureMuxIndex::M2(m2)) => {
+                            let ch = m2.output_channel();
+                            if ch > 20 || ch < 1 {
+                                defmt::warn!("Output number out of bounds: {}", output);
+                                continue;
+                            }
+                            let n = ch as usize - 1;
+
+                            let econ_delay = Param8::from(m2.output_econ_delay());
+                            if let Some(value) = econ_delay.value() {
+                                config
+                                    .modify_output_econ_delay(|mut stored| {
+                                        stored[n] = value;
+                                        stored
+                                    })
+                                    .await
+                                    .expect("modifying output econ delay");
+                            }
+
+                            let econ_duty = Param8::from(m2.output_econ_duty());
+                            if let Some(value) = econ_duty.value() {
+                                config
+                                    .modify_output_econ_duty(|mut stored| {
+                                        stored[n] = value;
+                                        stored
+                                    })
+                                    .await
+                                    .expect("modifying output econ duty");
+                            }
+
+                            let hb_duration = Param8::from(m2.output_heartbeat_duration());
+                            if let Some(value) = hb_duration.value() {
+                                config
+                                    .modify_output_heartbeat_duration(|mut stored| {
+                                        stored[n] = value;
+                                        stored
+                                    })
+                                    .await
+                                    .expect("modifying output heartbeat duration");
                             }
                         }
                         Err(_) => {
