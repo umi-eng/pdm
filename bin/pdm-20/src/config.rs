@@ -58,6 +58,21 @@ macro_rules! config_key {
                     .store_item(&mut buffer, $key, value)
                     .await
             }
+
+            pub async fn [<modify_ $fn_name>]<F>(&self, f: F) -> Result<(), Error>
+            where
+                F: FnOnce($type) -> $type,
+            {
+                let mut buffer = [0; 128];
+                let mut store = self.store.access().await;
+                let current = store
+                    .fetch_item(&mut buffer, $key)
+                    .await
+                    .map(|r| r.unwrap_or($default))?;
+                let updated = f(current);
+                let mut buffer = [0; 128];
+                store.store_item(&mut buffer, $key, &updated).await
+            }
         }
     };
 }
