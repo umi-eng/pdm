@@ -31,17 +31,17 @@ pub struct Cmd {
 
 impl Cmd {
     pub async fn run(self) -> Result<()> {
+        let pdm = open_pdm(&self.interface, self.address)?;
+
         match self.subcommand {
-            Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::OutputEcon(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::OutputHeartbeat(cmd) => {
-                cmd.run(open_pdm(&self.interface, self.address)?).await
-            }
-            Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Restart(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Reset(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Output(cmd) => cmd.run(pdm).await,
+            Subcommand::OutputEcon(cmd) => cmd.run(pdm).await,
+            Subcommand::OutputHeartbeat(cmd) => cmd.run(pdm).await,
+            Subcommand::Analog(cmd) => cmd.run(pdm).await,
+            Subcommand::Current(cmd) => cmd.run(pdm).await,
+            Subcommand::Update(cmd) => cmd.run(pdm).await,
+            Subcommand::Restart(cmd) => cmd.run(pdm).await,
+            Subcommand::Reset(cmd) => cmd.run(pdm).await,
         }
     }
 }
