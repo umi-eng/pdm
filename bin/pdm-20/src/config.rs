@@ -70,6 +70,10 @@ macro_rules! config_key {
                     .await
                     .map(|r| r.unwrap_or($default))?;
                 let updated = f(current);
+                // skip storing if the value is the same
+                if updated == current {
+                    return Ok(());
+                }
                 let mut buffer = [0; 128];
                 store.store_item(&mut buffer, $key, &updated).await
             }
