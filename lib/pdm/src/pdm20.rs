@@ -2,6 +2,8 @@ use embedded_can::Frame;
 use embedded_can::Id;
 use messages::OutputState;
 use messages::pdm20::AnalogInputs;
+use messages::pdm20::Configure;
+use messages::pdm20::ConfigureMuxM2;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::CurrentSense;
@@ -22,6 +24,7 @@ use saelient::transport::EndOfMessageAck;
 use saelient::transport::RequestToSend;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
+use std::time::Duration;
 
 pub type Outputs = crate::Outputs<20>;
 
@@ -98,6 +101,109 @@ impl Pdm20 {
             .write_frame(CanFrame::new(id, frame.data()).unwrap())
             .await?;
 
+        Ok(())
+    }
+
+    /// Configure the economisation delay for an output channel.
+    ///
+    /// `None` will disable economisation on the channel.
+    pub async fn output_econ(
+        &self,
+        output: usize,
+        delay: Duration,
+        pwm_duty: f32,
+    ) -> Result<(), io::Error> {
+        // todo: replace 250 with Param8::MAX
+        let delay = (delay.as_millis() / 10).clamp(0, 250) as u8;
+        let duty = (pwm_duty.clamp(0.0, 1.0) * 255.0) as u8;
+
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_econ_delay(delay).unwrap();
+        mux.set_output_econ_duty(duty).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Disable economisation for an output channel.
+    pub async fn output_econ_disable(&self, output: usize) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_econ_delay(0).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Configure the heartbeat duration for an output channel.
+    pub async fn output_heartbeat(
+        &self,
+        output: usize,
+        duration: Duration,
+    ) -> Result<(), io::Error> {
+        // todo: replace 250 with Param8::MAX
+        let duration = (duration.as_millis() / 100).clamp(0, 250) as u8;
+
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_heartbeat_duration(duration).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Disable heartbeat for an output channel.
+    pub async fn output_heartbeat_disable(&self, output: usize) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_heartbeat_duration(0).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
         Ok(())
     }
 

@@ -1,6 +1,8 @@
 pub mod analog;
 pub mod current;
 pub mod output;
+pub mod output_econ;
+pub mod output_heartbeat;
 pub mod update;
 
 use crate::maybe_hex;
@@ -29,6 +31,10 @@ impl Cmd {
     pub async fn run(self) -> Result<()> {
         match self.subcommand {
             Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::OutputEcon(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::OutputHeartbeat(cmd) => {
+                cmd.run(open_pdm(&self.interface, self.address)?).await
+            }
             Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
@@ -40,6 +46,10 @@ impl Cmd {
 enum Subcommand {
     /// Control outputs
     Output(output::Cmd),
+    /// Configure output economisation
+    OutputEcon(output_econ::Cmd),
+    /// Configure output heartbeat
+    OutputHeartbeat(output_heartbeat::Cmd),
     /// Read analog inputs
     Analog(analog::Cmd),
     /// Read output current
