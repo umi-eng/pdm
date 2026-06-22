@@ -33,7 +33,7 @@ impl<'a> OutputChannel {
             .expect("set output duty cycle");
 
         self.last_heartbeat = Some(now);
-        if duty == u8::MAX {
+        if duty == u8::MAX && self.on_time.is_none() {
             self.on_time = Some(now);
         }
     }
