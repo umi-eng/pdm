@@ -3,6 +3,8 @@ pub mod current;
 pub mod output;
 pub mod output_econ;
 pub mod output_heartbeat;
+pub mod reset;
+pub mod restart;
 pub mod update;
 
 use crate::maybe_hex;
@@ -38,6 +40,8 @@ impl Cmd {
             Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
             Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Restart(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Reset(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
         }
     }
 }
@@ -56,4 +60,8 @@ enum Subcommand {
     Current(current::Cmd),
     /// Update firmware
     Update(update::Cmd),
+    /// Restart the device
+    Restart(restart::Cmd),
+    /// Reset all configuration to factory default
+    Reset(reset::Cmd),
 }

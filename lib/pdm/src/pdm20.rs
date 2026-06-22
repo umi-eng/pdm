@@ -3,6 +3,7 @@ use embedded_can::Id;
 use messages::OutputState;
 use messages::pdm20::AnalogInputs;
 use messages::pdm20::Configure;
+use messages::pdm20::ConfigureMuxM0;
 use messages::pdm20::ConfigureMuxM2;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
@@ -18,6 +19,7 @@ use saelient::diagnostic::MemoryAccessResponse;
 use saelient::diagnostic::Pointer;
 use saelient::diagnostic::Status;
 use saelient::prelude::*;
+use saelient::signal;
 use saelient::transport::ClearToSend;
 use saelient::transport::DataTransfer;
 use saelient::transport::EndOfMessageAck;
@@ -101,6 +103,47 @@ impl Pdm20 {
             .write_frame(CanFrame::new(id, frame.data()).unwrap())
             .await?;
 
+        Ok(())
+    }
+
+    /// Restart the PDM.
+    pub async fn restart(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_restart(signal::Command::Enable as u8)
+            .unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Reset the PDM configuration.
+    ///
+    /// A restart is also required for this to take action.
+    pub async fn reset(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_reset(signal::Command::Enable as u8).unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
         Ok(())
     }
 
