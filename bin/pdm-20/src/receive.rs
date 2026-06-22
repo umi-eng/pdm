@@ -88,13 +88,10 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 for (n, output) in states.iter().enumerate() {
                                     match OutputState::try_from(*output) {
                                         Ok(OutputState::On) => {
-                                            outputs[n].set_duty_cycle_fraction(
-                                                pwm_duty as u16,
-                                                u8::MAX as u16,
-                                            );
+                                            outputs[n].on(pwm_duty);
                                         }
                                         Ok(OutputState::Off) => {
-                                            outputs[n].set_duty_cycle_fully_off();
+                                            outputs[n].off();
                                         }
                                         Ok(_) => {}
                                         Err(e) => defmt::error!(
