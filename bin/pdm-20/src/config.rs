@@ -115,6 +115,6 @@ impl<'f> Config<'f> {
 
     // Output configuration
     config_key!(output_econ_delay, b"OEDL", [u16; 20], [0; 20]);
-    config_key!(output_econ_duty, b"OEDT", [u8; 20], [0; 20]);
+    config_key!(output_econ_duty, b"OEDT", [u8; 20], [u8::MAX; 20]);
     config_key!(output_heartbeat_duration, b"OHDR", [u16; 20], [0; 20]);
 }
