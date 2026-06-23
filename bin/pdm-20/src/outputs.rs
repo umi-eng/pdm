@@ -17,6 +17,8 @@ pub struct OutputChannel {
     on_time: Option<Instant<u32, 1, 10000>>,
     /// Last time the output state was set.
     last_heartbeat: Option<Instant<u32, 1, 10000>>,
+    /// Whether the output has stepped down to economising.
+    economising: bool,
 }
 
 impl OutputChannel {
@@ -25,6 +27,7 @@ impl OutputChannel {
             pin,
             on_time: None,
             last_heartbeat: None,
+            economising: false,
         }
     }
 
@@ -47,6 +50,7 @@ impl OutputChannel {
             .expect("set output fully off");
         self.on_time = None;
         self.last_heartbeat = None;
+        self.economising = false;
     }
 }
 
@@ -89,11 +93,13 @@ pub async fn outputs(cx: outputs::Context<'_>) {
             let now = Mono::now();
             for (n, channel) in outputs.iter_mut().enumerate() {
                 if let Some(time) = channel.on_time
+                    && !channel.economising
                     && econ_delay[n] != 0
                     && let Some(duration) = now.checked_duration_since(time)
                     && duration.to_millis() >= econ_delay[n] as u32
                 {
                     channel.on(econ_duty[n]);
+                    channel.economising = true;
                 }
 
                 if heartbeat_duration[n] != 0
