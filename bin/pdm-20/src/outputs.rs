@@ -6,7 +6,8 @@ use embedded_hal::pwm::SetDutyCycle;
 use hal::gpio::Output;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
-use rtic_monotonics::fugit::{ExtU32, Instant};
+use rtic_monotonics::fugit::ExtU32;
+use rtic_monotonics::fugit::Instant;
 
 type ErasedPwmPin = dyn SetDutyCycle<Error = Infallible> + Send;
 
