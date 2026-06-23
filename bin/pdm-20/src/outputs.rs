@@ -31,6 +31,7 @@ impl OutputChannel {
         }
     }
 
+    /// Turn output on with a PWM duty cycle.
     pub fn on(&mut self, duty: u8) {
         let now = Mono::now();
 
@@ -44,6 +45,7 @@ impl OutputChannel {
         }
     }
 
+    /// Turn output off.
     pub fn off(&mut self) {
         self.pin
             .set_duty_cycle_fully_off()
