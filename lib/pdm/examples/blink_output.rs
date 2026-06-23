@@ -5,10 +5,7 @@
 
 use pdm::pdm36;
 use socketcan::tokio::CanSocket;
-use std::{
-    io::{self, Read},
-    time::Duration,
-};
+use std::{io, time::Duration};
 use tokio::time::sleep;
 
 #[tokio::main]
