@@ -4,6 +4,7 @@
 
 - Fix economisation being reset when an output is turned on twice.
 - Fix J1939 SLOT scaling.
+- Set PWM frequency to 1kHz.
 
 # v0.3.0
 

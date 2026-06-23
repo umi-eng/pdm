@@ -247,7 +247,7 @@ mod app {
             AnalogCh::Adc3(p.PD11.degrade_adc()),
         ];
 
-        let pwm_freq = khz(10);
+        let pwm_freq = khz(1);
 
         let tim15_ch1 = PwmPin::new(p.PB14, OutputType::PushPull);
         let tim15_ch2 = PwmPin::new(p.PB15, OutputType::PushPull);
