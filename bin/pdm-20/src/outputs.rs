@@ -13,7 +13,9 @@ type ErasedPwmPin = dyn SetDutyCycle<Error = Infallible> + Send;
 
 pub struct OutputChannel {
     pin: &'static mut ErasedPwmPin,
+    /// Time the output was turned on.
     on_time: Option<Instant<u32, 1, 10000>>,
+    /// Last time the output state was set.
     last_heartbeat: Option<Instant<u32, 1, 10000>>,
 }
 
