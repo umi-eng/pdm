@@ -20,6 +20,7 @@ use saelient::diagnostic::Pointer;
 use saelient::diagnostic::Status;
 use saelient::prelude::*;
 use saelient::signal;
+use saelient::slot::SaePC03;
 use saelient::transport::ClearToSend;
 use saelient::transport::DataTransfer;
 use saelient::transport::EndOfMessageAck;
@@ -158,12 +159,12 @@ impl Pdm20 {
     ) -> Result<(), io::Error> {
         // todo: replace 250 with Param8::MAX
         let delay = (delay.as_millis() / 10).clamp(0, 250) as u8;
-        let duty = (pwm_duty.clamp(0.0, 1.0) * 255.0) as u8;
+        let duty = SaePC03::from_f32(pwm_duty).expect("valid value");
 
         let mut mux = ConfigureMuxM2::new();
         mux.set_output_channel(output as u8).unwrap();
         mux.set_output_econ_delay(delay).unwrap();
-        mux.set_output_econ_duty(duty).unwrap();
+        mux.set_output_econ_duty(duty.parameter().to_raw()).unwrap();
 
         let mut frame = Configure::new(2).unwrap();
         frame.set_m2(mux).unwrap();
