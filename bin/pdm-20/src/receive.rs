@@ -14,6 +14,8 @@ use saelient::Id;
 use saelient::Pgn;
 use saelient::signal::Param8;
 use saelient::signal::Signal;
+use saelient::slot::SaePC03;
+use saelient::slot::Slot;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -182,11 +184,11 @@ pub async fn receive(cx: receive::Context<'_>) {
                                     .expect("modifying output econ delay");
                             }
 
-                            let econ_duty = Param8::from(m2.output_econ_duty());
-                            if let Some(value) = econ_duty.value() {
+                            let econ_duty = SaePC03::new(Param8::from(m2.output_econ_duty()));
+                            if let Some(value) = econ_duty.as_f32() {
                                 config
                                     .modify_output_econ_duty(|mut stored| {
-                                        stored[n] = value;
+                                        stored[n] = (value * 255.0) as u8;
                                         stored
                                     })
                                     .await
