@@ -2,6 +2,9 @@ use embedded_can::Frame;
 use embedded_can::Id;
 use messages::OutputState;
 use messages::pdm20::AnalogInputs;
+use messages::pdm20::Configure;
+use messages::pdm20::ConfigureMuxM0;
+use messages::pdm20::ConfigureMuxM2;
 use messages::pdm20::Control;
 use messages::pdm20::ControlMuxM0;
 use messages::pdm20::CurrentSense;
@@ -16,12 +19,15 @@ use saelient::diagnostic::MemoryAccessResponse;
 use saelient::diagnostic::Pointer;
 use saelient::diagnostic::Status;
 use saelient::prelude::*;
+use saelient::signal;
+use saelient::slot::SaePC03;
 use saelient::transport::ClearToSend;
 use saelient::transport::DataTransfer;
 use saelient::transport::EndOfMessageAck;
 use saelient::transport::RequestToSend;
 use socketcan::{CanFrame, tokio::CanSocket};
 use std::io;
+use std::time::Duration;
 
 pub type Outputs = crate::Outputs<20>;
 
@@ -98,6 +104,150 @@ impl Pdm20 {
             .write_frame(CanFrame::new(id, frame.data()).unwrap())
             .await?;
 
+        Ok(())
+    }
+
+    /// Restart the PDM.
+    pub async fn restart(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_restart(signal::Command::Enable as u8)
+            .unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Reset the PDM configuration.
+    ///
+    /// A restart is also required for this to take action.
+    pub async fn reset(&self) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM0::new();
+        mux.set_system_reset(signal::Command::Enable as u8).unwrap();
+        let mut frame = Configure::new(0).unwrap();
+        frame.set_m0(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Configure the economisation delay for an output channel.
+    ///
+    /// `None` will disable economisation on the channel.
+    pub async fn output_econ(
+        &self,
+        output: usize,
+        delay: Duration,
+        pwm_duty: f32,
+    ) -> Result<(), io::Error> {
+        // todo: replace 250 with Param8::MAX
+        let delay = (delay.as_millis() / 10).clamp(0, 250) as u8;
+        let duty = SaePC03::from_f32(pwm_duty).expect("valid value");
+
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_econ_delay(delay).unwrap();
+        mux.set_output_econ_duty(duty.parameter().to_raw()).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Disable economisation for an output channel.
+    pub async fn output_econ_disable(&self, output: usize) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_econ_delay(0).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Configure the heartbeat duration for an output channel.
+    pub async fn output_heartbeat(
+        &self,
+        output: usize,
+        duration: Duration,
+    ) -> Result<(), io::Error> {
+        // todo: replace 250 with Param8::MAX
+        let duration = (duration.as_millis() / 100).clamp(0, 250) as u8;
+
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_heartbeat_duration(duration).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
+        Ok(())
+    }
+
+    /// Disable heartbeat for an output channel.
+    pub async fn output_heartbeat_disable(&self, output: usize) -> Result<(), io::Error> {
+        let mut mux = ConfigureMuxM2::new();
+        mux.set_output_channel(output as u8).unwrap();
+        mux.set_output_heartbeat_duration(0).unwrap();
+
+        let mut frame = Configure::new(2).unwrap();
+        frame.set_m2(mux).unwrap();
+        let id = saelient::Id::builder()
+            .da(self.address)
+            .sa(0)
+            .pgn(pgn::CONFIGURE)
+            .priority(3)
+            .build()
+            .unwrap();
+        self.interface
+            .write_frame(CanFrame::new(id, frame.data()).unwrap())
+            .await?;
         Ok(())
     }
 

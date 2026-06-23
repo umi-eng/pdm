@@ -63,5 +63,6 @@ pub async fn startup(cx: startup::Context<'_>) {
     current_status::spawn().unwrap();
     analog::spawn().unwrap();
     power::spawn().unwrap();
+    outputs::spawn().unwrap();
     defmt::info!("Startup complete");
 }

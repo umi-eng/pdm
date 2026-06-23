@@ -64,6 +64,10 @@ BO_ 2582597632 Configure: 8 Vector__XXX
  SG_ System_Reset m0 : 6|2@1+ (1,0) [0|3] "Reset all configuration to factory defaults" Vector__XXX
  SG_ CAN_Bitrate m1 : 4|4@1+ (1,0) [0|255] "CAN bitrate" Vector__XXX
  SG_ CAN_J1939_Source_Address m1 : 8|8@1+ (1,0) [1|255] "J1939 source address" Vector__XXX
+ SG_ Output_Channel m2 : 4|8@1+ (1,0) [1|20] "Output channel selection" Vector__XXX
+ SG_ Output_Econ_Delay m2 : 12|8@1+ (1,0) [0|255] "Output economisation delay in 10-milliseconds (zero = disable)" Vector__XXX
+ SG_ Output_Econ_Duty m2 : 20|8@1+ (1,0) [0|255] "Output economisation duty" Vector__XXX
+ SG_ Output_Heartbeat_Duration m2 : 28|8@1+ (1,0) [0|255] "Output heartbeat duration in 100-milliseconds (zero = disable)" Vector__XXX
 
 BO_ 419364949 Startup: 8 Vector__XXX
  SG_ Hardware_Version_Major : 0|8@1+ (1,0) [0|255] "SemVer" Vector__XXX

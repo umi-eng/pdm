@@ -4,6 +4,7 @@
 mod analog;
 mod config;
 mod current;
+mod outputs;
 mod power;
 mod receive;
 mod startup;
@@ -12,7 +13,7 @@ mod updater;
 
 use analog::*;
 use current::*;
-use embedded_hal::pwm::SetDutyCycle;
+use outputs::*;
 use power::*;
 use receive::*;
 use startup::*;
@@ -24,7 +25,6 @@ use embassy_stm32 as hal;
 use panic_probe as _;
 
 use blocking_executor::block_on;
-use core::convert::Infallible;
 use core::mem::MaybeUninit;
 use embassy_boot_stm32::*;
 use embassy_embedded_hal::adapter::BlockingAsync;
@@ -67,7 +67,6 @@ pub const VREF_MV: u32 = 2500;
 
 type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
 type FlashPartition = Partition<'static, NoopRawMutex, FlashBlockingAsync>;
-type ErasedPwmPin = &'static mut (dyn SetDutyCycle<Error = Infallible> + Send);
 
 #[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
@@ -80,7 +79,7 @@ mod app {
         can_tx: Arbiter<can::CanTx<'static>>,
         can_properties: can::Properties,
         source_address: u8,
-        outputs: [ErasedPwmPin; 20],
+        outputs: [OutputChannel; 20],
         output_current: [f32; 20],
         _fault_reset: [Output<'static>; 12],
         adc1: adc::Adc<'static, ADC1>,
@@ -373,27 +372,27 @@ mod app {
                 .hrtim1_chc2
                 .write(HrTimerOutput(Output::new(p.PB13, Level::Low, Speed::Low)));
 
-        let outputs: [ErasedPwmPin; _] = [
-            &mut tim15.ch1,
-            &mut tim15.ch2,
-            &mut tim8.ch1,
-            &mut tim8.ch2,
-            &mut tim8.ch3,
-            &mut tim8.ch4,
-            &mut tim4.ch2,
-            &mut tim4.ch1,
-            &mut tim3.ch2,
-            &mut tim3.ch1,
-            &mut tim2.ch2,
-            &mut tim2.ch1,
-            &mut tim1.ch4,
-            &mut tim1.ch3,
-            &mut tim1.ch2,
-            &mut tim1.ch1,
-            &mut tim20.ch2,
-            &mut tim20.ch1,
-            hrtim1_chc1,
-            hrtim1_chc2,
+        let outputs: [OutputChannel; _] = [
+            OutputChannel::new(&mut tim15.ch1),
+            OutputChannel::new(&mut tim15.ch2),
+            OutputChannel::new(&mut tim8.ch1),
+            OutputChannel::new(&mut tim8.ch2),
+            OutputChannel::new(&mut tim8.ch3),
+            OutputChannel::new(&mut tim8.ch4),
+            OutputChannel::new(&mut tim4.ch2),
+            OutputChannel::new(&mut tim4.ch1),
+            OutputChannel::new(&mut tim3.ch2),
+            OutputChannel::new(&mut tim3.ch1),
+            OutputChannel::new(&mut tim2.ch2),
+            OutputChannel::new(&mut tim2.ch1),
+            OutputChannel::new(&mut tim1.ch4),
+            OutputChannel::new(&mut tim1.ch3),
+            OutputChannel::new(&mut tim1.ch2),
+            OutputChannel::new(&mut tim1.ch1),
+            OutputChannel::new(&mut tim20.ch2),
+            OutputChannel::new(&mut tim20.ch1),
+            OutputChannel::new(hrtim1_chc1),
+            OutputChannel::new(hrtim1_chc2),
         ];
 
         let temperature = adc1.enable_temperature();
@@ -532,6 +531,9 @@ mod app {
             ]
         )]
         async fn analog(cx: analog::Context);
+
+        #[task(shared = [&config, outputs])]
+        async fn outputs(cx: outputs::Context);
     }
 }
 
@@ -565,26 +567,5 @@ impl DriverKind {
             3..=18 => Self::LowCurrent,
             _ => panic!("Channel number {} outside of bounds", ch),
         }
-    }
-}
-
-pub struct HrTimerOutput(Output<'static>);
-
-impl embedded_hal::pwm::ErrorType for HrTimerOutput {
-    type Error = Infallible;
-}
-
-// Dummy implementation until proper PWM support is sorted.
-impl SetDutyCycle for HrTimerOutput {
-    fn max_duty_cycle(&self) -> u16 {
-        1
-    }
-
-    fn set_duty_cycle(&mut self, duty: u16) -> Result<(), Self::Error> {
-        match duty {
-            1 => self.0.set_high(),
-            _ => self.0.set_low(),
-        }
-        Ok(())
     }
 }

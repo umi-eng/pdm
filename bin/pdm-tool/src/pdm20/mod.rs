@@ -1,6 +1,10 @@
 pub mod analog;
 pub mod current;
 pub mod output;
+pub mod output_econ;
+pub mod output_heartbeat;
+pub mod reset;
+pub mod restart;
 pub mod update;
 
 use crate::maybe_hex;
@@ -27,11 +31,17 @@ pub struct Cmd {
 
 impl Cmd {
     pub async fn run(self) -> Result<()> {
+        let pdm = open_pdm(&self.interface, self.address)?;
+
         match self.subcommand {
-            Subcommand::Output(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Analog(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Current(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
-            Subcommand::Update(cmd) => cmd.run(open_pdm(&self.interface, self.address)?).await,
+            Subcommand::Output(cmd) => cmd.run(pdm).await,
+            Subcommand::OutputEcon(cmd) => cmd.run(pdm).await,
+            Subcommand::OutputHeartbeat(cmd) => cmd.run(pdm).await,
+            Subcommand::Analog(cmd) => cmd.run(pdm).await,
+            Subcommand::Current(cmd) => cmd.run(pdm).await,
+            Subcommand::Update(cmd) => cmd.run(pdm).await,
+            Subcommand::Restart(cmd) => cmd.run(pdm).await,
+            Subcommand::Reset(cmd) => cmd.run(pdm).await,
         }
     }
 }
@@ -40,10 +50,18 @@ impl Cmd {
 enum Subcommand {
     /// Control outputs
     Output(output::Cmd),
+    /// Configure output economisation
+    OutputEcon(output_econ::Cmd),
+    /// Configure output heartbeat
+    OutputHeartbeat(output_heartbeat::Cmd),
     /// Read analog inputs
     Analog(analog::Cmd),
     /// Read output current
     Current(current::Cmd),
     /// Update firmware
     Update(update::Cmd),
+    /// Restart the device
+    Restart(restart::Cmd),
+    /// Reset all configuration to factory default
+    Reset(reset::Cmd),
 }

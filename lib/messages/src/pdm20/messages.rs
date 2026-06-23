@@ -1146,6 +1146,14 @@ impl Configure {
     pub const CAN_BITRATE_MAX: u8 = 255_u8;
     pub const CAN_J1939_SOURCE_ADDRESS_MIN: u8 = 1_u8;
     pub const CAN_J1939_SOURCE_ADDRESS_MAX: u8 = 255_u8;
+    pub const OUTPUT_CHANNEL_MIN: u8 = 1_u8;
+    pub const OUTPUT_CHANNEL_MAX: u8 = 20_u8;
+    pub const OUTPUT_ECON_DELAY_MIN: u8 = 0_u8;
+    pub const OUTPUT_ECON_DELAY_MAX: u8 = 255_u8;
+    pub const OUTPUT_ECON_DUTY_MIN: u8 = 0_u8;
+    pub const OUTPUT_ECON_DUTY_MAX: u8 = 255_u8;
+    pub const OUTPUT_HEARTBEAT_DURATION_MIN: u8 = 0_u8;
+    pub const OUTPUT_HEARTBEAT_DURATION_MAX: u8 = 255_u8;
     
     /// Construct new Configure from values
     pub fn new(mux: u8) -> Result<Self, CanError> {
@@ -1179,6 +1187,7 @@ impl Configure {
         match self.mux_raw() {
             0 => Ok(ConfigureMuxIndex::M0(ConfigureMuxM0{ raw: self.raw })),
             1 => Ok(ConfigureMuxIndex::M1(ConfigureMuxM1{ raw: self.raw })),
+            2 => Ok(ConfigureMuxIndex::M2(ConfigureMuxM2{ raw: self.raw })),
             multiplexor => Err(CanError::InvalidMultiplexor { message_id: Configure::MESSAGE_ID, multiplexor: multiplexor.into() }),
         }
     }
@@ -1214,6 +1223,16 @@ impl Configure {
         let b1 = BitArray::<_, LocalBits>::new(value.raw);
         self.raw = b0.bitor(b1).into_inner();
         self.set_mux(1)?;
+        Ok(())
+    }
+    
+    /// Set value of Mux
+    #[inline(always)]
+    pub fn set_m2(&mut self, value: ConfigureMuxM2) -> Result<(), CanError> {
+        let b0 = BitArray::<_, LocalBits>::new(self.raw);
+        let b1 = BitArray::<_, LocalBits>::new(value.raw);
+        self.raw = b0.bitor(b1).into_inner();
+        self.set_mux(2)?;
         Ok(())
     }
     
@@ -1310,6 +1329,7 @@ impl From<ConfigureCanBitrate> for u8 {
 pub enum ConfigureMuxIndex {
     M0(ConfigureMuxM0),
     M1(ConfigureMuxM1),
+    M2(ConfigureMuxM2),
 }
 
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -1502,6 +1522,182 @@ pub fn set_can_j1939_source_address(&mut self, value: u8) -> Result<(), CanError
     let value = (value / factor) as u8;
     
     self.raw.view_bits_mut::<Lsb0>()[8..16].store_le(value);
+    Ok(())
+}
+
+}
+
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[derive(Default)]
+pub struct ConfigureMuxM2 { raw: [u8; 8] }
+
+impl ConfigureMuxM2 {
+pub fn new() -> Self { Self { raw: [0u8; 8] } }
+/// Output_Channel
+///
+/// - Min: 1
+/// - Max: 20
+/// - Unit: "Output channel selection"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn output_channel(&self) -> u8 {
+    self.output_channel_raw()
+}
+
+/// Get raw value of Output_Channel
+///
+/// - Start bit: 4
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn output_channel_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[4..12].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Output_Channel
+#[inline(always)]
+pub fn set_output_channel(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 1_u8 || 20_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[4..12].store_le(value);
+    Ok(())
+}
+
+/// Output_Econ_Delay
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output economisation delay in 10-milliseconds (zero = disable)"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn output_econ_delay(&self) -> u8 {
+    self.output_econ_delay_raw()
+}
+
+/// Get raw value of Output_Econ_Delay
+///
+/// - Start bit: 12
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn output_econ_delay_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[12..20].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Output_Econ_Delay
+#[inline(always)]
+pub fn set_output_econ_delay(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[12..20].store_le(value);
+    Ok(())
+}
+
+/// Output_Econ_Duty
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output economisation duty"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn output_econ_duty(&self) -> u8 {
+    self.output_econ_duty_raw()
+}
+
+/// Get raw value of Output_Econ_Duty
+///
+/// - Start bit: 20
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn output_econ_duty_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[20..28].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Output_Econ_Duty
+#[inline(always)]
+pub fn set_output_econ_duty(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[20..28].store_le(value);
+    Ok(())
+}
+
+/// Output_Heartbeat_Duration
+///
+/// - Min: 0
+/// - Max: 255
+/// - Unit: "Output heartbeat duration in 100-milliseconds (zero = disable)"
+/// - Receivers: Vector__XXX
+#[inline(always)]
+pub fn output_heartbeat_duration(&self) -> u8 {
+    self.output_heartbeat_duration_raw()
+}
+
+/// Get raw value of Output_Heartbeat_Duration
+///
+/// - Start bit: 28
+/// - Signal size: 8 bits
+/// - Factor: 1
+/// - Offset: 0
+/// - Byte order: LittleEndian
+/// - Value type: Unsigned
+#[inline(always)]
+pub fn output_heartbeat_duration_raw(&self) -> u8 {
+    let signal = self.raw.view_bits::<Lsb0>()[28..36].load_le::<u8>();
+    
+    let factor = 1;
+    u8::from(signal).saturating_mul(factor).saturating_add(0)
+}
+
+/// Set value of Output_Heartbeat_Duration
+#[inline(always)]
+pub fn set_output_heartbeat_duration(&mut self, value: u8) -> Result<(), CanError> {
+    if value < 0_u8 || 255_u8 < value {
+        return Err(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID });
+    }
+    let factor = 1;
+    let value = value.checked_sub(0)
+        .ok_or(CanError::ParameterOutOfRange { message_id: Configure::MESSAGE_ID })?;
+    let value = (value / factor) as u8;
+    
+    self.raw.view_bits_mut::<Lsb0>()[28..36].store_le(value);
     Ok(())
 }
 

@@ -55,7 +55,7 @@ pub async fn current(mut cx: current::Context<'_>) {
             if measurement > i_lim {
                 if let Some(blank_start) = blank_start[n] {
                     if start.checked_duration_since(blank_start).unwrap() >= T_BLANK {
-                        outputs.lock(|out| out[n].set_duty_cycle_fully_off());
+                        outputs.lock(|output| output[n].off());
                         defmt::info!("Blanking time exceeded ch {}", ch);
                     }
                 } else {

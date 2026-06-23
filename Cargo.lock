@@ -3000,8 +3000,9 @@ checksum = "62049b2877bf12821e8f9ad256ee38fdc31db7387ec2d3b3f403024de2034aea"
 
 [[package]]
 name = "saelient"
-version = "0.2.0"
-source = "git+https://github.com/umi-eng/saelient.git#e0626dab5a5dcf011d29dc1be7a405e162c0d411"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba72c427f26b2f421d27448e58eb006a736b7b8331b0184cd7b7c2687da32b3a"
 dependencies = [
  "defmt 1.1.0",
  "embedded-can",

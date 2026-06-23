@@ -12,6 +12,10 @@ use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;
+use saelient::signal::Param8;
+use saelient::signal::Signal;
+use saelient::slot::SaePC03;
+use saelient::slot::Slot;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {
@@ -86,13 +90,10 @@ pub async fn receive(cx: receive::Context<'_>) {
                                 for (n, output) in states.iter().enumerate() {
                                     match OutputState::try_from(*output) {
                                         Ok(OutputState::On) => {
-                                            outputs[n].set_duty_cycle_fraction(
-                                                pwm_duty as u16,
-                                                u8::MAX as u16,
-                                            );
+                                            outputs[n].on(pwm_duty);
                                         }
                                         Ok(OutputState::Off) => {
-                                            outputs[n].set_duty_cycle_fully_off();
+                                            outputs[n].off();
                                         }
                                         Ok(_) => {}
                                         Err(e) => defmt::error!(
@@ -162,6 +163,47 @@ pub async fn receive(cx: receive::Context<'_>) {
                             {
                                 error::spawn().ok();
                                 defmt::error!("Failed to store CAN bitrate: {}", err);
+                            }
+                        }
+                        Ok(ConfigureMuxIndex::M2(m2)) => {
+                            let ch = m2.output_channel();
+                            if !(1..=20).contains(&ch) {
+                                defmt::warn!("Output number out of bounds: {}", output);
+                                continue;
+                            }
+                            let n = ch as usize - 1;
+
+                            let econ_delay = Param8::from(m2.output_econ_delay_raw());
+                            if let Some(value) = econ_delay.value() {
+                                config
+                                    .modify_output_econ_delay(|mut stored| {
+                                        stored[n] = value as u16 * 10;
+                                        stored
+                                    })
+                                    .await
+                                    .expect("modifying output econ delay");
+                            }
+
+                            let econ_duty = SaePC03::new(Param8::from(m2.output_econ_duty_raw()));
+                            if let Some(value) = econ_duty.as_f32() {
+                                config
+                                    .modify_output_econ_duty(|mut stored| {
+                                        stored[n] = value as u8;
+                                        stored
+                                    })
+                                    .await
+                                    .expect("modifying output econ duty");
+                            }
+
+                            let hb_duration = Param8::from(m2.output_heartbeat_duration_raw());
+                            if let Some(value) = hb_duration.value() {
+                                config
+                                    .modify_output_heartbeat_duration(|mut stored| {
+                                        stored[n] = value as u16 * 100;
+                                        stored
+                                    })
+                                    .await
+                                    .expect("modifying output heartbeat duration");
                             }
                         }
                         Err(_) => {

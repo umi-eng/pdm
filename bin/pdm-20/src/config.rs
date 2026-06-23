@@ -58,6 +58,25 @@ macro_rules! config_key {
                     .store_item(&mut buffer, $key, value)
                     .await
             }
+
+            pub async fn [<modify_ $fn_name>]<F>(&self, f: F) -> Result<(), Error>
+            where
+                F: FnOnce($type) -> $type,
+            {
+                let mut buffer = [0; 128];
+                let mut store = self.store.access().await;
+                let current = store
+                    .fetch_item(&mut buffer, $key)
+                    .await
+                    .map(|r| r.unwrap_or($default))?;
+                let updated = f(current);
+                // skip storing if the value is the same
+                if updated == current {
+                    return Ok(());
+                }
+                let mut buffer = [0; 128];
+                store.store_item(&mut buffer, $key, &updated).await
+            }
         }
     };
 }
@@ -93,4 +112,9 @@ impl<'f> Config<'f> {
     // CAN/J1939
     config_key!(can_bus_bitrate, b"CBBR", u32, 500_000);
     config_key!(can_bus_source_address, b"CBSA", u8, 0x50);
+
+    // Output configuration
+    config_key!(output_econ_delay, b"OEDL", [u16; 20], [0; 20]);
+    config_key!(output_econ_duty, b"OEDT", [u8; 20], [u8::MAX; 20]);
+    config_key!(output_heartbeat_duration, b"OHDR", [u16; 20], [0; 20]);
 }

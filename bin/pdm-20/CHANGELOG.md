@@ -2,6 +2,10 @@
 
 # [Unreleased]
 
+- Added output configuration.
+- Added heartbeat output configuration.
+- Added economisation output configuration.
+
 # v0.2.2
 
 - Fix output 3-4 and 5-6 being swapped.
