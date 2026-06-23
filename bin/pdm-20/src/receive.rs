@@ -171,11 +171,11 @@ pub async fn receive(cx: receive::Context<'_>) {
                             }
                             let n = ch as usize - 1;
 
-                            let econ_delay = Param8::from(m2.output_econ_delay());
+                            let econ_delay = Param8::from(m2.output_econ_delay_raw());
                             if let Some(value) = econ_delay.value() {
                                 config
                                     .modify_output_econ_delay(|mut stored| {
-                                        stored[n] = value;
+                                        stored[n] = value as u16 * 10;
                                         stored
                                     })
                                     .await
@@ -193,11 +193,11 @@ pub async fn receive(cx: receive::Context<'_>) {
                                     .expect("modifying output econ duty");
                             }
 
-                            let hb_duration = Param8::from(m2.output_heartbeat_duration());
+                            let hb_duration = Param8::from(m2.output_heartbeat_duration_raw());
                             if let Some(value) = hb_duration.value() {
                                 config
                                     .modify_output_heartbeat_duration(|mut stored| {
-                                        stored[n] = value;
+                                        stored[n] = value as u16 * 100;
                                         stored
                                     })
                                     .await

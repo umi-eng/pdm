@@ -114,7 +114,7 @@ impl<'f> Config<'f> {
     config_key!(can_bus_source_address, b"CBSA", u8, 0x50);
 
     // Output configuration
-    config_key!(output_econ_delay, b"OEDL", [u8; 20], [0; 20]);
+    config_key!(output_econ_delay, b"OEDL", [u16; 20], [0; 20]);
     config_key!(output_econ_duty, b"OEDT", [u8; 20], [0; 20]);
-    config_key!(output_heartbeat_duration, b"OHDR", [u8; 20], [0; 20]);
+    config_key!(output_heartbeat_duration, b"OHDR", [u16; 20], [0; 20]);
 }
