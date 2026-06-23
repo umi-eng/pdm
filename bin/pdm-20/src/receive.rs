@@ -184,7 +184,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                     .expect("modifying output econ delay");
                             }
 
-                            let econ_duty = SaePC03::new(Param8::from(m2.output_econ_duty()));
+                            let econ_duty = SaePC03::new(Param8::from(m2.output_econ_duty_raw()));
                             if let Some(value) = econ_duty.as_f32() {
                                 config
                                     .modify_output_econ_duty(|mut stored| {
