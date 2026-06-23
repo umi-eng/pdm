@@ -6,7 +6,7 @@ use embedded_hal::pwm::SetDutyCycle;
 use hal::gpio::Output;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
-use rtic_monotonics::fugit::{Duration, ExtU32, Instant};
+use rtic_monotonics::fugit::{ExtU32, Instant};
 
 type ErasedPwmPin = dyn SetDutyCycle<Error = Infallible> + Send;
 
@@ -65,5 +65,47 @@ impl SetDutyCycle for HrTimerOutput {
             _ => self.0.set_low(),
         }
         Ok(())
+    }
+}
+
+pub async fn outputs(cx: outputs::Context<'_>) {
+    let mut outputs = cx.shared.outputs;
+    let config = cx.shared.config;
+
+    let econ_delay: [u16; 20] = config.output_econ_delay().await.expect("get econ delay");
+    let econ_duty: [u8; 20] = config.output_econ_duty().await.expect("get econ duty");
+    let heartbeat_duration: [u16; 20] = config
+        .output_heartbeat_duration()
+        .await
+        .expect("get heartbeat duration");
+
+    loop {
+        Mono::delay(1.millis()).await;
+
+        outputs.lock(|outputs| {
+            let now = Mono::now();
+            for (n, channel) in outputs.iter_mut().enumerate() {
+                if let Some(time) = channel.on_time {
+                    if econ_delay[n] != 0 {
+                        if let Some(duration) = now.checked_duration_since(time) {
+                            if duration.to_millis() >= econ_delay[n] as u32 {
+                                channel.on(econ_duty[n]);
+                            }
+                        }
+                    }
+                }
+
+                if heartbeat_duration[n] != 0 {
+                    if let Some(time) = channel.last_heartbeat {
+                        if let Some(duration) = now.checked_duration_since(time) {
+                            if duration.to_millis() >= heartbeat_duration[n] as u32 {
+                                defmt::info!("Heartbeat turn-off");
+                                channel.off();
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 }
