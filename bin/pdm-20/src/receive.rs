@@ -167,7 +167,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                         }
                         Ok(ConfigureMuxIndex::M2(m2)) => {
                             let ch = m2.output_channel();
-                            if ch > 20 || ch < 1 {
+                            if !(1..=20).contains(&ch) {
                                 defmt::warn!("Output number out of bounds: {}", output);
                                 continue;
                             }

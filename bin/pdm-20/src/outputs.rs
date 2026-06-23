@@ -17,7 +17,7 @@ pub struct OutputChannel {
     last_heartbeat: Option<Instant<u32, 1, 10000>>,
 }
 
-impl<'a> OutputChannel {
+impl OutputChannel {
     pub fn new(pin: &'static mut ErasedPwmPin) -> Self {
         Self {
             pin,
@@ -86,25 +86,21 @@ pub async fn outputs(cx: outputs::Context<'_>) {
         outputs.lock(|outputs| {
             let now = Mono::now();
             for (n, channel) in outputs.iter_mut().enumerate() {
-                if let Some(time) = channel.on_time {
-                    if econ_delay[n] != 0 {
-                        if let Some(duration) = now.checked_duration_since(time) {
-                            if duration.to_millis() >= econ_delay[n] as u32 {
-                                channel.on(econ_duty[n]);
-                            }
-                        }
-                    }
+                if let Some(time) = channel.on_time
+                    && econ_delay[n] != 0
+                    && let Some(duration) = now.checked_duration_since(time)
+                    && duration.to_millis() >= econ_delay[n] as u32
+                {
+                    channel.on(econ_duty[n]);
                 }
 
-                if heartbeat_duration[n] != 0 {
-                    if let Some(time) = channel.last_heartbeat {
-                        if let Some(duration) = now.checked_duration_since(time) {
-                            if duration.to_millis() >= heartbeat_duration[n] as u32 {
-                                defmt::info!("Heartbeat turn-off");
-                                channel.off();
-                            }
-                        }
-                    }
+                if heartbeat_duration[n] != 0
+                    && let Some(time) = channel.last_heartbeat
+                    && let Some(duration) = now.checked_duration_since(time)
+                    && duration.to_millis() >= heartbeat_duration[n] as u32
+                {
+                    defmt::info!("Heartbeat turn-off");
+                    channel.off();
                 }
             }
         });
