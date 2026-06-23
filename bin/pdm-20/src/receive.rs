@@ -188,7 +188,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                             if let Some(value) = econ_duty.as_f32() {
                                 config
                                     .modify_output_econ_duty(|mut stored| {
-                                        stored[n] = value as u8;
+                                        stored[n] = (value * 255.0) as u8;
                                         stored
                                     })
                                     .await
