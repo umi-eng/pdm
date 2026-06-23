@@ -11,9 +11,5 @@ defmt-rtt.workspace = true
 cortex-m = { version = "0.7.6", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 embassy-boot-stm32 = "0.8.0"
-embassy-stm32 = { version = "0.6.0", features = [
-    "stm32g474ce",
-    "single-bank",
-    "defmt",
-] }
+embassy-stm32 = { version = "0.6.0", features = ["stm32g474ce", "single-bank", "defmt"] }
 embassy-sync = "0.8.0"

@@ -21,22 +21,15 @@ rtic = { version = "2.1.2", features = ["thumbv7-backend"] }
 rtic-monotonics = { version = "2.0.3", features = ["cortex-m-systick", "defmt"] }
 rtic-sync = { version = "1.3.2", features = ["defmt-03"] }
 embassy-stm32 = { version = "0.6.0", features = [
-    "stm32g474ce",
-    "single-bank",
-    "defmt",
-    "unstable-pac",
+  "stm32g474ce",
+  "single-bank",
+  "defmt",
+  "unstable-pac",
 ] }
-embassy-boot-stm32 = { version = "0.8.0", features = [
-    "defmt",
-] }
-embassy-sync = { version = "0.8.0", features = [
-    "defmt",
-] }
+embassy-boot-stm32 = { version = "0.8.0", features = ["defmt"] }
+embassy-sync = { version = "0.8.0", features = ["defmt"] }
 embassy-embedded-hal = "0.6.0"
-embassy-boot = { version = "0.7.0", features = [
-    "defmt",
-    "ed25519-salty",
-] }
+embassy-boot = { version = "0.7.0", features = ["defmt", "ed25519-salty"] }
 sequential-storage = { version = "4.0.3", features = ["defmt-03"] }
 
 [features]
