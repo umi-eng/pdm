@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+- Fix economisation being reset when an output is turned on twice.
+
 # v0.3.0
 
 - Added output configuration.

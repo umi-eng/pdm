@@ -35,9 +35,11 @@ impl OutputChannel {
     pub fn on(&mut self, duty: u8) {
         let now = Mono::now();
 
-        self.pin
-            .set_duty_cycle_fraction(duty as u16, u8::MAX as u16)
-            .expect("set output duty cycle");
+        if !self.economising {
+            self.pin
+                .set_duty_cycle_fraction(duty as u16, u8::MAX as u16)
+                .expect("set output duty cycle");
+        }
 
         self.last_heartbeat = Some(now);
         if duty == u8::MAX && self.on_time.is_none() {
