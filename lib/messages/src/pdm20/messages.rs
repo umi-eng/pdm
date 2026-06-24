@@ -4060,3 +4060,4 @@ impl core::fmt::Display for CanError {
         write!(f, "{self:?}")
     }
 }
+impl core::error::Error for CanError {}

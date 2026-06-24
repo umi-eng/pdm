@@ -26,10 +26,24 @@ use saelient::transport::DataTransfer;
 use saelient::transport::EndOfMessageAck;
 use saelient::transport::RequestToSend;
 use socketcan::{CanFrame, tokio::CanSocket};
-use std::io;
 use std::time::Duration;
+use thiserror::Error;
 
 pub type Outputs = crate::Outputs<20>;
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("io error")]
+    Io(#[from] std::io::Error),
+    #[error("dbc message error")]
+    CanDbc(#[from] messages::pdm20::CanError),
+    #[error("socketcan error")]
+    CanSocket(#[from] socketcan::Error),
+    #[error("j1939 transport protocol error")]
+    J1939Transport(String),
+    #[error("input parameter out of bounds")]
+    ParameterOutOfBounds(String),
+}
 
 /// PDM20 interface.
 pub struct Pdm20 {
@@ -44,53 +58,53 @@ impl Pdm20 {
     }
 
     /// Set a single output on or off.
-    pub async fn set_output(&self, output: usize, on: bool) -> Result<(), io::Error> {
+    pub async fn set_output(&self, output: usize, on: bool) -> Result<(), Error> {
         self.set_outputs_pwm(Outputs::new().ch(output, OutputState::from(on)), 1.0)
             .await
     }
 
     /// Set a single output with a PWM duty.
-    pub async fn set_output_pwm(&self, output: usize, duty: f32) -> Result<(), io::Error> {
+    pub async fn set_output_pwm(&self, output: usize, duty: f32) -> Result<(), Error> {
         self.set_outputs_pwm(Outputs::new().ch(output, OutputState::On), duty)
             .await
     }
 
     /// Set one or more outputs.
-    pub async fn set_outputs(&self, outputs: Outputs) -> Result<(), io::Error> {
+    pub async fn set_outputs(&self, outputs: Outputs) -> Result<(), Error> {
         self.set_outputs_pwm(outputs, 1.0).await
     }
 
     /// Set a number of outputs with a PWM duty.
     ///
     /// `pwm` is clamped to \[0.0, 1.0\].
-    pub async fn set_outputs_pwm(&self, outputs: Outputs, pwm_duty: f32) -> Result<(), io::Error> {
+    pub async fn set_outputs_pwm(&self, outputs: Outputs, pwm_duty: f32) -> Result<(), Error> {
         let duty = (pwm_duty.clamp(0.0, 1.0) * 255.0) as u8;
 
         let outputs = outputs.as_slice();
         let mut mux = ControlMuxM0::new();
-        mux.set_output_1(outputs[0].into()).unwrap();
-        mux.set_output_2(outputs[1].into()).unwrap();
-        mux.set_output_3(outputs[2].into()).unwrap();
-        mux.set_output_4(outputs[3].into()).unwrap();
-        mux.set_output_5(outputs[4].into()).unwrap();
-        mux.set_output_6(outputs[5].into()).unwrap();
-        mux.set_output_7(outputs[6].into()).unwrap();
-        mux.set_output_8(outputs[7].into()).unwrap();
-        mux.set_output_9(outputs[8].into()).unwrap();
-        mux.set_output_10(outputs[9].into()).unwrap();
-        mux.set_output_11(outputs[10].into()).unwrap();
-        mux.set_output_12(outputs[11].into()).unwrap();
-        mux.set_output_13(outputs[12].into()).unwrap();
-        mux.set_output_14(outputs[13].into()).unwrap();
-        mux.set_output_15(outputs[14].into()).unwrap();
-        mux.set_output_16(outputs[15].into()).unwrap();
-        mux.set_output_17(outputs[16].into()).unwrap();
-        mux.set_output_18(outputs[17].into()).unwrap();
-        mux.set_output_19(outputs[18].into()).unwrap();
-        mux.set_output_20(outputs[19].into()).unwrap();
-        mux.set_pwm_duty(duty).unwrap();
-        let mut frame = Control::new(0).unwrap();
-        frame.set_m0(mux).unwrap();
+        mux.set_output_1(outputs[0].into())?;
+        mux.set_output_2(outputs[1].into())?;
+        mux.set_output_3(outputs[2].into())?;
+        mux.set_output_4(outputs[3].into())?;
+        mux.set_output_5(outputs[4].into())?;
+        mux.set_output_6(outputs[5].into())?;
+        mux.set_output_7(outputs[6].into())?;
+        mux.set_output_8(outputs[7].into())?;
+        mux.set_output_9(outputs[8].into())?;
+        mux.set_output_10(outputs[9].into())?;
+        mux.set_output_11(outputs[10].into())?;
+        mux.set_output_12(outputs[11].into())?;
+        mux.set_output_13(outputs[12].into())?;
+        mux.set_output_14(outputs[13].into())?;
+        mux.set_output_15(outputs[14].into())?;
+        mux.set_output_16(outputs[15].into())?;
+        mux.set_output_17(outputs[16].into())?;
+        mux.set_output_18(outputs[17].into())?;
+        mux.set_output_19(outputs[18].into())?;
+        mux.set_output_20(outputs[19].into())?;
+        mux.set_pwm_duty(duty)?;
+        let mut frame = Control::new(0)?;
+        frame.set_m0(mux)?;
 
         let id = saelient::Id::builder()
             .da(self.address)
@@ -108,12 +122,11 @@ impl Pdm20 {
     }
 
     /// Restart the PDM.
-    pub async fn restart(&self) -> Result<(), io::Error> {
+    pub async fn restart(&self) -> Result<(), Error> {
         let mut mux = ConfigureMuxM0::new();
-        mux.set_system_restart(signal::Command::Enable as u8)
-            .unwrap();
-        let mut frame = Configure::new(0).unwrap();
-        frame.set_m0(mux).unwrap();
+        mux.set_system_restart(signal::Command::Enable as u8)?;
+        let mut frame = Configure::new(0)?;
+        frame.set_m0(mux)?;
         let id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
@@ -130,11 +143,11 @@ impl Pdm20 {
     /// Reset the PDM configuration.
     ///
     /// A restart is also required for this to take action.
-    pub async fn reset(&self) -> Result<(), io::Error> {
+    pub async fn reset(&self) -> Result<(), Error> {
         let mut mux = ConfigureMuxM0::new();
-        mux.set_system_reset(signal::Command::Enable as u8).unwrap();
-        let mut frame = Configure::new(0).unwrap();
-        frame.set_m0(mux).unwrap();
+        mux.set_system_reset(signal::Command::Enable as u8)?;
+        let mut frame = Configure::new(0)?;
+        frame.set_m0(mux)?;
         let id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
@@ -156,18 +169,18 @@ impl Pdm20 {
         output: usize,
         delay: Duration,
         pwm_duty: f32,
-    ) -> Result<(), io::Error> {
+    ) -> Result<(), Error> {
         // todo: replace 250 with Param8::MAX
         let delay = (delay.as_millis() / 10).clamp(0, 250) as u8;
         let duty = SaePC03::from_f32(pwm_duty).expect("valid value");
 
         let mut mux = ConfigureMuxM2::new();
-        mux.set_output_channel(output as u8).unwrap();
-        mux.set_output_econ_delay(delay).unwrap();
-        mux.set_output_econ_duty(duty.parameter().to_raw()).unwrap();
-        mux.set_output_heartbeat_duration(255).unwrap(); // set to j1939 not present value
+        mux.set_output_channel(output as u8)?;
+        mux.set_output_econ_delay(delay)?;
+        mux.set_output_econ_duty(duty.parameter().to_raw())?;
+        mux.set_output_heartbeat_duration(255)?; // set to j1939 not present value
 
-        let mut frame = Configure::new(2).unwrap();
+        let mut frame = Configure::new(2)?;
         frame.set_m2(mux).unwrap();
         let id = saelient::Id::builder()
             .da(self.address)
@@ -183,14 +196,14 @@ impl Pdm20 {
     }
 
     /// Disable economisation for an output channel.
-    pub async fn output_econ_disable(&self, output: usize) -> Result<(), io::Error> {
+    pub async fn output_econ_disable(&self, output: usize) -> Result<(), Error> {
         let mut mux = ConfigureMuxM2::new();
-        mux.set_output_channel(output as u8).unwrap();
-        mux.set_output_econ_delay(0).unwrap();
-        mux.set_output_heartbeat_duration(255).unwrap(); // set to j1939 not present value
+        mux.set_output_channel(output as u8)?;
+        mux.set_output_econ_delay(0)?;
+        mux.set_output_heartbeat_duration(255)?; // set to j1939 not present value
 
-        let mut frame = Configure::new(2).unwrap();
-        frame.set_m2(mux).unwrap();
+        let mut frame = Configure::new(2)?;
+        frame.set_m2(mux)?;
         let id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
@@ -205,22 +218,18 @@ impl Pdm20 {
     }
 
     /// Configure the heartbeat duration for an output channel.
-    pub async fn output_heartbeat(
-        &self,
-        output: usize,
-        duration: Duration,
-    ) -> Result<(), io::Error> {
+    pub async fn output_heartbeat(&self, output: usize, duration: Duration) -> Result<(), Error> {
         // todo: replace 250 with Param8::MAX
         let duration = (duration.as_millis() / 100).clamp(0, 250) as u8;
 
         let mut mux = ConfigureMuxM2::new();
-        mux.set_output_channel(output as u8).unwrap();
-        mux.set_output_heartbeat_duration(duration).unwrap();
-        mux.set_output_econ_delay(255).unwrap(); // set to j1939 not present value
-        mux.set_output_econ_duty(255).unwrap(); // set to j1939 not present value
+        mux.set_output_channel(output as u8)?;
+        mux.set_output_heartbeat_duration(duration)?;
+        mux.set_output_econ_delay(255)?; // set to j1939 not present value
+        mux.set_output_econ_duty(255)?; // set to j1939 not present value
 
-        let mut frame = Configure::new(2).unwrap();
-        frame.set_m2(mux).unwrap();
+        let mut frame = Configure::new(2)?;
+        frame.set_m2(mux)?;
         let id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
@@ -235,7 +244,7 @@ impl Pdm20 {
     }
 
     /// Disable heartbeat for an output channel.
-    pub async fn output_heartbeat_disable(&self, output: usize) -> Result<(), io::Error> {
+    pub async fn output_heartbeat_disable(&self, output: usize) -> Result<(), Error> {
         let mut mux = ConfigureMuxM2::new();
         mux.set_output_channel(output as u8).unwrap();
         mux.set_output_heartbeat_duration(0).unwrap();
@@ -258,24 +267,27 @@ impl Pdm20 {
     }
 
     /// Read an analog input.
-    pub async fn analog_input(&self, input: usize) -> Result<f32, io::Error> {
+    pub async fn analog_input(&self, input: usize) -> Result<f32, Error> {
         let frame = self.wait_for_message(pgn::ANALOG).await?;
 
-        let analog = AnalogInputs::try_from(frame.data())
-            .map_err(|err| io::Error::other(err.to_string()))?;
+        let analog = AnalogInputs::try_from(frame.data())?;
 
         let input = match input {
             1 => analog.input_1(),
             2 => analog.input_2(),
             3 => analog.input_3(),
-            _ => return Err(io::Error::other("`input` out of bounds")),
+            _ => {
+                return Err(Error::ParameterOutOfBounds(
+                    "analog input number".to_string(),
+                ));
+            }
         };
 
         let reading = saelient::slot::SaeEV06::new(input.into());
 
         let Some(reading) = reading.as_f32() else {
-            return Err(io::Error::other(
-                "Could not convert parameter to real value",
+            return Err(Error::J1939Transport(
+                "could not convert parameter to real value".to_string(),
             ));
         };
 
@@ -283,19 +295,13 @@ impl Pdm20 {
     }
 
     /// Get current sense reading for an output.
-    pub async fn current_sense(&self, output: usize) -> Result<f32, io::Error> {
+    pub async fn current_sense(&self, output: usize) -> Result<f32, Error> {
         loop {
             let frame = self.wait_for_message(pgn::OUTPUT_CURRENT).await?;
 
-            let mut sense = CurrentSense::try_from(frame.data())
-                .map_err(|err| io::Error::other(err.to_string()))?;
+            let mut sense = CurrentSense::try_from(frame.data())?;
 
-            let value = match (
-                output,
-                sense
-                    .mux()
-                    .map_err(|err| io::Error::other(err.to_string()))?,
-            ) {
+            let value = match (output, sense.mux()?) {
                 (1, CurrentSenseMuxIndex::M0(m)) => m.current_sense_1(),
                 (2, CurrentSenseMuxIndex::M0(m)) => m.current_sense_2(),
                 (3, CurrentSenseMuxIndex::M0(m)) => m.current_sense_3(),
@@ -317,7 +323,7 @@ impl Pdm20 {
                 (19, CurrentSenseMuxIndex::M3(m)) => m.current_sense_19(),
                 (20, CurrentSenseMuxIndex::M3(m)) => m.current_sense_20(),
                 _ => {
-                    continue;
+                    return Err(Error::ParameterOutOfBounds("output number".to_string()));
                 }
             };
 
@@ -329,7 +335,7 @@ impl Pdm20 {
     }
 
     /// Perform the firmware update process.
-    pub async fn update_firmware(&self, firmware: &[u8]) -> Result<(), io::Error> {
+    pub async fn update_firmware(&self, firmware: &[u8]) -> Result<(), Error> {
         let req_id = saelient::Id::builder()
             .da(self.address)
             .sa(0)
@@ -360,14 +366,16 @@ impl Pdm20 {
             // get response
             let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
             let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
-                return Err(io::Error::other("Could not deserialize frame"));
+                return Err(Error::J1939Transport(
+                    "could not deserialize frame".to_string(),
+                ));
             };
             match res.status() {
                 Status::Proceed => {}
-                Status::Busy => return Err(io::Error::other("Device busy")),
+                Status::Busy => return Err(Error::J1939Transport("device busy".to_string())),
                 status => {
-                    return Err(io::Error::other(format!(
-                        "Memory access request failed: {:?}",
+                    return Err(Error::J1939Transport(format!(
+                        "memory access request failed: {:?}",
                         status
                     )));
                 }
@@ -379,14 +387,16 @@ impl Pdm20 {
             // get memory access complete response
             let res = self.wait_for_message(Pgn::MemoryAccessResponse).await?;
             let Ok(res) = MemoryAccessResponse::try_from(res.data()) else {
-                return Err(io::Error::other("Could not deserialize frame"));
+                return Err(Error::J1939Transport(
+                    "could not deserialize frame".to_string(),
+                ));
             };
             match res.status() {
                 Status::OperationCompleted => {}
-                Status::Busy => return Err(io::Error::other("Device busy")),
+                Status::Busy => return Err(Error::J1939Transport("device busy".to_string())),
                 status => {
-                    return Err(io::Error::other(format!(
-                        "Memory access request failed: {:?}",
+                    return Err(Error::J1939Transport(format!(
+                        "memory access request failed: {:?}",
                         status
                     )));
                 }
@@ -403,7 +413,7 @@ impl Pdm20 {
     }
 
     /// Wait for a message with a given PGN that is addressed to us.
-    async fn wait_for_message(&self, pgn: Pgn) -> Result<CanFrame, io::Error> {
+    async fn wait_for_message(&self, pgn: Pgn) -> Result<CanFrame, Error> {
         log::debug!("Waiting for response with PGN: {:?}.", pgn);
 
         loop {
@@ -427,7 +437,7 @@ impl Pdm20 {
     }
 
     /// Do a TP transfer to the PDM.
-    async fn transfer(&self, payload: &[u8]) -> Result<(), io::Error> {
+    async fn transfer(&self, payload: &[u8]) -> Result<(), Error> {
         log::debug!("Starting transfer with length {}.", payload.len());
 
         // send request-to-send
@@ -447,7 +457,9 @@ impl Pdm20 {
             .wait_for_message(Pgn::TransportProtocolConnectionManagement)
             .await?;
         let Ok(_) = ClearToSend::try_from(res.data()) else {
-            return Err(io::Error::other("Did not get clear to send response"));
+            return Err(Error::J1939Transport(
+                "did not get clear-to-send response".to_string(),
+            ));
         };
 
         let id = saelient::Id::builder()
@@ -473,7 +485,9 @@ impl Pdm20 {
                 .await?;
             let Ok(cts) = ClearToSend::try_from(res.data()) else {
                 let Ok(_) = EndOfMessageAck::try_from(res.data()) else {
-                    return Err(io::Error::other("Did not get clear to send response"));
+                    return Err(Error::J1939Transport(
+                        "did not get clear-to-send response".to_string(),
+                    ));
                 };
 
                 return Ok(());
@@ -481,6 +495,8 @@ impl Pdm20 {
             sequence = cts.next_sequence();
         }
 
-        Err(io::Error::other("Did not get final end of message ack"))
+        Err(Error::J1939Transport(
+            "did not get final end of message ack".to_string(),
+        ))
     }
 }

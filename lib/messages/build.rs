@@ -18,6 +18,7 @@ fn generate(name: &str) {
         .dbc_name(name)
         .dbc_content(&file)
         .impl_defmt(FeatureConfig::Gated("defmt"))
+        .impl_error(FeatureConfig::Always)
         .build()
         .write_to_file(out_file)
         .expect("generate dbc code");

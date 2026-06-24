@@ -9,6 +9,7 @@ saelient = { workspace = true, features = ["std"] }
 log.workspace = true
 messages.workspace = true
 socketcan.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
