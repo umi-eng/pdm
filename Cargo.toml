@@ -20,7 +20,7 @@ crc = "3.4.0"
 heapless = "0.9.3"
 dbc-codegen = { version = "0.3.0", features = [
   "std",
-], git = "https://github.com/technocreatives/dbc-codegen.git", rev = "d1a0fd9" }
+], git = "https://github.com/oxibus/dbc-codegen.git", rev = "782ba90" }
 bitvec = { version = "1.0", default-features = false }
 embedded-can = "0.4"
 log = "0.4"

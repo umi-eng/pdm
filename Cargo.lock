@@ -351,9 +351,9 @@ checksum = "b35204fbdc0b3f4446b89fc1ac2cf84a8a68971995d0bf2e925ec7cd960f9cb3"
 
 [[package]]
 name = "can-dbc"
-version = "8.0.0"
+version = "9.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dbfd754b95a7c0b9d8a1baa8d4e427b49f491686c6e45c3e7b6b5e3bc6bf798"
+checksum = "9f7a2ee20067a5d9cdcb6df568549a14230a037129713ee20fea6b3fd23e50aa"
 dependencies = [
  "can-dbc-pest",
  "encoding_rs",
@@ -363,9 +363,9 @@ dependencies = [
 
 [[package]]
 name = "can-dbc-pest"
-version = "0.7.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70d4baf7c06ef884041a7fc2fbad73372fd4b7c1b5d1d3c009f0d96b6f0b0f3f"
+checksum = "598a39f5454c5c1b2dfad86f162a0a982aee85d09503b25834a6e9976dcf0eb0"
 dependencies = [
  "encoding_rs",
  "pest",
@@ -684,12 +684,15 @@ dependencies = [
 [[package]]
 name = "dbc-codegen"
 version = "0.3.0"
-source = "git+https://github.com/technocreatives/dbc-codegen.git?rev=d1a0fd9#d1a0fd9b36fe6ca3ec0a1ffae65efa967be73fa0"
+source = "git+https://github.com/oxibus/dbc-codegen.git?rev=782ba90#782ba90b0d265154fbfb47b657b717615d4e8ce3"
 dependencies = [
  "anyhow",
  "can-dbc",
  "embedded-can",
  "heck",
+ "prettyplease",
+ "quote",
+ "syn 2.0.118",
  "typed-builder",
 ]
 
@@ -2547,9 +2550,9 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "pest"
-version = "2.8.4"
+version = "2.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbcfd20a6d4eeba40179f05735784ad32bdaef05ce8e8af05f180d45bb3e7e22"
+checksum = "e0848c601009d37dfa3430c4666e147e49cdcf1b92ecd3e63657d8a5f19da662"
 dependencies = [
  "memchr",
  "ucd-trie",
@@ -2557,9 +2560,9 @@ dependencies = [
 
 [[package]]
 name = "pest_derive"
-version = "2.8.4"
+version = "2.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51f72981ade67b1ca6adc26ec221be9f463f2b5839c7508998daa17c23d94d7f"
+checksum = "11f486f1ea21e6c10ed15d5a7c77165d0ee443402f0780849d1768e7d9d6fe77"
 dependencies = [
  "pest",
  "pest_generator",
@@ -2567,9 +2570,9 @@ dependencies = [
 
 [[package]]
 name = "pest_generator"
-version = "2.8.4"
+version = "2.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dee9efd8cdb50d719a80088b76f81aec7c41ed6d522ee750178f83883d271625"
+checksum = "8040c4647b13b210a963c1ed407c1ff4fdfa01c31d6d2a098218702e6664f94f"
 dependencies = [
  "pest",
  "pest_meta",
@@ -2580,9 +2583,9 @@ dependencies = [
 
 [[package]]
 name = "pest_meta"
-version = "2.8.4"
+version = "2.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf1d70880e76bdc13ba52eafa6239ce793d85c8e43896507e43dd8984ff05b82"
+checksum = "89815c69d36021a140146f26659a81d6c2afa33d216d736dd4be5381a7362220"
 dependencies = [
  "pest",
  "sha2",
