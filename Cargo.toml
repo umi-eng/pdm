@@ -12,28 +12,28 @@ pdm = { path = "lib/pdm" }
 blocking-executor = { path = "lib/blocking-executor" }
 
 saelient = { version = "0.2.4", default-features = false }
-bitflags = "2.10.0"
+bitflags = "2.13.0"
 defmt = "1.1.0"
 defmt-rtt = "1.2.0"
-zerocopy = { version = "0.8.33", features = ["derive"] }
+zerocopy = { version = "0.8.52", features = ["derive"] }
 crc = "3.4.0"
-heapless = "0.8.0"
+heapless = "0.9.3"
 dbc-codegen = { version = "0.3.0", features = [
   "std",
 ], git = "https://github.com/technocreatives/dbc-codegen.git", rev = "d1a0fd9" }
 bitvec = { version = "1.0", default-features = false }
 embedded-can = "0.4"
-log = "0.4.27"
+log = "0.4"
 socketcan = { version = "3.5.0", features = ["tokio"] }
-tokio = { version = "1.45.1", features = ["full"] }
-tracing-subscriber = "0.3.19"
-clap = { version = "4.5.39", features = ["derive"] }
-anyhow = "1.0.98"
+tokio = { version = "1.52.3", features = ["full"] }
+tracing-subscriber = "0.3"
+clap = { version = "4.6.1", features = ["derive"] }
+anyhow = "1.0"
 st-driver = { git = "https://github.com/umi-eng/st-driver.git", version = "0.1.0", rev = "adbb026", features = [
   "defmt-1",
 ] }
-paste = "1.0.15"
+paste = "1.0"
 tlvc = { git = "https://github.com/oxidecomputer/tlvc.git", version = "0.3.1" }
 tlvc-text = { git = "https://github.com/oxidecomputer/tlvc.git" }
-facet = { version = "0.43.2", default-features = false }
-facet-toml = "0.43.2"
+facet = { version = "0.46.5", default-features = false }
+facet-toml = "0.46.1"

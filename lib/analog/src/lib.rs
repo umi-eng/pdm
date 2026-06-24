@@ -28,12 +28,12 @@ where
 }
 
 #[derive(Debug, Clone)]
-pub struct MovingAvg<T, const N: usize>(heapless::HistoryBuffer<T, N>);
+pub struct MovingAvg<T, const N: usize>(heapless::HistoryBuf<T, N>);
 
 impl<const N: usize> MovingAvg<f32, N> {
     /// Create a new moving average buffer.
     pub fn new() -> Self {
-        Self(heapless::HistoryBuffer::new())
+        Self(heapless::HistoryBuf::new())
     }
 
     /// Add a new value to the history buffer.
