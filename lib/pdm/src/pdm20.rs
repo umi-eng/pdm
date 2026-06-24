@@ -165,6 +165,7 @@ impl Pdm20 {
         mux.set_output_channel(output as u8).unwrap();
         mux.set_output_econ_delay(delay).unwrap();
         mux.set_output_econ_duty(duty.parameter().to_raw()).unwrap();
+        mux.set_output_heartbeat_duration(255).unwrap(); // set to j1939 not present value
 
         let mut frame = Configure::new(2).unwrap();
         frame.set_m2(mux).unwrap();
@@ -186,6 +187,7 @@ impl Pdm20 {
         let mut mux = ConfigureMuxM2::new();
         mux.set_output_channel(output as u8).unwrap();
         mux.set_output_econ_delay(0).unwrap();
+        mux.set_output_heartbeat_duration(255).unwrap(); // set to j1939 not present value
 
         let mut frame = Configure::new(2).unwrap();
         frame.set_m2(mux).unwrap();
@@ -214,6 +216,8 @@ impl Pdm20 {
         let mut mux = ConfigureMuxM2::new();
         mux.set_output_channel(output as u8).unwrap();
         mux.set_output_heartbeat_duration(duration).unwrap();
+        mux.set_output_econ_delay(255).unwrap(); // set to j1939 not present value
+        mux.set_output_econ_duty(255).unwrap(); // set to j1939 not present value
 
         let mut frame = Configure::new(2).unwrap();
         frame.set_m2(mux).unwrap();
@@ -235,6 +239,8 @@ impl Pdm20 {
         let mut mux = ConfigureMuxM2::new();
         mux.set_output_channel(output as u8).unwrap();
         mux.set_output_heartbeat_duration(0).unwrap();
+        mux.set_output_econ_delay(255).unwrap(); // set to j1939 not present value
+        mux.set_output_econ_duty(255).unwrap(); // set to j1939 not present value
 
         let mut frame = Configure::new(2).unwrap();
         frame.set_m2(mux).unwrap();
