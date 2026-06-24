@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+- Stop economisation feeding output heartbeat.
+
 ## v0.3.1
 
 - Fix economisation being reset when an output is turned on twice.

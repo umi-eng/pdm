@@ -31,14 +31,18 @@ impl OutputChannel {
         }
     }
 
+    fn set_pwm(&mut self, duty: u8) {
+        self.pin
+            .set_duty_cycle_fraction(duty as u16, u8::MAX as u16)
+            .expect("set output duty cycle");
+    }
+
     /// Turn output on with a PWM duty cycle.
     pub fn on(&mut self, duty: u8) {
         let now = Mono::now();
 
         if !self.economising {
-            self.pin
-                .set_duty_cycle_fraction(duty as u16, u8::MAX as u16)
-                .expect("set output duty cycle");
+            self.set_pwm(duty);
         }
 
         self.last_heartbeat = Some(now);
@@ -102,7 +106,7 @@ pub async fn outputs(cx: outputs::Context<'_>) {
                     && let Some(duration) = now.checked_duration_since(time)
                     && duration.to_millis() >= econ_delay[n] as u32
                 {
-                    channel.on(econ_duty[n]);
+                    channel.set_pwm(econ_duty[n]);
                     channel.economising = true;
                 }
 
