@@ -1,7 +1,12 @@
 [package]
 name = "pdm-tool"
+description = "UMI PDM command line tool"
 version = "0.1.0"
 edition = "2024"
+authors = ["Liam Kinne <liam@umi.engineering>"]
+readme = "README.md"
+repository = "https://github.com/umi-eng/pdm"
+license = "MPL-2.0"
 
 [dependencies]
 pdm.workspace = true
