@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["bin/*", "lib/*", "xtask"]
+members = ["bin/*", "lib/*", "xtask", "tool"]
 
 [workspace.dependencies]
 header = { path = "lib/header", features = ["defmt"] }
