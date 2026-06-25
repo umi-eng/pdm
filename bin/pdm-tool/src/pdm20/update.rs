@@ -4,7 +4,6 @@ use std::{io::Read, path::PathBuf};
 #[derive(clap::Parser)]
 pub struct Cmd {
     /// Firmware file.
-    #[clap(long)]
     firmware: PathBuf,
 }
 
