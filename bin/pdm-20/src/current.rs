@@ -1,5 +1,4 @@
 use crate::AnalogCh;
-use crate::DriverKind;
 use crate::Mono;
 use crate::app::current;
 use crate::app::current_status;
@@ -71,6 +70,21 @@ pub async fn current(mut cx: current::Context<'_>) {
         cx.shared.output_current.lock(|oc| *oc = measurements);
 
         Mono::delay_until(start + 1.millis()).await;
+    }
+}
+
+enum DriverKind {
+    HighCurrent,
+    LowCurrent,
+}
+
+impl DriverKind {
+    fn from_ch(ch: usize) -> Self {
+        match ch {
+            1 | 2 | 19 | 20 => Self::HighCurrent,
+            3..=18 => Self::LowCurrent,
+            _ => panic!("Channel number {} outside of bounds", ch),
+        }
     }
 }
 

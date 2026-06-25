@@ -554,18 +554,3 @@ pub enum AnalogCh<'a> {
 pub fn convert_to_millivolts(sample: u16) -> u16 {
     (u32::from(sample) * VREF_MV / 4095) as u16
 }
-
-pub enum DriverKind {
-    HighCurrent,
-    LowCurrent,
-}
-
-impl DriverKind {
-    fn from_ch(ch: usize) -> Self {
-        match ch {
-            1 | 2 | 19 | 20 => Self::HighCurrent,
-            3..=18 => Self::LowCurrent,
-            _ => panic!("Channel number {} outside of bounds", ch),
-        }
-    }
-}
