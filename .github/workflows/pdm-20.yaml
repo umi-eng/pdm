@@ -43,7 +43,7 @@ jobs:
           fi
         # Strips 'pdm-20/v' prefix on tag builds, leaving e.g. '1.2.3'
       - name: Build pdm-20 firmware
-        working-directory: bin/pdm-20
+        working-directory: firmware/pdm-20
         run: cargo build --release --locked
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v7
@@ -100,4 +100,4 @@ jobs:
           artifactErrorsFailBuild: true
           name: "PDM20 Firmware Release v${{ steps.version.outputs.VERSION }}"
           body: |
-            See the [changelog](https://github.com/umi-eng/pdm/blob/main/bin/pdm-20/CHANGELOG.md).
+            See the [changelog](https://github.com/umi-eng/pdm/blob/main/firmware/pdm-20/CHANGELOG.md).
