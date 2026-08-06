@@ -52,6 +52,8 @@ pub async fn updater(cx: updater::Context<'_>) {
                                 }
                                 firmware_size = 0;
                             }
+
+                            respond_complete(can, source_address, id.sa(), req.length()).await;
                         }
                         Command::Write => {
                             if let Pointer::Direct(addr) = req.pointer() {
