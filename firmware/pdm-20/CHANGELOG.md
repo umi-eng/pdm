@@ -5,6 +5,7 @@
 - Stop economisation feeding output heartbeat.
 - Apply exponential averaging to analog inputs.
 - Use a higher sample rate for analog inputs.
+- Avoid panic on timer wraparound.
 
 ## v0.3.1
 
