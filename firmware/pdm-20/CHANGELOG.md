@@ -6,6 +6,7 @@
 - Apply exponential averaging to analog inputs.
 - Use a higher sample rate for analog inputs.
 - Avoid panic on timer wraparound.
+- Prevent overflow when calculating source adress with offset.
 
 ## v0.3.1
 

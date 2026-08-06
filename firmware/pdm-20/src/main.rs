@@ -197,7 +197,7 @@ mod app {
         let adr1 = Input::new(p.PF10, Pull::Up);
         block_on(Mono::delay(2.millis())); // wait for input to settle
         let offset = (adr0.is_low() as u8) | ((adr1.is_low() as u8) << 1);
-        let source_address = source_address + offset;
+        let source_address = source_address.saturating_add(offset);
         defmt::info!("Source address: 0x{:x}", source_address);
 
         // Inter-task communication
