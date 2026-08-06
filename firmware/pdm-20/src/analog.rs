@@ -3,6 +3,7 @@ use crate::Mono;
 use crate::app::analog;
 use crate::convert_to_millivolts;
 use crate::hal;
+use ::analog::filter::ExpMovingAvg;
 use hal::adc::SampleTime;
 use hal::can::Frame;
 use messages::pdm20::{AnalogInputs, pgn};
@@ -42,20 +43,32 @@ pub async fn analog(cx: analog::Context<'_>) {
         AnalogCh::Adc5(ch) => adc5.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
     };
 
-    loop {
-        Mono::delay(100.millis()).await;
+    let alpha = 0.4;
+    let mut analog1 = ExpMovingAvg::new(alpha);
+    let mut analog2 = ExpMovingAvg::new(alpha);
+    let mut analog3 = ExpMovingAvg::new(alpha);
 
-        let adc1 = convert_to_volts(read(ain1));
-        let adc2 = convert_to_volts(read(ain2));
-        let adc3 = convert_to_volts(read(ain3));
+    loop {
+        for _ in 0..9 {
+            Mono::delay(10.millis()).await;
+            analog1.update(convert_to_volts(read(ain1)));
+            analog2.update(convert_to_volts(read(ain2)));
+            analog3.update(convert_to_volts(read(ain3)));
+        }
+
+        Mono::delay(10.millis()).await;
+
+        let ain1 = analog1.update(convert_to_volts(read(ain1)));
+        let ain2 = analog2.update(convert_to_volts(read(ain2)));
+        let ain3 = analog3.update(convert_to_volts(read(ain3)));
 
         // convert to j1939 slot
         //
         // todo: failure of this conversion should result in a j1939 error
         // indicator value being sent in the frame
-        let ain1 = SaeEV06::from_f32(adc1).unwrap();
-        let ain2 = SaeEV06::from_f32(adc2).unwrap();
-        let ain3 = SaeEV06::from_f32(adc3).unwrap();
+        let ain1 = SaeEV06::from_f32(ain1).unwrap();
+        let ain2 = SaeEV06::from_f32(ain2).unwrap();
+        let ain3 = SaeEV06::from_f32(ain3).unwrap();
 
         // get raw value
         let input1 = ain1.parameter().to_raw();
