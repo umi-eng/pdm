@@ -3,6 +3,8 @@
 # [Unreleased]
 
 - Stop economisation feeding output heartbeat.
+- Apply exponential averaging to analog inputs.
+- Use a higher sample rate for analog inputs.
 
 ## v0.3.1
 
