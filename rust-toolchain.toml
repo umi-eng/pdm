@@ -1,0 +1,4 @@
+[toolchain]
+# A specific Rust version is chosen rather than following stable for
+# repeatability.
+channel = "1.97.1"
