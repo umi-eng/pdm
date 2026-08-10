@@ -5,6 +5,7 @@
         "check": {
           "allTargets": false,
           "targets": "thumbv7em-none-eabihf",
+          "extraArgs": ["-p", "pdm-20"],
         },
       },
     },
