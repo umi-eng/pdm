@@ -42,8 +42,10 @@ pub async fn analog(cx: analog::Context<'_>) {
         let mut reading2 = 0.0;
         let mut reading3 = 0.0;
 
-        for _ in 0..10 {
-            Mono::delay(10.millis()).await;
+        let start = Mono::now();
+
+        for sample in 1..=10 {
+            Mono::delay_until(start + (sample * 10).millis()).await;
             reading1 = analog1.update(convert_to_volts(read(ain1)));
             reading2 = analog2.update(convert_to_volts(read(ain2)));
             reading3 = analog3.update(convert_to_volts(read(ain3)));
