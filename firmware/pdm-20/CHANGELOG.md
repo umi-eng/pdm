@@ -8,6 +8,8 @@
 - Avoid panic on timer wraparound.
 - Prevent overflow when calculating source adress with offset.
 - Respond "Complete" to J1939 memory access request erase.
+- Return correct J1939 error indicator when analog reading fails to convert.
+- Increase analog input sampling time.
 
 ## v0.3.1
 
