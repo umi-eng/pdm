@@ -49,18 +49,16 @@ pub async fn analog(cx: analog::Context<'_>) {
             reading3 = analog3.update(convert_to_volts(read(ain3)));
         }
 
-        // convert to j1939 slot
-        //
-        // todo: failure of this conversion should result in a j1939 error
-        // indicator value being sent in the frame
-        let ain1 = SaeEV06::from_f32(reading1).unwrap();
-        let ain2 = SaeEV06::from_f32(reading2).unwrap();
-        let ain3 = SaeEV06::from_f32(reading3).unwrap();
-
-        // get raw value
-        let input1 = ain1.parameter().to_raw();
-        let input2 = ain2.parameter().to_raw();
-        let input3 = ain3.parameter().to_raw();
+        let error_indicator = 0xFE00;
+        let input1 = SaeEV06::from_f32(reading1)
+            .map(|value| value.parameter().to_raw())
+            .unwrap_or(error_indicator);
+        let input2 = SaeEV06::from_f32(reading2)
+            .map(|value| value.parameter().to_raw())
+            .unwrap_or(error_indicator);
+        let input3 = SaeEV06::from_f32(reading3)
+            .map(|value| value.parameter().to_raw())
+            .unwrap_or(error_indicator);
 
         let data = match AnalogInputs::new(input1, input2, input3) {
             Ok(d) => d,
