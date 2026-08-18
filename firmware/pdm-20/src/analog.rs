@@ -38,26 +38,24 @@ pub async fn analog(cx: analog::Context<'_>) {
     let mut analog3 = ExpMovingAvg::new(alpha);
 
     loop {
-        for _ in 0..9 {
+        let mut reading1 = 0.0;
+        let mut reading2 = 0.0;
+        let mut reading3 = 0.0;
+
+        for _ in 0..10 {
             Mono::delay(10.millis()).await;
-            analog1.update(convert_to_volts(read(ain1)));
-            analog2.update(convert_to_volts(read(ain2)));
-            analog3.update(convert_to_volts(read(ain3)));
+            reading1 = analog1.update(convert_to_volts(read(ain1)));
+            reading2 = analog2.update(convert_to_volts(read(ain2)));
+            reading3 = analog3.update(convert_to_volts(read(ain3)));
         }
-
-        Mono::delay(10.millis()).await;
-
-        let ain1 = analog1.update(convert_to_volts(read(ain1)));
-        let ain2 = analog2.update(convert_to_volts(read(ain2)));
-        let ain3 = analog3.update(convert_to_volts(read(ain3)));
 
         // convert to j1939 slot
         //
         // todo: failure of this conversion should result in a j1939 error
         // indicator value being sent in the frame
-        let ain1 = SaeEV06::from_f32(ain1).unwrap();
-        let ain2 = SaeEV06::from_f32(ain2).unwrap();
-        let ain3 = SaeEV06::from_f32(ain3).unwrap();
+        let ain1 = SaeEV06::from_f32(reading1).unwrap();
+        let ain2 = SaeEV06::from_f32(reading2).unwrap();
+        let ain3 = SaeEV06::from_f32(reading3).unwrap();
 
         // get raw value
         let input1 = ain1.parameter().to_raw();
