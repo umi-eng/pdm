@@ -1,4 +1,3 @@
-use crate::AnalogCh;
 use crate::Mono;
 use crate::app::analog;
 use crate::convert_to_millivolts;
@@ -19,11 +18,7 @@ pub async fn analog(cx: analog::Context<'_>) {
     let analog::SharedResources {
         can_tx,
         source_address,
-        mut adc1,
         mut adc2,
-        mut adc3,
-        mut adc4,
-        mut adc5,
         ..
     } = cx.shared;
 
@@ -35,13 +30,7 @@ pub async fn analog(cx: analog::Context<'_>) {
         .build()
         .unwrap();
 
-    let mut read = |ch: &mut _| match ch {
-        AnalogCh::Adc1(ch) => adc1.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc2(ch) => adc2.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc3(ch) => adc3.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc4(ch) => adc4.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc5(ch) => adc5.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-    };
+    let mut read = |ch: &mut _| adc2.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME));
 
     let alpha = 0.4;
     let mut analog1 = ExpMovingAvg::new(alpha);

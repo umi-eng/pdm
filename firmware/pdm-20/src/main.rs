@@ -100,9 +100,9 @@ mod app {
         updater_rx: channel::Receiver<'static, can::Frame, 8>,
         temperature: adc::Temperature,
         i_sense: [AnalogCh<'static>; 20],
-        ain1: AnalogCh<'static>,
-        ain2: AnalogCh<'static>,
-        ain3: AnalogCh<'static>,
+        ain1: AnyAdcChannel<'static, ADC2>,
+        ain2: AnyAdcChannel<'static, ADC2>,
+        ain3: AnyAdcChannel<'static, ADC2>,
         ain_bus: AnyAdcChannel<'static, ADC3>,
         shunt_in: AnyAdcChannel<'static, ADC2>,
         _shunt_fault: Input<'static>,
@@ -397,9 +397,9 @@ mod app {
 
         let temperature = adc1.enable_temperature();
 
-        let ain1 = AnalogCh::Adc2(p.PA6.degrade_adc());
-        let ain2 = AnalogCh::Adc2(p.PA7.degrade_adc());
-        let ain3 = AnalogCh::Adc2(p.PC4.degrade_adc());
+        let ain1 = p.PA6.degrade_adc();
+        let ain2 = p.PA7.degrade_adc();
+        let ain3 = p.PC4.degrade_adc();
         let ain_bus = p.PD14.degrade_adc();
 
         let shunt_in = p.PC5.degrade_adc();
@@ -523,11 +523,7 @@ mod app {
             shared = [
                 &can_tx,
                 &source_address,
-                adc1,
                 adc2,
-                adc3,
-                adc4,
-                adc5,
             ]
         )]
         async fn analog(cx: analog::Context);
