@@ -22,7 +22,7 @@ pub async fn analog(cx: analog::Context<'_>) {
         ..
     } = cx.shared;
 
-    const SAMPLE_TIME: SampleTime = SampleTime::CYCLES92_5;
+    const SAMPLE_TIME: SampleTime = SampleTime::CYCLES640_5;
 
     let id = saelient::Id::builder()
         .pgn(pgn::ANALOG)
