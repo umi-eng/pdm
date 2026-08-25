@@ -18,6 +18,8 @@ use std::io;
 
 slot_impl!(Current, Param10, 0.0, 0.01, "A", "Current - 10mA per bit");
 
+pub use messages::pdm36 as messages;
+
 pub type Outputs = crate::Outputs<36>;
 
 /// PDM36 interface.

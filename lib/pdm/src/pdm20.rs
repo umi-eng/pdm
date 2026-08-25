@@ -29,6 +29,8 @@ use socketcan::{CanFrame, tokio::CanSocket};
 use std::time::Duration;
 use thiserror::Error;
 
+pub use messages::pdm20 as messages;
+
 pub type Outputs = crate::Outputs<20>;
 
 #[derive(Error, Debug)]
