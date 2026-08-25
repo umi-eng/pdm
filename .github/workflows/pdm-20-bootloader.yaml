@@ -22,6 +22,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: thumbv7em-none-eabihf
+      - name: Install ARM target
+        run: rustup target add thumbv7em-none-eabihf
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
       - name: Install packages
