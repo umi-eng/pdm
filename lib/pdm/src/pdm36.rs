@@ -1,10 +1,10 @@
-use embedded_can::Frame;
-use messages::OutputState;
-use messages::pdm36::pgn;
-use messages::pdm36::{
+use ::messages::OutputState;
+use ::messages::pdm36::pgn;
+use ::messages::pdm36::{
     AnalogInputs, Control, ControlMuxM0, ControlMuxM1, ControlMuxM2, CurrentSense,
     CurrentSenseMuxIndex,
 };
+use embedded_can::Frame;
 use saelient::slot_impl;
 use saelient::{
     PduFormat, Pgn,
