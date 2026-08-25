@@ -20,6 +20,8 @@ jobs:
           components: rustfmt
       - name: Install rustfmt
         run: rustup component add rustfmt
+      - name: Install ARM target
+        run: rustup target add thumbv7em-none-eabihf
       - name: Check format
         run: cargo fmt --all -- --check
 
@@ -35,6 +37,8 @@ jobs:
           targets: thumbv7em-none-eabihf
       - name: Install Clippy
         run: rustup component add clippy
+      - name: Install ARM target
+        run: rustup target add thumbv7em-none-eabihf
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
       - name: std crates
