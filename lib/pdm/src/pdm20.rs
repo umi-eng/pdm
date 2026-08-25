@@ -1,16 +1,16 @@
+use ::messages::OutputState;
+use ::messages::pdm20::AnalogInputs;
+use ::messages::pdm20::Configure;
+use ::messages::pdm20::ConfigureMuxM0;
+use ::messages::pdm20::ConfigureMuxM2;
+use ::messages::pdm20::Control;
+use ::messages::pdm20::ControlMuxM0;
+use ::messages::pdm20::CurrentSense;
+use ::messages::pdm20::CurrentSenseMuxIndex;
+use ::messages::pdm20::pgn;
+use ::messages::pdm20::slot;
 use embedded_can::Frame;
 use embedded_can::Id;
-use messages::OutputState;
-use messages::pdm20::AnalogInputs;
-use messages::pdm20::Configure;
-use messages::pdm20::ConfigureMuxM0;
-use messages::pdm20::ConfigureMuxM2;
-use messages::pdm20::Control;
-use messages::pdm20::ControlMuxM0;
-use messages::pdm20::CurrentSense;
-use messages::pdm20::CurrentSenseMuxIndex;
-use messages::pdm20::pgn;
-use messages::pdm20::slot;
 use saelient::PduFormat;
 use saelient::Pgn;
 use saelient::diagnostic::Command;
@@ -29,6 +29,8 @@ use socketcan::{CanFrame, tokio::CanSocket};
 use std::time::Duration;
 use thiserror::Error;
 
+pub use messages::pdm20 as messages;
+
 pub type Outputs = crate::Outputs<20>;
 
 #[derive(Error, Debug)]
@@ -36,7 +38,7 @@ pub enum Error {
     #[error("io error")]
     Io(#[from] std::io::Error),
     #[error("dbc message error")]
-    CanDbc(#[from] messages::pdm20::CanError),
+    CanDbc(#[from] ::messages::pdm20::CanError),
     #[error("socketcan error")]
     CanSocket(#[from] socketcan::Error),
     #[error("j1939 transport protocol error")]
