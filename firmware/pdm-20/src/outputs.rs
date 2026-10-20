@@ -1,9 +1,13 @@
 use crate::Mono;
 use crate::app::outputs;
-use crate::hal;
+use crate::hal::hrtim::Pscl128;
+use crate::hal::hrtim::stm32_hrtim::{
+    compare_register::{HrCompareRegister, HrCr1, HrCr2},
+    output::{HrOut1, HrOut2, HrOutput},
+    pac::HRTIM_TIMC,
+};
 use core::convert::Infallible;
 use embedded_hal::pwm::SetDutyCycle;
-use hal::gpio::Output;
 use rtic::Mutex;
 use rtic_monotonics::Monotonic;
 use rtic_monotonics::fugit::ExtU32;
@@ -62,23 +66,88 @@ impl OutputChannel {
     }
 }
 
-pub struct HrTimerOutput(pub Output<'static>);
+/// HRTIM's input clock is 160 MHz. With its x32 high-resolution clock and /128
+/// prescaler, Timer C counts at 40 MHz, so 40,000 counts produce a 1 kHz period.
+pub const HRTIM_PWM_PERIOD: u16 = 39_999;
+
+pub struct HrTimerOutput {
+    channel: HrTimerOutputChannel,
+}
+
+enum HrTimerOutputChannel {
+    C1 {
+        compare: HrCr1<HRTIM_TIMC, Pscl128>,
+        output: HrOut1<HRTIM_TIMC, Pscl128>,
+    },
+    C2 {
+        compare: HrCr2<HRTIM_TIMC, Pscl128>,
+        output: HrOut2<HRTIM_TIMC, Pscl128>,
+    },
+}
+
+impl HrTimerOutput {
+    pub fn channel_c1(
+        compare: HrCr1<HRTIM_TIMC, Pscl128>,
+        output: HrOut1<HRTIM_TIMC, Pscl128>,
+    ) -> Self {
+        let mut output = Self {
+            channel: HrTimerOutputChannel::C1 { compare, output },
+        };
+        output.set_duty_cycle(0).expect("initialize HRTIM output");
+        output
+    }
+
+    pub fn channel_c2(
+        compare: HrCr2<HRTIM_TIMC, Pscl128>,
+        output: HrOut2<HRTIM_TIMC, Pscl128>,
+    ) -> Self {
+        let mut output = Self {
+            channel: HrTimerOutputChannel::C2 { compare, output },
+        };
+        output.set_duty_cycle(0).expect("initialize HRTIM output");
+        output
+    }
+}
 
 impl embedded_hal::pwm::ErrorType for HrTimerOutput {
     type Error = Infallible;
 }
 
-// Dummy implementation until proper PWM support is sorted.
 impl SetDutyCycle for HrTimerOutput {
     fn max_duty_cycle(&self) -> u16 {
-        1
+        HRTIM_PWM_PERIOD
     }
 
     fn set_duty_cycle(&mut self, duty: u16) -> Result<(), Self::Error> {
-        match duty {
-            1 => self.0.set_high(),
-            _ => self.0.set_low(),
+        let duty = duty.min(HRTIM_PWM_PERIOD);
+
+        match &mut self.channel {
+            HrTimerOutputChannel::C1 { compare, output } => {
+                if duty == 0 {
+                    output.disable();
+                } else if duty == HRTIM_PWM_PERIOD {
+                    output.disable_rst_event(compare);
+                    output.enable();
+                } else {
+                    compare.set_duty(duty.max(3));
+                    output.enable_rst_event(compare);
+                    output.enable();
+                }
+            }
+            HrTimerOutputChannel::C2 { compare, output } => {
+                if duty == 0 {
+                    output.disable();
+                } else if duty == HRTIM_PWM_PERIOD {
+                    output.disable_rst_event(compare);
+                    output.enable();
+                } else {
+                    compare.set_duty(duty.max(3));
+                    output.enable_rst_event(compare);
+                    output.enable();
+                }
+            }
         }
+
         Ok(())
     }
 }

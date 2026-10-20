@@ -37,6 +37,11 @@ use hal::adc::AnyAdcChannel;
 use hal::can;
 use hal::flash;
 use hal::gpio::*;
+use hal::hrtim::HrControltExt;
+use hal::hrtim::HrPwmBuilderExt;
+use hal::hrtim::stm32_hrtim::HrPwmAdvExt;
+use hal::hrtim::stm32_hrtim::output::HrOutput;
+use hal::hrtim::stm32_hrtim::timer::HrTimer;
 use hal::peripherals::*;
 use hal::time::*;
 use hal::timer::simple_pwm::PwmPin;
@@ -363,14 +368,52 @@ mod app {
         tim20.ch1.enable();
         tim20.ch2.enable();
 
-        let hrtim1_chc1 =
-            cx.local
-                .hrtim1_chc1
-                .write(HrTimerOutput(Output::new(p.PB12, Level::Low, Speed::Low)));
-        let hrtim1_chc2 =
-            cx.local
-                .hrtim1_chc2
-                .write(HrTimerOutput(Output::new(p.PB13, Level::Low, Speed::Low)));
+        let hal::hrtim::Parts {
+            control: calibration,
+            timc,
+            ..
+        } = p.HRTIM1.hr_control();
+        let (calibrated, _, _) = calibration.wait_for_calibration();
+        let mut hrtim_control = calibrated.constrain();
+
+        let hrtim = timc
+            .pwm_advanced(
+                hal::hrtim::Pin {
+                    pin: p.PB12,
+                    speed: Speed::Low,
+                },
+                hal::hrtim::Pin {
+                    pin: p.PB13,
+                    speed: Speed::Low,
+                },
+            )
+            .prescaler(hal::hrtim::Pscl128)
+            .period(HRTIM_PWM_PERIOD)
+            .preload(hal::hrtim::stm32_hrtim::PreloadSource::OnRepetitionUpdate)
+            .finalize(&mut hrtim_control);
+        let hal::hrtim::stm32_hrtim::HrParts {
+            mut timer,
+            cr1,
+            cr2,
+            mut out1,
+            mut out2,
+            ..
+        } = hrtim;
+
+        out1.enable_set_event(&timer);
+        out1.enable_rst_event(&cr1);
+        out2.enable_set_event(&timer);
+        out2.enable_rst_event(&cr2);
+
+        let hrtim1_chc1 = cx
+            .local
+            .hrtim1_chc1
+            .write(HrTimerOutput::channel_c1(cr1, out1));
+        let hrtim1_chc2 = cx
+            .local
+            .hrtim1_chc2
+            .write(HrTimerOutput::channel_c2(cr2, out2));
+        timer.start(&mut hrtim_control.control);
 
         let outputs: [OutputChannel; _] = [
             OutputChannel::new(&mut tim15.ch1),
