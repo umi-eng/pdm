@@ -2925,16 +2925,16 @@ dependencies = [
 
 [[package]]
 name = "rtic-sync"
-version = "1.4.0"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d378d811a8e25411a139f1428804e390fb2dc9b5bcf84e880a19c25feaa89a2a"
+checksum = "32eda24d51c95fe3d2cce85a63296fea042b810f99073dda26aadf9f1f175cfa"
 dependencies = [
  "critical-section",
  "defmt 0.3.100",
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-hal-bus",
- "heapless 0.8.0",
+ "heapless 0.9.3",
  "loom",
  "portable-atomic",
  "rtic-common",
