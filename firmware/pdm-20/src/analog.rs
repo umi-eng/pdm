@@ -1,3 +1,4 @@
+use crate::Irqs;
 use crate::Mono;
 use crate::VREF_MV;
 use crate::app::analog;
@@ -6,7 +7,6 @@ use ::analog::filter::ExpMovingAvg;
 use hal::adc::SampleTime;
 use hal::can::Frame;
 use messages::pdm20::{AnalogInputs, pgn};
-use rtic::mutex_prelude::*;
 use rtic_monotonics::systick::prelude::*;
 use saelient::prelude::*;
 use saelient::slot::SaeEV06;
@@ -24,12 +24,16 @@ const _: () = assert!(FULL_SCALE <= u16::MAX as u32);
 
 pub async fn analog(cx: analog::Context<'_>) {
     let analog::LocalResources {
-        ain1, ain2, ain3, ..
+        ain1,
+        ain2,
+        ain3,
+        adc_dma,
+        ..
     } = cx.local;
     let analog::SharedResources {
         can_tx,
         source_address,
-        mut adc2,
+        adc2,
         ..
     } = cx.shared;
 
@@ -46,6 +50,8 @@ pub async fn analog(cx: analog::Context<'_>) {
     let mut analog2 = ExpMovingAvg::new(alpha);
     let mut analog3 = ExpMovingAvg::new(alpha);
 
+    let mut readings = [0u16; 3];
+
     loop {
         let mut reading1 = 0.0;
         let mut reading2 = 0.0;
@@ -55,27 +61,33 @@ pub async fn analog(cx: analog::Context<'_>) {
 
         for sample in 1..=10 {
             Mono::delay_until(start + (sample * 10).millis()).await;
+            {
+                let mut adc = adc2.access().await;
 
-            let [sample1, sample2, sample3] = adc2.lock(|adc| {
                 // Oversampling is enabled only while reading the analog inputs,
                 // because ADC2 is shared with the 12-bit current and power
                 // measurements.
                 set_oversampling(true);
 
-                let samples = [
-                    adc.blocking_read(&mut *ain1, SAMPLE_TIME),
-                    adc.blocking_read(&mut *ain2, SAMPLE_TIME),
-                    adc.blocking_read(&mut *ain3, SAMPLE_TIME),
-                ];
+                adc.read(
+                    adc_dma.reborrow(),
+                    Irqs,
+                    [
+                        (&mut *ain1, SAMPLE_TIME),
+                        (&mut *ain2, SAMPLE_TIME),
+                        (&mut *ain3, SAMPLE_TIME),
+                    ]
+                    .into_iter(),
+                    &mut readings,
+                )
+                .await;
 
                 set_oversampling(false);
+            }
 
-                samples
-            });
-
-            reading1 = analog1.update(convert_to_volts(sample1));
-            reading2 = analog2.update(convert_to_volts(sample2));
-            reading3 = analog3.update(convert_to_volts(sample3));
+            reading1 = analog1.update(convert_to_volts(readings[0]));
+            reading2 = analog2.update(convert_to_volts(readings[1]));
+            reading3 = analog3.update(convert_to_volts(readings[2]));
         }
 
         let error_indicator = 0xFE00;

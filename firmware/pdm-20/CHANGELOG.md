@@ -12,6 +12,7 @@
 - Increase analog input sampling time.
 - Add support for PWM on channels 19 and 20.
 - Use hardware oversampling to increase analog input resolution.
+- Read analog inputs with DMA so sampling does not block the executor.
 
 ## v0.3.1
 
