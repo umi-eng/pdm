@@ -3,8 +3,6 @@
 # [Unreleased]
 
 - Stop economisation feeding output heartbeat.
-- Apply exponential averaging to analog inputs.
-- Use a higher sample rate for analog inputs.
 - Avoid panic on timer wraparound.
 - Prevent overflow when calculating source adress with offset.
 - Respond "Complete" to J1939 memory access request erase.

@@ -3,7 +3,6 @@ use crate::Mono;
 use crate::VREF_MV;
 use crate::app::analog;
 use crate::hal;
-use ::analog::filter::ExpMovingAvg;
 use hal::adc::SampleTime;
 use hal::can::Frame;
 use messages::pdm20::{AnalogInputs, pgn};
@@ -45,50 +44,38 @@ pub async fn analog(cx: analog::Context<'_>) {
         .build()
         .unwrap();
 
-    let alpha = 0.4;
-    let mut analog1 = ExpMovingAvg::new(alpha);
-    let mut analog2 = ExpMovingAvg::new(alpha);
-    let mut analog3 = ExpMovingAvg::new(alpha);
-
     let mut readings = [0u16; 3];
 
     loop {
-        let mut reading1 = 0.0;
-        let mut reading2 = 0.0;
-        let mut reading3 = 0.0;
+        Mono::delay(100.millis()).await;
 
-        let start = Mono::now();
+        {
+            let mut adc = adc2.access().await;
 
-        for sample in 1..=10 {
-            Mono::delay_until(start + (sample * 10).millis()).await;
-            {
-                let mut adc = adc2.access().await;
+            // Oversampling is enabled only while reading the analog inputs,
+            // because ADC2 is shared with the 12-bit current and power
+            // measurements.
+            set_oversampling(true);
 
-                // Oversampling is enabled only while reading the analog inputs,
-                // because ADC2 is shared with the 12-bit current and power
-                // measurements.
-                set_oversampling(true);
+            adc.read(
+                adc_dma.reborrow(),
+                Irqs,
+                [
+                    (&mut *ain1, SAMPLE_TIME),
+                    (&mut *ain2, SAMPLE_TIME),
+                    (&mut *ain3, SAMPLE_TIME),
+                ]
+                .into_iter(),
+                &mut readings,
+            )
+            .await;
 
-                adc.read(
-                    adc_dma.reborrow(),
-                    Irqs,
-                    [
-                        (&mut *ain1, SAMPLE_TIME),
-                        (&mut *ain2, SAMPLE_TIME),
-                        (&mut *ain3, SAMPLE_TIME),
-                    ]
-                    .into_iter(),
-                    &mut readings,
-                )
-                .await;
-
-                set_oversampling(false);
-            }
-
-            reading1 = analog1.update(convert_to_volts(readings[0]));
-            reading2 = analog2.update(convert_to_volts(readings[1]));
-            reading3 = analog3.update(convert_to_volts(readings[2]));
+            set_oversampling(false);
         }
+
+        let reading1 = convert_to_volts(readings[0]);
+        let reading2 = convert_to_volts(readings[1]);
+        let reading3 = convert_to_volts(readings[2]);
 
         let error_indicator = 0xFE00;
         let input1 = SaeEV06::from_f32(reading1)
