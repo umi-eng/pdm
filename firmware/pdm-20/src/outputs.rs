@@ -6,6 +6,8 @@ use crate::hal::hrtim::stm32_hrtim::{
     output::{HrOut1, HrOut2, HrOutput},
     pac::HRTIM_TIMC,
 };
+use crate::hal::timer::CoreInstance;
+use crate::pac;
 use core::convert::Infallible;
 use embedded_hal::pwm::SetDutyCycle;
 use rtic::Mutex;
@@ -69,6 +71,27 @@ impl OutputChannel {
 /// HRTIM's input clock is 160 MHz. With its x32 high-resolution clock and /128
 /// prescaler, Timer C counts at 40 MHz, so 40,000 counts produce a 1 kHz period.
 pub const HRTIM_PWM_PERIOD: u16 = 39_999;
+
+/// Convert a phase expressed in eighths of a period into a counter offset.
+pub fn phase_offset(period: u32, eighths: u32) -> u16 {
+    ((period * eighths) / 8) as u16
+}
+
+/// Set the initial counter value of a general-purpose timer, shifting its PWM
+/// phase. `offset` is in timer counts (0..=ARR).
+pub fn set_timer_phase<T: CoreInstance>(offset: u16) {
+    let regs = unsafe { pac::timer::TimCore::from_ptr(T::regs()) };
+    regs.cnt().write(|r| r.set_cnt(offset));
+}
+
+/// Set the initial counter value of HRTIM timer C, shifting its PWM phase.
+/// `offset` is in HRTIM counts (0..=PER).
+pub fn set_hrtim_phase(offset: u16) {
+    unsafe {
+        let tim = &*HRTIM_TIMC::ptr();
+        tim.cntr().write(|w| w.cnt().bits(offset));
+    }
+}
 
 pub struct HrTimerOutput {
     channel: HrTimerOutputChannel,
