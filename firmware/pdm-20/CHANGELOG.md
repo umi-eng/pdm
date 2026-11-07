@@ -11,6 +11,7 @@
 - Add support for PWM on channels 19 and 20.
 - Use hardware oversampling to increase analog input resolution.
 - Read analog inputs with DMA so sampling does not block the executor.
+- Sample analog inputs at 150 Hz and average 15 samples per report.
 
 ## v0.3.1
 
