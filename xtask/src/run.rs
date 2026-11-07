@@ -33,7 +33,7 @@ impl Run {
         println!("Patching .header section");
         PatchHeader {
             firmware: self.path.clone(),
-            version: manifest.package().version().to_owned(),
+            version: manifest.package().version().to_string(),
             target: config.target,
             bootloader: false,
         }
