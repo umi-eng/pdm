@@ -2078,22 +2078,13 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.38.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "271638cd5fa9cca89c4c304675ca658efc4e64a66c716b7cfe1afb4b9611dbbc"
-dependencies = [
- "flate2",
- "memchr",
- "ruzstd",
-]
-
-[[package]]
-name = "object"
 version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e5a6c098c7a3b6547378093f5cc30bc54fd361ce711e05293a5cc589562739b"
 dependencies = [
+ "flate2",
  "memchr",
+ "ruzstd",
 ]
 
 [[package]]
@@ -2389,7 +2380,7 @@ dependencies = [
  "jep106",
  "nix 0.31.3",
  "nusb",
- "object 0.39.1",
+ "object",
  "parking_lot",
  "probe-rs-target",
  "rmp-serde",
@@ -3950,7 +3941,7 @@ dependencies = [
  "facet",
  "facet-toml",
  "header",
- "object 0.38.1",
+ "object",
  "probe-rs",
  "rand",
  "salty",
