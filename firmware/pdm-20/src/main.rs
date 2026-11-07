@@ -209,7 +209,15 @@ mod app {
         let (updater_tx, updater_rx) = make_channel!(can::Frame, 8);
 
         let adc1 = adc::Adc::new(p.ADC1, Default::default());
-        let adc2 = adc::Adc::new(p.ADC2, Default::default());
+        let adc2 = adc::Adc::new(
+            p.ADC2,
+            adc::AdcConfig {
+                oversampling_ratio: Some(OVERSAMPLING_OVSR),
+                oversampling_shift: Some(OVERSAMPLING_OVSS),
+                oversampling_mode: Some((adc::Rovsm::CONTINUED, adc::Trovs::AUTOMATIC, false)),
+                ..Default::default()
+            },
+        );
         let adc3 = adc::Adc::new(p.ADC3, Default::default());
         let adc4 = adc::Adc::new(p.ADC4, Default::default());
         let adc5 = adc::Adc::new(p.ADC5, Default::default());
