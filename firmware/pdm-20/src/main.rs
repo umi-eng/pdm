@@ -326,6 +326,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM15>(phase_offset(tim15.max_duty_cycle(), 0));
         let tim15 = cx.local.tim15.write(tim15.split());
         tim15.ch1.enable();
         tim15.ch2.enable();
@@ -339,6 +340,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM8>(phase_offset(tim8.max_duty_cycle(), 1));
         let tim8 = cx.local.tim8.write(tim8.split());
         tim8.ch1.enable();
         tim8.ch2.enable();
@@ -354,6 +356,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM4>(phase_offset(tim4.max_duty_cycle(), 2));
         let tim4 = cx.local.tim4.write(tim4.split());
         tim4.ch1.enable();
         tim4.ch2.enable();
@@ -367,6 +370,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM3>(phase_offset(tim3.max_duty_cycle(), 3));
         let tim3 = cx.local.tim3.write(tim3.split());
         tim3.ch1.enable();
         tim3.ch2.enable();
@@ -380,6 +384,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM2>(phase_offset(tim2.max_duty_cycle(), 6));
         let tim2 = cx.local.tim2.write(tim2.split());
         tim2.ch1.enable();
         tim2.ch2.enable();
@@ -393,6 +398,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM1>(phase_offset(tim1.max_duty_cycle(), 5));
         let tim1 = cx.local.tim1.write(tim1.split());
         tim1.ch1.enable();
         tim1.ch2.enable();
@@ -408,6 +414,7 @@ mod app {
             pwm_freq,
             Default::default(),
         );
+        set_timer_phase::<TIM20>(phase_offset(tim20.max_duty_cycle(), 7));
         let tim20 = cx.local.tim20.write(tim20.split());
         tim20.ch1.enable();
         tim20.ch2.enable();
@@ -457,6 +464,7 @@ mod app {
             .local
             .hrtim1_chc2
             .write(HrTimerOutput::channel_c2(cr2, out2));
+        set_hrtim_phase(phase_offset(HRTIM_PWM_PERIOD as u32 + 1, 4));
         timer.start(&mut hrtim_control.control);
 
         let outputs: [OutputChannel; _] = [
