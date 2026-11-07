@@ -17,7 +17,7 @@ dependencies = [
  "cfg-if",
  "once_cell",
  "version_check",
- "zerocopy 0.8.52",
+ "zerocopy 0.8.63",
 ]
 
 [[package]]
@@ -48,7 +48,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 name = "analog"
 version = "0.1.0"
 dependencies = [
- "heapless 0.9.3",
+ "heapless",
 ]
 
 [[package]]
@@ -458,7 +458,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd93fd2c1b27acd030440c9dbd9d14c1122aad622374fe05a670b67a4bc034be"
 dependencies = [
- "heapless 0.9.3",
+ "heapless",
  "thiserror",
 ]
 
@@ -934,7 +934,7 @@ dependencies = [
  "embedded-storage",
  "embedded-storage-async",
  "futures-util",
- "heapless 0.9.3",
+ "heapless",
  "nb 1.1.0",
  "proc-macro2",
  "quote",
@@ -963,7 +963,7 @@ dependencies = [
  "embedded-io-async 0.7.0",
  "futures-core",
  "futures-sink",
- "heapless 0.9.3",
+ "heapless",
 ]
 
 [[package]]
@@ -1539,17 +1539,7 @@ dependencies = [
  "bitflags 2.13.0",
  "crc",
  "defmt 1.1.0",
- "zerocopy 0.8.52",
-]
-
-[[package]]
-name = "heapless"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bfb9eb618601c89945a70e254898da93b13be0388091d42117462b265bb3fad"
-dependencies = [
- "hash32",
- "stable_deref_trait",
+ "zerocopy 0.8.63",
 ]
 
 [[package]]
@@ -2204,7 +2194,7 @@ dependencies = [
  "saelient",
  "sequential-storage 7.0.0",
  "vpd",
- "zerocopy 0.8.52",
+ "zerocopy 0.8.63",
 ]
 
 [[package]]
@@ -2410,7 +2400,7 @@ dependencies = [
  "tracing",
  "uf2-decode",
  "yaml_serde",
- "zerocopy 0.8.52",
+ "zerocopy 0.8.63",
 ]
 
 [[package]]
@@ -2648,7 +2638,7 @@ dependencies = [
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-hal-bus",
- "heapless 0.9.3",
+ "heapless",
  "loom",
  "portable-atomic",
  "rtic-common",
@@ -3524,7 +3514,7 @@ dependencies = [
  "facet",
  "tlvc",
  "tlvc-text",
- "zerocopy 0.8.52",
+ "zerocopy 0.8.63",
 ]
 
 [[package]]
@@ -3967,7 +3957,7 @@ dependencies = [
  "tlvc-text",
  "vpd",
  "xshell",
- "zerocopy 0.8.52",
+ "zerocopy 0.8.63",
 ]
 
 [[package]]
@@ -4006,11 +3996,11 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.52"
+version = "0.8.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce1022995ff5ff5d841ad7d994facc23098cd40152f2c1d11cd607c6f530653f"
+checksum = "e5fe1f8f1b06191a00962174c61aa5005e0bb391a6d80d07e24d115c01a92ed8"
 dependencies = [
- "zerocopy-derive 0.8.52",
+ "zerocopy-derive 0.8.63",
 ]
 
 [[package]]
@@ -4026,9 +4016,9 @@ dependencies = [
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.52"
+version = "0.8.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ae7f38b72ec2a254e2b87ef277cf2cd4fb97cbebf944faa6f33354da0867930"
+checksum = "863ad3ac83293fb4d740aedbfdc9240dd8d1a50c1099acd76ce80ce7c7230c7f"
 dependencies = [
  "proc-macro2",
  "quote",
