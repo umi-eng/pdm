@@ -16,7 +16,7 @@ use saelient::prelude::*;
 
 pub async fn current(mut cx: current::Context<'_>) {
     let mut adc1 = cx.shared.adc1;
-    let mut adc2 = cx.shared.adc2;
+    let adc2 = cx.shared.adc2;
     let mut adc3 = cx.shared.adc3;
     let mut adc4 = cx.shared.adc4;
     let mut adc5 = cx.shared.adc5;
@@ -27,14 +27,6 @@ pub async fn current(mut cx: current::Context<'_>) {
     const T_BLANK: Duration<u32, 1, 10_000> = Duration::<u32, _, _>::millis(100);
 
     let mut blank_start: [Option<Instant<u32, 1, 10_000>>; _] = [None; 20];
-
-    let mut read = |ch: &mut _| match ch {
-        AnalogCh::Adc1(ch) => adc1.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc2(ch) => adc2.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc3(ch) => adc3.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc4(ch) => adc4.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-        AnalogCh::Adc5(ch) => adc5.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
-    };
 
     loop {
         let start = Mono::now();
@@ -48,7 +40,13 @@ pub async fn current(mut cx: current::Context<'_>) {
                 DriverKind::LowCurrent => (2.2, 660.0),
             };
 
-            let reading = read(sense);
+            let reading = match sense {
+                AnalogCh::Adc1(ch) => adc1.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
+                AnalogCh::Adc2(ch) => adc2.access().await.blocking_read(ch, SAMPLE_TIME),
+                AnalogCh::Adc3(ch) => adc3.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
+                AnalogCh::Adc4(ch) => adc4.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
+                AnalogCh::Adc5(ch) => adc5.lock(|adc| adc.blocking_read(ch, SAMPLE_TIME)),
+            };
             let measurement = convert_to_amps(reading, slope);
 
             if measurement > i_lim {

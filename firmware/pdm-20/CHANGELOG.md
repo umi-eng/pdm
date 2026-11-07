@@ -3,14 +3,14 @@
 # [Unreleased]
 
 - Stop economisation feeding output heartbeat.
-- Apply exponential averaging to analog inputs.
-- Use a higher sample rate for analog inputs.
 - Avoid panic on timer wraparound.
 - Prevent overflow when calculating source adress with offset.
 - Respond "Complete" to J1939 memory access request erase.
 - Return correct J1939 error indicator when analog reading fails to convert.
 - Increase analog input sampling time.
 - Add support for PWM on channels 19 and 20.
+- Use hardware oversampling to increase analog input resolution.
+- Read analog inputs with DMA so sampling does not block the executor.
 
 ## v0.3.1
 

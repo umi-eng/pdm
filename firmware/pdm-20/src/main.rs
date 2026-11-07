@@ -60,6 +60,7 @@ defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().to_micros());
 hal::bind_interrupts!(struct Irqs {
     FDCAN1_IT0 => can::IT0InterruptHandler<FDCAN1>;
     FDCAN1_IT1 => can::IT1InterruptHandler<FDCAN1>;
+    DMA1_CHANNEL1 => hal::dma::InterruptHandler<DMA1_CH1>;
 });
 
 pub mod pac {
@@ -88,7 +89,7 @@ mod app {
         output_current: [f32; 20],
         _fault_reset: [Output<'static>; 12],
         adc1: adc::Adc<'static, ADC1>,
-        adc2: adc::Adc<'static, ADC2>,
+        adc2: Arbiter<adc::Adc<'static, ADC2>>,
         adc3: adc::Adc<'static, ADC3>,
         adc4: adc::Adc<'static, ADC4>,
         adc5: adc::Adc<'static, ADC5>,
@@ -108,6 +109,7 @@ mod app {
         ain1: AnyAdcChannel<'static, ADC2>,
         ain2: AnyAdcChannel<'static, ADC2>,
         ain3: AnyAdcChannel<'static, ADC2>,
+        adc_dma: hal::Peri<'static, DMA1_CH1>,
         ain_bus: AnyAdcChannel<'static, ADC3>,
         shunt_in: AnyAdcChannel<'static, ADC2>,
         _shunt_fault: Input<'static>,
@@ -209,7 +211,15 @@ mod app {
         let (updater_tx, updater_rx) = make_channel!(can::Frame, 8);
 
         let adc1 = adc::Adc::new(p.ADC1, Default::default());
-        let adc2 = adc::Adc::new(p.ADC2, Default::default());
+        let adc2 = Arbiter::new(adc::Adc::new(
+            p.ADC2,
+            adc::AdcConfig {
+                oversampling_ratio: Some(OVERSAMPLING_OVSR),
+                oversampling_shift: Some(OVERSAMPLING_OVSS),
+                oversampling_mode: Some((adc::Rovsm::CONTINUED, adc::Trovs::AUTOMATIC, false)),
+                ..Default::default()
+            },
+        ));
         let adc3 = adc::Adc::new(p.ADC3, Default::default());
         let adc4 = adc::Adc::new(p.ADC4, Default::default());
         let adc5 = adc::Adc::new(p.ADC5, Default::default());
@@ -482,6 +492,7 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
+                adc_dma: p.DMA1_CH1,
                 ain_bus,
                 shunt_in,
                 _shunt_fault,
@@ -535,7 +546,7 @@ mod app {
         #[task(shared = [&can_tx, &can_properties, &source_address])]
         async fn status(cx: status::Context);
 
-        #[task(local = [ain_bus, shunt_in, temperature], shared = [&can_tx, &source_address, adc1, adc2, adc3])]
+        #[task(local = [ain_bus, shunt_in, temperature], shared = [&can_tx, &source_address, adc1, &adc2, adc3])]
         async fn power(cx: power::Context);
 
         #[task(
@@ -546,7 +557,7 @@ mod app {
                 outputs,
                 output_current,
                 adc1,
-                adc2,
+                &adc2,
                 adc3,
                 adc4,
                 adc5,
@@ -562,11 +573,12 @@ mod app {
                 ain1,
                 ain2,
                 ain3,
+                adc_dma,
             ],
             shared = [
                 &can_tx,
                 &source_address,
-                adc2,
+                &adc2,
             ]
         )]
         async fn analog(cx: analog::Context);
