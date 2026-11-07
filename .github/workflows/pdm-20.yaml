@@ -86,7 +86,7 @@ jobs:
       contents: write
     steps:
       - name: Download firmware
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pdm-20-release
           merge-multiple: true
