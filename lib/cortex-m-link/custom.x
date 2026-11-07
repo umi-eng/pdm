@@ -79,7 +79,10 @@ SECTIONS
     . = . + _HEADER_SIZE;
   } > FLASH
 
-  PROVIDE(_stext = ADDR(.vector_table) + SIZEOF(.vector_table) + SIZEOF(.header));
+  /* Align the start of .text so it satisfies the section's alignment. The
+     vector table plus image header can leave us at a 4-byte aligned address,
+     while .text may require 8-byte alignment. */
+  PROVIDE(_stext = ALIGN(ADDR(.vector_table) + SIZEOF(.vector_table) + SIZEOF(.header), 8));
 
   /* ### .text */
   .text _stext :

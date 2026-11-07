@@ -5,7 +5,7 @@ use core::ops::Range;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::flash::partition;
 use embassy_stm32::flash::Blocking;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::flash;
 use rtic_sync::arbiter::Arbiter;
@@ -86,14 +86,14 @@ pub struct Config<'f> {
     store: Arbiter<
         MapStorage<
             Key,
-            partition::Partition<'f, NoopRawMutex, Flash>,
+            partition::Partition<'f, CriticalSectionRawMutex, Flash>,
             KeyPointerCache<32, Key, 32>,
         >,
     >,
 }
 
 impl<'f> Config<'f> {
-    pub fn new(flash: &'f Mutex<NoopRawMutex, Flash>) -> Self {
+    pub fn new(flash: &'f Mutex<CriticalSectionRawMutex, Flash>) -> Self {
         let len = range().end - range().start;
         Self {
             store: Arbiter::new(MapStorage::new(

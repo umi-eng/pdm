@@ -29,7 +29,7 @@ use core::mem::MaybeUninit;
 use embassy_boot_stm32::*;
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::flash::partition::Partition;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::mutex::Mutex;
 use hal::adc;
 use hal::adc::AdcChannel as _;
@@ -72,7 +72,41 @@ pub mod pac {
 pub const VREF_MV: u32 = 2500;
 
 type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
-type FlashPartition = Partition<'static, NoopRawMutex, FlashBlockingAsync>;
+type FlashPartition = Partition<'static, CriticalSectionRawMutex, FlashBlockingAsync>;
+
+/// Build the firmware updater configuration from the linker script symbols.
+///
+/// This mirrors `FirmwareUpdaterConfig::from_linkerfile`, which is hardcoded to
+/// `NoopRawMutex`. We need a `CriticalSectionRawMutex` because the flash is
+/// shared between RTIC tasks (which run in interrupt context).
+fn firmware_updater_config(
+    flash: &'static Mutex<CriticalSectionRawMutex, FlashBlockingAsync>,
+) -> FirmwareUpdaterConfig<FlashPartition, FlashPartition> {
+    unsafe extern "C" {
+        static __bootloader_state_start: u32;
+        static __bootloader_state_end: u32;
+        static __bootloader_dfu_start: u32;
+        static __bootloader_dfu_end: u32;
+    }
+
+    let (dfu_start, dfu_end) = unsafe {
+        (
+            &__bootloader_dfu_start as *const u32 as u32,
+            &__bootloader_dfu_end as *const u32 as u32,
+        )
+    };
+    let (state_start, state_end) = unsafe {
+        (
+            &__bootloader_state_start as *const u32 as u32,
+            &__bootloader_state_end as *const u32 as u32,
+        )
+    };
+
+    FirmwareUpdaterConfig {
+        dfu: Partition::new(flash, dfu_start, dfu_end - dfu_start),
+        state: Partition::new(flash, state_start, state_end - state_start),
+    }
+}
 
 #[rtic::app(device = pac, peripherals = false, dispatchers = [I2C1_EV, I2C1_ER])]
 mod app {
@@ -117,7 +151,7 @@ mod app {
 
     #[init(local = [
         aligned_buffer: AlignedBuffer<8> = AlignedBuffer([0; flash::WRITE_SIZE]),
-        flash: MaybeUninit<Mutex<NoopRawMutex, FlashBlockingAsync>> = MaybeUninit::uninit(),
+        flash: MaybeUninit<Mutex<CriticalSectionRawMutex, FlashBlockingAsync>> = MaybeUninit::uninit(),
         tim15: MaybeUninit<SimplePwmChannels<'static, TIM15>> = MaybeUninit::uninit(),
         tim8: MaybeUninit<SimplePwmChannels<'static, TIM8>> = MaybeUninit::uninit(),
         tim4: MaybeUninit<SimplePwmChannels<'static, TIM4>> = MaybeUninit::uninit(),
@@ -175,7 +209,7 @@ mod app {
         // flash and firmware update
         let flash = flash::Flash::new_blocking(p.FLASH);
         let flash = cx.local.flash.write(Mutex::new(BlockingAsync::new(flash)));
-        let config = FirmwareUpdaterConfig::from_linkerfile(flash, flash);
+        let config = firmware_updater_config(flash);
         let updater = FirmwareUpdater::new(config, &mut cx.local.aligned_buffer.0);
 
         // configuration store
