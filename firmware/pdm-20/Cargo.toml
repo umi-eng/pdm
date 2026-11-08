@@ -20,7 +20,7 @@ embedded-can.workspace = true
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
 rtic = { version = "2.2.0", features = ["thumbv7-backend"] }
-rtic-monotonics = { version = "2.1.0", features = ["cortex-m-systick", "defmt"] }
+rtic-monotonics = { version = "3.0.0", features = ["cortex-m-systick", "defmt"] }
 rtic-sync = { version = "1.4.0", features = ["defmt-03"] }
 embassy-stm32 = { version = "0.6.0", features = [
   "stm32g474ve",
