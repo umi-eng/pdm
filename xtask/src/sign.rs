@@ -18,8 +18,14 @@ pub struct Sign {
 
 impl Sign {
     pub fn run(self) -> Result<()> {
-        let privkey = BASE64_STANDARD.decode(self.privkey_seed)?;
-        let keypair = salty::Keypair::from(&privkey.try_into().unwrap());
+        let privkey = BASE64_STANDARD.decode(self.privkey_seed.trim())?;
+        let seed: [u8; 32] = privkey.as_slice().try_into().map_err(|_| {
+            anyhow::anyhow!(
+                "FIRMWARE_PRIVKEY_SEED must decode to 32 bytes, got {}",
+                privkey.len()
+            )
+        })?;
+        let keypair = salty::Keypair::from(&seed);
 
         // open firmware file
         let mut firmware_file = File::open(&self.firmware)?;

@@ -65,12 +65,6 @@ jobs:
             -O binary \
             target/thumbv7em-none-eabihf/release/pdm-20 \
             dist/pdm-20-v${{ steps.version.outputs.VERSION }}.bin
-      - name: Sign firmware
-        env:
-          FIRMWARE_PRIVKEY_SEED: ${{ secrets.SECRET_KEY_PDM20 }}
-        run: |
-          cargo xtask sign \
-            dist/pdm-20-v${{ steps.version.outputs.VERSION }}.bin
       - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -85,6 +79,18 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libudev-dev \
+            pkg-config
       - name: Download firmware
         uses: actions/download-artifact@v8
         with:
@@ -95,6 +101,12 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#pdm-20/v}" >> "$GITHUB_OUTPUT"
         # Strips 'pdm-20/v' prefix, leaving e.g. '1.2.3' (always a tag in this job)
+      - name: Sign firmware
+        env:
+          FIRMWARE_PRIVKEY_SEED: ${{ secrets.SECRET_KEY_PDM20 }}
+        run: |
+          cargo xtask sign \
+            dist/pdm-20-v${{ steps.version.outputs.VERSION }}.bin
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
