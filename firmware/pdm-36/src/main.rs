@@ -58,7 +58,7 @@ use st_driver::DriverInterface;
 use st_driver::vn9e30f::Driver;
 
 systick_monotonic!(Mono, 10_000);
-defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().to_micros());
+defmt::timestamp!("{=u32:tus}", Mono::now().duration_since_epoch().as_micros());
 
 hal::bind_interrupts!(struct Irqs {
     FDCAN1_IT0 => can::IT0InterruptHandler<FDCAN1>;

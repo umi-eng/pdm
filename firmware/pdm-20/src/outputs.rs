@@ -11,18 +11,18 @@ use crate::pac;
 use core::convert::Infallible;
 use embedded_hal::pwm::SetDutyCycle;
 use rtic::Mutex;
-use rtic_monotonics::Monotonic;
+use rtic_monotonics::Timebase;
 use rtic_monotonics::fugit::ExtU32;
-use rtic_monotonics::fugit::Instant;
+use rtic_monotonics::fugit::MonotonicTimerInstant;
 
 type ErasedPwmPin = dyn SetDutyCycle<Error = Infallible> + Send;
 
 pub struct OutputChannel {
     pin: &'static mut ErasedPwmPin,
     /// Time the output was turned on.
-    on_time: Option<Instant<u32, 1, 10000>>,
+    on_time: Option<MonotonicTimerInstant<u32, 10_000>>,
     /// Last time the output state was set.
-    last_heartbeat: Option<Instant<u32, 1, 10000>>,
+    last_heartbeat: Option<MonotonicTimerInstant<u32, 10_000>>,
     /// Whether the output has stepped down to economising.
     economising: bool,
 }
@@ -196,7 +196,7 @@ pub async fn outputs(cx: outputs::Context<'_>) {
                     && !channel.economising
                     && econ_delay[n] != 0
                     && let Some(duration) = now.checked_duration_since(time)
-                    && duration.to_millis() >= econ_delay[n] as u32
+                    && duration.as_millis() >= econ_delay[n] as u32
                 {
                     channel.set_pwm(econ_duty[n]);
                     channel.economising = true;
@@ -205,7 +205,7 @@ pub async fn outputs(cx: outputs::Context<'_>) {
                 if heartbeat_duration[n] != 0
                     && let Some(time) = channel.last_heartbeat
                     && let Some(duration) = now.checked_duration_since(time)
-                    && duration.to_millis() >= heartbeat_duration[n] as u32
+                    && duration.as_millis() >= heartbeat_duration[n] as u32
                 {
                     defmt::info!("Heartbeat turn-off");
                     channel.off();
