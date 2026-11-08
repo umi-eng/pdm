@@ -5,7 +5,6 @@ use crate::output::OUTPUT_MAP;
 use messages::pdm36::Control;
 use messages::pdm36::ControlMuxIndex;
 use messages::pdm36::pgn;
-use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;

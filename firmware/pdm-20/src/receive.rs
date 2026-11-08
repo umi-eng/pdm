@@ -8,7 +8,6 @@ use messages::pdm20::Control;
 use messages::pdm20::ControlMuxIndex;
 use messages::pdm20::pgn;
 use rtic::Mutex;
-use rtic_monotonics::Monotonic;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;

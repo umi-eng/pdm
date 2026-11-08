@@ -8,9 +8,8 @@ use hal::adc::SampleTime;
 use hal::can::Frame;
 use messages::pdm20;
 use rtic::Mutex;
-use rtic_monotonics::Monotonic;
 use rtic_monotonics::fugit::Duration;
-use rtic_monotonics::fugit::Instant;
+use rtic_monotonics::fugit::MonotonicTimerInstant;
 use rtic_monotonics::systick::prelude::*;
 use saelient::prelude::*;
 
@@ -24,9 +23,9 @@ pub async fn current(mut cx: current::Context<'_>) {
     let i_sense = cx.local.i_sense;
 
     const SAMPLE_TIME: SampleTime = SampleTime::CYCLES92_5;
-    const T_BLANK: Duration<u32, 1, 10_000> = Duration::<u32, _, _>::millis(100);
+    const T_BLANK: Duration<u32, 1, 10_000> = Duration::<u32, _, _>::from_millis(100);
 
-    let mut blank_start: [Option<Instant<u32, 1, 10_000>>; _] = [None; 20];
+    let mut blank_start: [Option<MonotonicTimerInstant<u32, 10_000>>; _] = [None; 20];
 
     loop {
         let start = Mono::now();
