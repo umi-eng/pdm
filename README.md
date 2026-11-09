@@ -13,7 +13,7 @@ A command line tool is provided for configuration, control and updating PDMs.
 To install the command line tool from source, run the following:
 
 ```shell
-cargo install pdm-tool --git https://github.com/umi-eng/pdm --locked
+cargo install umi-pdm-tool --git https://github.com/umi-eng/pdm --locked
 ```
 
 ## Rust Library

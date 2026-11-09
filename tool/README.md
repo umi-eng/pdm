@@ -5,7 +5,7 @@ Command line tool for managing UMI power distribution modules.
 ## Installing
 
 ```sh
-cargo install pdm-tool --locked
+cargo install umi-pdm-tool --locked
 ```
 
 ## Device support

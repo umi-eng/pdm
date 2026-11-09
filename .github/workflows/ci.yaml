@@ -44,9 +44,9 @@ jobs:
       - name: std crates
         run: |
           cargo clippy --all-features --locked \
-            -p messages \
+            -p umi-pdm-messages \
             -p umi-pdm \
-            -p pdm-tool \
+            -p umi-pdm-tool \
             -- -D warnings
       - name: no_std crates
         run: |

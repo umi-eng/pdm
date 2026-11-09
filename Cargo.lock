@@ -2227,17 +2227,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdm-tool"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "socketcan",
- "tokio",
- "umi-pdm",
-]
-
-[[package]]
 name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3393,6 +3382,17 @@ dependencies = [
  "defmt 1.2.0",
  "embedded-can",
  "saelient",
+]
+
+[[package]]
+name = "umi-pdm-tool"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "socketcan",
+ "tokio",
+ "umi-pdm",
 ]
 
 [[package]]
