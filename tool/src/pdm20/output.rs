@@ -1,4 +1,4 @@
-use pdm::{Outputs, pdm20::Pdm20};
+use umi_pdm::{Outputs, pdm20::Pdm20};
 
 #[derive(clap::Parser)]
 pub struct Cmd {

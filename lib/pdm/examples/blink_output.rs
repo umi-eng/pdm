@@ -3,10 +3,10 @@
 //! Usage: cargo run --example blink_output <INTERFACE> <ADDRESS> <OUTPUT>
 //! Example: cargo run --example blink_output can0 85 1
 
-use pdm::pdm36;
 use socketcan::tokio::CanSocket;
 use std::{io, time::Duration};
 use tokio::time::sleep;
+use umi_pdm::pdm36;
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {

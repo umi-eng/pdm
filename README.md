@@ -18,7 +18,7 @@ cargo install pdm-tool --git https://github.com/umi-eng/pdm --locked
 
 ## Rust Library
 
-We provide a Rust library for interfacing with PDMs which can be found in the `pdm` crate.
+We provide a Rust library for interfacing with PDMs which can be found in the `umi-pdm` crate.
 
 ## DBC Files and Messages
 

@@ -8,7 +8,7 @@ messages = { path = "lib/messages" }
 cortex-m-link = { path = "lib/cortex-m-link" }
 vpd = { path = "lib/vpd", features = ["defmt"] }
 analog = { path = "lib/analog" }
-pdm = { path = "lib/pdm" }
+umi-pdm = { path = "lib/pdm" }
 blocking-executor = { path = "lib/blocking-executor" }
 
 saelient = { version = "0.2.4", default-features = false }

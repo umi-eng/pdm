@@ -1,5 +1,5 @@
-use pdm::pdm20::Pdm20;
 use std::time::Duration;
+use umi_pdm::pdm20::Pdm20;
 
 #[derive(clap::Parser)]
 pub struct Cmd {

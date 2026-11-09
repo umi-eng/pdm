@@ -2153,20 +2153,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
-name = "pdm"
-version = "0.1.0"
-dependencies = [
- "embedded-can",
- "log",
- "messages",
- "saelient",
- "socketcan",
- "thiserror",
- "tokio",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "pdm-20"
 version = "0.3.1"
 dependencies = [
@@ -2258,9 +2244,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "pdm",
  "socketcan",
  "tokio",
+ "umi-pdm",
 ]
 
 [[package]]
@@ -3385,6 +3371,20 @@ name = "uf2-decode"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca77d41ab27e3fa45df42043f96c79b80c6d8632eed906b54681d8d47ab00623"
+
+[[package]]
+name = "umi-pdm"
+version = "0.1.0"
+dependencies = [
+ "embedded-can",
+ "log",
+ "messages",
+ "saelient",
+ "socketcan",
+ "thiserror",
+ "tokio",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "unescaper"

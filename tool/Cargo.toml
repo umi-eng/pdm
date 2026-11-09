@@ -9,7 +9,7 @@ repository = "https://github.com/umi-eng/pdm"
 license = "MPL-2.0"
 
 [dependencies]
-pdm.workspace = true
+umi-pdm.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 socketcan.workspace = true

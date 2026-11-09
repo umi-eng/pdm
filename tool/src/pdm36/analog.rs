@@ -1,4 +1,4 @@
-use pdm::pdm36::Pdm36;
+use umi_pdm::pdm36::Pdm36;
 
 #[derive(clap::Parser)]
 pub struct Cmd {

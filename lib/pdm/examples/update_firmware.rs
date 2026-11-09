@@ -1,6 +1,6 @@
-use pdm::pdm36;
 use socketcan::tokio::CanSocket;
 use std::io::{self, Read};
+use umi_pdm::pdm36;
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {

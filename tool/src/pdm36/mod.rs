@@ -5,8 +5,8 @@ pub mod update;
 
 use crate::maybe_hex;
 use anyhow::Result;
-use pdm::pdm36::Pdm36;
 use socketcan::tokio::CanSocket;
+use umi_pdm::pdm36::Pdm36;
 
 fn open_pdm(interface: &str, address: u8) -> Result<Pdm36> {
     let socket = CanSocket::open(interface)?;
