@@ -8,7 +8,7 @@ umi-pdm-messages = { version = "0.1.0", path = "lib/messages" }
 cortex-m-link = { path = "lib/cortex-m-link" }
 vpd = { path = "lib/vpd", features = ["defmt"] }
 analog = { path = "lib/analog" }
-umi-pdm = { path = "lib/pdm" }
+umi-pdm = { version = "0.1.0", path = "lib/pdm" }
 blocking-executor = { path = "lib/blocking-executor" }
 
 saelient = { version = "0.2.4", default-features = false }
