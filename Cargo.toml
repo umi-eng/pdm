@@ -18,9 +18,7 @@ defmt-rtt = "1.2.0"
 zerocopy = { version = "0.8.52", features = ["derive"] }
 crc = "3.4.0"
 heapless = "0.9.3"
-dbc-codegen = { version = "0.3.0", features = [
-  "std",
-], git = "https://github.com/oxibus/dbc-codegen.git", rev = "782ba90" }
+dbc-codegen = { version = "0.4.0", features = ["std"] }
 bitvec = { version = "1.0", default-features = false }
 embedded-can = "0.4"
 log = "0.4"

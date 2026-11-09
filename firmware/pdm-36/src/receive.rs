@@ -51,23 +51,23 @@ pub async fn receive(cx: receive::Context<'_>) {
             }
             pgn::CONTROL => {
                 if let Ok(mut output) = Control::try_from(frame.data()) {
-                    match output.mux() {
+                    match output.mux_multiplexed() {
                         Ok(ControlMuxIndex::M0(m)) => {
                             let duty = scale_pwm(m.pwm_duty_m0());
 
                             let states = [
-                                output_state(m.output_1_raw()),
-                                output_state(m.output_2_raw()),
-                                output_state(m.output_3_raw()),
-                                output_state(m.output_4_raw()),
-                                output_state(m.output_5_raw()),
-                                output_state(m.output_6_raw()),
-                                output_state(m.output_7_raw()),
-                                output_state(m.output_8_raw()),
-                                output_state(m.output_9_raw()),
-                                output_state(m.output_10_raw()),
-                                output_state(m.output_11_raw()),
-                                output_state(m.output_12_raw()),
+                                output_state(m.output_1_raw_val()),
+                                output_state(m.output_2_raw_val()),
+                                output_state(m.output_3_raw_val()),
+                                output_state(m.output_4_raw_val()),
+                                output_state(m.output_5_raw_val()),
+                                output_state(m.output_6_raw_val()),
+                                output_state(m.output_7_raw_val()),
+                                output_state(m.output_8_raw_val()),
+                                output_state(m.output_9_raw_val()),
+                                output_state(m.output_10_raw_val()),
+                                output_state(m.output_11_raw_val()),
+                                output_state(m.output_12_raw_val()),
                             ];
 
                             let mut drivers = [
@@ -98,18 +98,18 @@ pub async fn receive(cx: receive::Context<'_>) {
                             let duty = scale_pwm(m.pwm_duty_m1());
 
                             let states = [
-                                output_state(m.output_13_raw()),
-                                output_state(m.output_14_raw()),
-                                output_state(m.output_15_raw()),
-                                output_state(m.output_16_raw()),
-                                output_state(m.output_17_raw()),
-                                output_state(m.output_18_raw()),
-                                output_state(m.output_19_raw()),
-                                output_state(m.output_20_raw()),
-                                output_state(m.output_21_raw()),
-                                output_state(m.output_22_raw()),
-                                output_state(m.output_23_raw()),
-                                output_state(m.output_24_raw()),
+                                output_state(m.output_13_raw_val()),
+                                output_state(m.output_14_raw_val()),
+                                output_state(m.output_15_raw_val()),
+                                output_state(m.output_16_raw_val()),
+                                output_state(m.output_17_raw_val()),
+                                output_state(m.output_18_raw_val()),
+                                output_state(m.output_19_raw_val()),
+                                output_state(m.output_20_raw_val()),
+                                output_state(m.output_21_raw_val()),
+                                output_state(m.output_22_raw_val()),
+                                output_state(m.output_23_raw_val()),
+                                output_state(m.output_24_raw_val()),
                             ];
 
                             let mut drivers =
@@ -137,18 +137,18 @@ pub async fn receive(cx: receive::Context<'_>) {
                             let duty = scale_pwm(m.pwm_duty_m2());
 
                             let states = [
-                                output_state(m.output_25_raw()),
-                                output_state(m.output_26_raw()),
-                                output_state(m.output_27_raw()),
-                                output_state(m.output_28_raw()),
-                                output_state(m.output_29_raw()),
-                                output_state(m.output_30_raw()),
-                                output_state(m.output_31_raw()),
-                                output_state(m.output_32_raw()),
-                                output_state(m.output_33_raw()),
-                                output_state(m.output_34_raw()),
-                                output_state(m.output_35_raw()),
-                                output_state(m.output_36_raw()),
+                                output_state(m.output_25_raw_val()),
+                                output_state(m.output_26_raw_val()),
+                                output_state(m.output_27_raw_val()),
+                                output_state(m.output_28_raw_val()),
+                                output_state(m.output_29_raw_val()),
+                                output_state(m.output_30_raw_val()),
+                                output_state(m.output_31_raw_val()),
+                                output_state(m.output_32_raw_val()),
+                                output_state(m.output_33_raw_val()),
+                                output_state(m.output_34_raw_val()),
+                                output_state(m.output_35_raw_val()),
+                                output_state(m.output_36_raw_val()),
                             ];
 
                             let mut drivers =

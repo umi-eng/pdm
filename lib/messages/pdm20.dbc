@@ -69,7 +69,7 @@ BO_ 2582597632 Configure: 8 Vector__XXX
  SG_ Output_Econ_Duty m2 : 20|8@1+ (1,0) [0|255] "Output economisation duty" Vector__XXX
  SG_ Output_Heartbeat_Duration m2 : 28|8@1+ (1,0) [0|255] "Output heartbeat duration in 100-milliseconds (zero = disable)" Vector__XXX
 
-BO_ 419364949 Startup: 8 Vector__XXX
+BO_ 2566848597 Startup: 8 Vector__XXX
  SG_ Hardware_Version_Major : 0|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
  SG_ Hardware_Version_Minor : 8|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
  SG_ Hardware_Version_Patch : 16|8@1+ (1,0) [0|255] "SemVer" Vector__XXX
@@ -80,21 +80,21 @@ BO_ 419364949 Startup: 8 Vector__XXX
  SG_ Reset_Cause_Watchdog : 49|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
  SG_ Reset_Cause_Software : 50|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
 
-BO_ 419369557 System_Status: 8 Vector__XXX
+BO_ 2566853205 System_Status: 8 Vector__XXX
  SG_ CAN_RX_Errors : 8|8@1+ (1,0) [0|255] "Count" Vector__XXX
  SG_ CAN_TX_Errors : 16|8@1+ (1,0) [0|255] "Count" Vector__XXX
 
-BO_ 419369296 Analog_Inputs: 6 Vector__XXX
+BO_ 2566852944 Analog_Inputs: 6 Vector__XXX
  SG_ Input_1 : 0|16@1+ (1,0) [0|65535] "Analog input 1" Vector__XXX
  SG_ Input_2 : 16|16@1+ (1,0) [0|65535] "Analog input 2" Vector__XXX
  SG_ Input_3 : 32|16@1+ (1,0) [0|65535] "Analog input 3" Vector__XXX
 
-BO_ 419369552 Power: 6 Vector__XXX
+BO_ 2566853200 Power: 6 Vector__XXX
  SG_ Bus_Voltage : 0|16@1+ (1,0) [0|65535] "Bus voltage in Volts" Vector__XXX
  SG_ Bus_Current : 16|16@1+ (1,0) [0|65535] "Bus current in Amps" Vector__XXX
  SG_ Temperature : 32|8@1+ (1,0) [0|255] "Celsius" Vector__XXX
 
-BO_ 419369808 Current_Sense: 8 Vector__XXX
+BO_ 2566853456 Current_Sense: 8 Vector__XXX
  SG_ mux M : 0|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ Current_Sense_1 m0 : 4|8@1+ (1,0) [0|255] "Output 1 current sense" Vector__XXX
  SG_ Current_Sense_2 m0 : 12|8@1+ (1,0) [0|255] "Output 2 current sense" Vector__XXX

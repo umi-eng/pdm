@@ -337,12 +337,11 @@ checksum = "b35204fbdc0b3f4446b89fc1ac2cf84a8a68971995d0bf2e925ec7cd960f9cb3"
 
 [[package]]
 name = "can-dbc"
-version = "9.1.0"
+version = "10.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f7a2ee20067a5d9cdcb6df568549a14230a037129713ee20fea6b3fd23e50aa"
+checksum = "e39bde77280df32da397aaabc992cd252639af9cec2dff19f293668a9c0c162f"
 dependencies = [
  "can-dbc-pest",
- "encoding_rs",
  "serde",
  "thiserror",
 ]
@@ -627,16 +626,16 @@ dependencies = [
 
 [[package]]
 name = "dbc-codegen"
-version = "0.3.0"
-source = "git+https://github.com/oxibus/dbc-codegen.git?rev=782ba90#782ba90b0d265154fbfb47b657b717615d4e8ce3"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e956541b8e71f4914fab0b6b1dda6f6d5c261ea53ab1c0fcac155050a5df971a"
 dependencies = [
  "anyhow",
  "can-dbc",
- "embedded-can",
  "heck",
- "prettyplease",
+ "prettyplease 0.3.0",
  "quote",
- "syn 2.0.118",
+ "syn 3.0.9",
  "typed-builder",
 ]
 
@@ -2353,6 +2352,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "prettyplease"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bfe0f4c752e450fc2faf62654f1c134747922825d5b04ca717b8874f41a40c0"
+dependencies = [
+ "proc-macro2",
+ "syn 3.0.9",
+]
+
+[[package]]
 name = "probe-rs"
 version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3831,7 +3840,7 @@ dependencies = [
  "anyhow",
  "heck",
  "indexmap",
- "prettyplease",
+ "prettyplease 0.2.37",
  "syn 2.0.118",
  "wasm-metadata",
  "wit-bindgen-core",
@@ -3845,7 +3854,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c0f9bfd77e6a48eccf51359e3ae77140a7f50b1e2ebfe62422d8afdaffab17a"
 dependencies = [
  "anyhow",
- "prettyplease",
+ "prettyplease 0.2.37",
  "proc-macro2",
  "quote",
  "syn 2.0.118",

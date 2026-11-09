@@ -193,7 +193,7 @@ impl Pdm36 {
             let value = match (
                 output,
                 sense
-                    .mux()
+                    .mux_multiplexed()
                     .map_err(|err| io::Error::other(err.to_string()))?,
             ) {
                 (1, CurrentSenseMuxIndex::M0(m)) => m.current_sense_1(),

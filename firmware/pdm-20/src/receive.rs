@@ -59,7 +59,7 @@ pub async fn receive(cx: receive::Context<'_>) {
             }
             pgn::CONTROL => {
                 if let Ok(mut output) = Control::try_from(frame.data()) {
-                    match output.mux() {
+                    match output.mux_multiplexed() {
                         Ok(ControlMuxIndex::M0(m0)) => {
                             let states = [
                                 m0.output_1(),
@@ -106,7 +106,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                         Err(_) => {
                             defmt::error!(
                                 "Failed to parse control mux value {} for control message",
-                                output.mux_raw()
+                                output.mux_raw_val()
                             )
                         }
                     }
@@ -114,7 +114,7 @@ pub async fn receive(cx: receive::Context<'_>) {
             }
             pgn::CONFIGURE => {
                 if let Ok(mut output) = Configure::try_from(frame.data()) {
-                    match output.mux() {
+                    match output.mux_multiplexed() {
                         Ok(ConfigureMuxIndex::M0(m0)) => {
                             if m0.system_reset() == 1 {
                                 if let Err(err) = config.erase().await {
@@ -172,7 +172,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                             }
                             let n = ch as usize - 1;
 
-                            let econ_delay = Param8::from(m2.output_econ_delay_raw());
+                            let econ_delay = Param8::from(m2.output_econ_delay_raw_val());
                             if let Some(value) = econ_delay.value() {
                                 config
                                     .modify_output_econ_delay(|mut stored| {
@@ -183,7 +183,8 @@ pub async fn receive(cx: receive::Context<'_>) {
                                     .expect("modifying output econ delay");
                             }
 
-                            let econ_duty = SaePC03::new(Param8::from(m2.output_econ_duty_raw()));
+                            let econ_duty =
+                                SaePC03::new(Param8::from(m2.output_econ_duty_raw_val()));
                             if let Some(value) = econ_duty.as_f32() {
                                 config
                                     .modify_output_econ_duty(|mut stored| {
@@ -194,7 +195,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                                     .expect("modifying output econ duty");
                             }
 
-                            let hb_duration = Param8::from(m2.output_heartbeat_duration_raw());
+                            let hb_duration = Param8::from(m2.output_heartbeat_duration_raw_val());
                             if let Some(value) = hb_duration.value() {
                                 config
                                     .modify_output_heartbeat_duration(|mut stored| {
@@ -208,7 +209,7 @@ pub async fn receive(cx: receive::Context<'_>) {
                         Err(_) => {
                             defmt::error!(
                                 "Failed to parse control mux value {} for config message",
-                                output.mux_raw()
+                                output.mux_raw_val()
                             )
                         }
                     }

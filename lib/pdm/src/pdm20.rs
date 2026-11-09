@@ -303,7 +303,7 @@ impl Pdm20 {
 
             let mut sense = CurrentSense::try_from(frame.data())?;
 
-            let value = match (output, sense.mux()?) {
+            let value = match (output, sense.mux_multiplexed()?) {
                 (1, CurrentSenseMuxIndex::M0(m)) => m.current_sense_1(),
                 (2, CurrentSenseMuxIndex::M0(m)) => m.current_sense_2(),
                 (3, CurrentSenseMuxIndex::M0(m)) => m.current_sense_3(),
