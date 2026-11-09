@@ -1,7 +1,10 @@
 [package]
 name = "umi-pdm-messages"
+description = "CAN message definitions for UMI power distribution modules"
 version = "0.1.0"
 edition = "2024"
+repository = "https://github.com/umi-eng/pdm"
+license = "MPL-2.0"
 
 [dependencies]
 bitvec.workspace = true

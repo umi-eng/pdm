@@ -1,7 +1,10 @@
 [package]
 name = "umi-pdm"
+description = "Rust library for interfacing with UMI power distribution modules"
 version = "0.1.0"
 edition = "2024"
+repository = "https://github.com/umi-eng/pdm"
+license = "MPL-2.0"
 
 [dependencies]
 embedded-can.workspace = true
