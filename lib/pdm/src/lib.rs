@@ -3,7 +3,7 @@ pub mod pdm20;
 #[cfg(feature = "pdm36")]
 pub mod pdm36;
 
-pub use messages::OutputState;
+pub use umi_pdm_messages::OutputState;
 
 /// Selection of one or more channels.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -2,12 +2,12 @@ use crate::Mono;
 use crate::app::status;
 use crate::hal;
 use hal::can::Frame;
-use messages::pdm36::SystemStatus;
-use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Signal;
 use saelient::slot::SaeTP01;
 use saelient::slot::Slot;
+use umi_pdm_messages::pdm36::SystemStatus;
+use umi_pdm_messages::pdm36::pgn;
 
 /// System status reporter.
 pub async fn status(cx: status::Context<'_>) {

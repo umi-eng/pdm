@@ -4,8 +4,6 @@ use crate::convert_to_millivolts;
 use crate::hal;
 use hal::adc::SampleTime;
 use hal::can::Frame;
-use messages::pdm20::Power;
-use messages::pdm20::pgn::POWER;
 use rtic::Mutex;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Signal;
@@ -13,6 +11,8 @@ use saelient::slot::SaeEC06;
 use saelient::slot::SaeEV06;
 use saelient::slot::SaeTP01;
 use saelient::slot::Slot;
+use umi_pdm_messages::pdm20::Power;
+use umi_pdm_messages::pdm20::pgn::POWER;
 
 pub async fn power(cx: power::Context<'_>) {
     let mut adc1 = cx.shared.adc1;

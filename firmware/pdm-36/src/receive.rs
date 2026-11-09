@@ -2,12 +2,12 @@ use crate::Mono;
 use crate::app::*;
 use crate::output;
 use crate::output::OUTPUT_MAP;
-use messages::pdm36::Control;
-use messages::pdm36::ControlMuxIndex;
-use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
 use saelient::Pgn;
+use umi_pdm_messages::pdm36::Control;
+use umi_pdm_messages::pdm36::ControlMuxIndex;
+use umi_pdm_messages::pdm36::pgn;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {

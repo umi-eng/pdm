@@ -6,12 +6,12 @@ use crate::convert_to_millivolts;
 use crate::hal;
 use hal::adc::SampleTime;
 use hal::can::Frame;
-use messages::pdm20;
 use rtic::Mutex;
 use rtic_monotonics::fugit::Duration;
 use rtic_monotonics::fugit::MonotonicTimerInstant;
 use rtic_monotonics::systick::prelude::*;
 use saelient::prelude::*;
+use umi_pdm_messages::pdm20;
 
 pub async fn current(mut cx: current::Context<'_>) {
     let mut adc1 = cx.shared.adc1;

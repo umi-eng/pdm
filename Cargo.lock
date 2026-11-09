@@ -1838,17 +1838,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "messages"
-version = "0.1.0"
-dependencies = [
- "bitvec",
- "dbc-codegen",
- "defmt 1.2.0",
- "embedded-can",
- "saelient",
-]
-
-[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2169,7 +2158,6 @@ dependencies = [
  "embedded-can",
  "embedded-hal 1.0.0",
  "header",
- "messages",
  "panic-probe",
  "paste",
  "rtic",
@@ -2177,6 +2165,7 @@ dependencies = [
  "rtic-sync",
  "saelient",
  "sequential-storage 7.0.0",
+ "umi-pdm-messages",
  "vpd",
  "zerocopy 0.8.63",
 ]
@@ -2211,7 +2200,6 @@ dependencies = [
  "embassy-stm32",
  "embassy-sync",
  "embedded-can",
- "messages",
  "panic-probe",
  "paste",
  "rtic",
@@ -2220,6 +2208,7 @@ dependencies = [
  "saelient",
  "sequential-storage 4.0.3",
  "st-driver",
+ "umi-pdm-messages",
  "vpd",
 ]
 
@@ -3387,12 +3376,23 @@ version = "0.1.0"
 dependencies = [
  "embedded-can",
  "log",
- "messages",
  "saelient",
  "socketcan",
  "thiserror",
  "tokio",
  "tracing-subscriber",
+ "umi-pdm-messages",
+]
+
+[[package]]
+name = "umi-pdm-messages"
+version = "0.1.0"
+dependencies = [
+ "bitvec",
+ "dbc-codegen",
+ "defmt 1.2.0",
+ "embedded-can",
+ "saelient",
 ]
 
 [[package]]

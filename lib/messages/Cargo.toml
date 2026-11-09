@@ -1,5 +1,5 @@
 [package]
-name = "messages"
+name = "umi-pdm-messages"
 version = "0.1.0"
 edition = "2024"
 

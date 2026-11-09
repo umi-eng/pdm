@@ -2,9 +2,9 @@ use crate::Mono;
 use crate::app::status;
 use crate::hal;
 use hal::can::Frame;
-use messages::pdm20::SystemStatus;
-use messages::pdm20::pgn::STATUS;
 use rtic_monotonics::systick::prelude::*;
+use umi_pdm_messages::pdm20::SystemStatus;
+use umi_pdm_messages::pdm20::pgn::STATUS;
 
 /// System status reporter.
 pub async fn status(cx: status::Context<'_>) {

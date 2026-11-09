@@ -4,7 +4,7 @@ version = "0.3.1"
 edition = "2024"
 
 [dependencies]
-messages = { workspace = true, features = ["defmt"] }
+umi-pdm-messages = { workspace = true, features = ["defmt"] }
 saelient = { workspace = true, features = ["defmt"] }
 analog.workspace = true
 vpd.workspace = true

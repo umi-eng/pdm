@@ -1,12 +1,5 @@
 use crate::Mono;
 use crate::app::*;
-use messages::OutputState;
-use messages::pdm20::Configure;
-use messages::pdm20::ConfigureCanBitrate;
-use messages::pdm20::ConfigureMuxIndex;
-use messages::pdm20::Control;
-use messages::pdm20::ControlMuxIndex;
-use messages::pdm20::pgn;
 use rtic::Mutex;
 use rtic_monotonics::systick::prelude::*;
 use saelient::Id;
@@ -15,6 +8,13 @@ use saelient::signal::Param8;
 use saelient::signal::Signal;
 use saelient::slot::SaePC03;
 use saelient::slot::Slot;
+use umi_pdm_messages::OutputState;
+use umi_pdm_messages::pdm20::Configure;
+use umi_pdm_messages::pdm20::ConfigureCanBitrate;
+use umi_pdm_messages::pdm20::ConfigureMuxIndex;
+use umi_pdm_messages::pdm20::Control;
+use umi_pdm_messages::pdm20::ControlMuxIndex;
+use umi_pdm_messages::pdm20::pgn;
 
 /// CAN frame receiver.
 pub async fn receive(cx: receive::Context<'_>) {

@@ -1,6 +1,6 @@
-use ::messages::OutputState;
-use ::messages::pdm36::pgn;
-use ::messages::pdm36::{
+use ::umi_pdm_messages::OutputState;
+use ::umi_pdm_messages::pdm36::pgn;
+use ::umi_pdm_messages::pdm36::{
     AnalogInputs, Control, ControlMuxM0, ControlMuxM1, ControlMuxM2, CurrentSense,
     CurrentSenseMuxIndex,
 };
@@ -18,7 +18,7 @@ use std::io;
 
 slot_impl!(Current, Param10, 0.0, 0.01, "A", "Current - 10mA per bit");
 
-pub use messages::pdm36 as messages;
+pub use umi_pdm_messages::pdm36 as messages;
 
 pub type Outputs = crate::Outputs<36>;
 

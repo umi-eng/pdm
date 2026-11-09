@@ -4,20 +4,20 @@ use crate::output::OUTPUT_MAP;
 use crate::{Mono, app::current};
 use core::array::from_fn;
 use hal::can::Frame;
-use messages::pdm36::CurrentSense;
-use messages::pdm36::CurrentSenseMuxM0;
-use messages::pdm36::CurrentSenseMuxM1;
-use messages::pdm36::CurrentSenseMuxM2;
-use messages::pdm36::CurrentSenseMuxM3;
-use messages::pdm36::CurrentSenseMuxM4;
-use messages::pdm36::CurrentSenseMuxM5;
-use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Param8;
 use saelient::signal::Param10;
 use saelient::signal::Signal;
 use saelient::slot::Slot;
 use saelient::slot_impl;
+use umi_pdm_messages::pdm36::CurrentSense;
+use umi_pdm_messages::pdm36::CurrentSenseMuxM0;
+use umi_pdm_messages::pdm36::CurrentSenseMuxM1;
+use umi_pdm_messages::pdm36::CurrentSenseMuxM2;
+use umi_pdm_messages::pdm36::CurrentSenseMuxM3;
+use umi_pdm_messages::pdm36::CurrentSenseMuxM4;
+use umi_pdm_messages::pdm36::CurrentSenseMuxM5;
+use umi_pdm_messages::pdm36::pgn;
 
 slot_impl!(Current, Param10, 0.0, 0.01, "A", "Current - 10mA per bit");
 slot_impl!(

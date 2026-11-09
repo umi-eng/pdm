@@ -2,8 +2,8 @@ use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
-use messages::pdm20::Startup;
-use messages::pdm20::pgn::STARTUP;
+use umi_pdm_messages::pdm20::Startup;
+use umi_pdm_messages::pdm20::pgn::STARTUP;
 use vpd::item::HardwareVersion;
 use vpd::item::SerialNumber;
 

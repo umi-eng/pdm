@@ -2,8 +2,8 @@ use crate::app::*;
 use crate::config::otp_slice;
 use crate::hal;
 use hal::can::Frame;
-use messages::pdm36::Startup;
-use messages::pdm36::pgn;
+use umi_pdm_messages::pdm36::Startup;
+use umi_pdm_messages::pdm36::pgn;
 use vpd::item::HardwareVersion;
 use vpd::item::SerialNumber;
 

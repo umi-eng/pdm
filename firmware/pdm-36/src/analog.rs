@@ -6,12 +6,12 @@ use ::analog::count_to_volts;
 use ::analog::divider_vin;
 use hal::adc::SampleTime;
 use hal::can::Frame;
-use messages::pdm36::AnalogInputs;
-use messages::pdm36::pgn;
 use rtic_monotonics::systick::prelude::*;
 use saelient::signal::Signal;
 use saelient::slot::SaeEV06;
 use saelient::slot::Slot;
+use umi_pdm_messages::pdm36::AnalogInputs;
+use umi_pdm_messages::pdm36::pgn;
 
 const VREF: f32 = 3.300;
 const R1: f32 = 100_000.0;

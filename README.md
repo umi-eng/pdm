@@ -22,4 +22,4 @@ We provide a Rust library for interfacing with PDMs which can be found in the `u
 
 ## DBC Files and Messages
 
-A DBC file with definitions for most CAN messages used by the PDM can be found the `messages` crate folder.
+A DBC file with definitions for most CAN messages used by the PDM can be found in the `umi-pdm-messages` crate folder.
