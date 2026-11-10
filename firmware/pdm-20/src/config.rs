@@ -34,7 +34,7 @@ fn range() -> Range<u32> {
 }
 
 type Key = [u8; 4];
-type Flash = BlockingAsync<flash::Flash<'static, Blocking>>;
+type Flash = BlockingAsync<flash::Bank2Region<'static, Blocking>>;
 type Error = sequential_storage::Error<partition::Error<flash::Error>>;
 
 /// Generator for gettter and setter functions.
