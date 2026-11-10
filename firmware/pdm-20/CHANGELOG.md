@@ -12,6 +12,7 @@
 - Use hardware oversampling to increase analog input resolution.
 - Read analog inputs with DMA so sampling does not block the executor.
 - Sample analog inputs at 150 Hz and average 15 samples per report.
+- Use dual-bank flash mode.
 
 ## v0.3.1
 
