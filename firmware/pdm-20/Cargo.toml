@@ -24,7 +24,7 @@ rtic-monotonics = { version = "3.0.0", features = ["cortex-m-systick", "defmt"] 
 rtic-sync = { version = "1.4.0", features = ["defmt-03"] }
 embassy-stm32 = { version = "0.6.0", features = [
   "stm32g474ve",
-  "single-bank",
+  "dual-bank",
   "defmt",
   "unstable-pac",
 ] }

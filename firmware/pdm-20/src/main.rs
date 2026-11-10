@@ -71,8 +71,10 @@ pub mod pac {
 /// Voltage reference voltage.
 pub const VREF_MV: u32 = 2500;
 
-type FlashBlockingAsync = BlockingAsync<flash::Flash<'static, flash::Blocking>>;
-type FlashPartition = Partition<'static, CriticalSectionRawMutex, FlashBlockingAsync>;
+type FlashBank1 = BlockingAsync<flash::Bank1Region<'static, flash::Blocking>>;
+type FlashBank2 = BlockingAsync<flash::Bank2Region<'static, flash::Blocking>>;
+type FlashPartitionBank1 = Partition<'static, CriticalSectionRawMutex, FlashBank1>;
+type FlashPartitionBank2 = Partition<'static, CriticalSectionRawMutex, FlashBank2>;
 
 /// Build the firmware updater configuration from the linker script symbols.
 ///
@@ -80,8 +82,9 @@ type FlashPartition = Partition<'static, CriticalSectionRawMutex, FlashBlockingA
 /// `NoopRawMutex`. We need a `CriticalSectionRawMutex` because the flash is
 /// shared between RTIC tasks (which run in interrupt context).
 fn firmware_updater_config(
-    flash: &'static Mutex<CriticalSectionRawMutex, FlashBlockingAsync>,
-) -> FirmwareUpdaterConfig<FlashPartition, FlashPartition> {
+    flash_bank1: &'static Mutex<CriticalSectionRawMutex, FlashBank1>,
+    flash_bank2: &'static Mutex<CriticalSectionRawMutex, FlashBank2>,
+) -> FirmwareUpdaterConfig<FlashPartitionBank2, FlashPartitionBank1> {
     unsafe extern "C" {
         static __bootloader_state_start: u32;
         static __bootloader_state_end: u32;
@@ -103,8 +106,8 @@ fn firmware_updater_config(
     };
 
     FirmwareUpdaterConfig {
-        dfu: Partition::new(flash, dfu_start, dfu_end - dfu_start),
-        state: Partition::new(flash, state_start, state_end - state_start),
+        dfu: Partition::new(flash_bank2, dfu_start, dfu_end - dfu_start),
+        state: Partition::new(flash_bank1, state_start, state_end - state_start),
     }
 }
 
@@ -132,7 +135,7 @@ mod app {
     #[local]
     struct Local {
         wd: wdg::IndependentWatchdog<'static, IWDG>,
-        updater: FirmwareUpdater<'static, FlashPartition, FlashPartition>,
+        updater: FirmwareUpdater<'static, FlashPartitionBank2, FlashPartitionBank1>,
         led_err: Output<'static>,
         led_act: Output<'static>,
         can_rx: can::CanRx<'static>,
@@ -151,7 +154,8 @@ mod app {
 
     #[init(local = [
         aligned_buffer: AlignedBuffer<8> = AlignedBuffer([0; flash::WRITE_SIZE]),
-        flash: MaybeUninit<Mutex<CriticalSectionRawMutex, FlashBlockingAsync>> = MaybeUninit::uninit(),
+        flash_bank1: MaybeUninit<Mutex<CriticalSectionRawMutex, FlashBank1>> = MaybeUninit::uninit(),
+        flash_bank2: MaybeUninit<Mutex<CriticalSectionRawMutex, FlashBank2>> = MaybeUninit::uninit(),
         tim15: MaybeUninit<SimplePwmChannels<'static, TIM15>> = MaybeUninit::uninit(),
         tim8: MaybeUninit<SimplePwmChannels<'static, TIM8>> = MaybeUninit::uninit(),
         tim4: MaybeUninit<SimplePwmChannels<'static, TIM4>> = MaybeUninit::uninit(),
@@ -207,13 +211,23 @@ mod app {
         defmt::info!("Firmware version: {}", _header.fw_version);
 
         // flash and firmware update
-        let flash = flash::Flash::new_blocking(p.FLASH);
-        let flash = cx.local.flash.write(Mutex::new(BlockingAsync::new(flash)));
-        let config = firmware_updater_config(flash);
+        // Split the flash into one region per bank so the application can keep
+        // executing from the active bank while erasing/programming the DFU bank
+        // (read-while-write).
+        let layout = flash::Flash::new_blocking(p.FLASH).into_blocking_regions();
+        let flash_bank1 = cx
+            .local
+            .flash_bank1
+            .write(Mutex::new(BlockingAsync::new(layout.bank1_region)));
+        let flash_bank2 = cx
+            .local
+            .flash_bank2
+            .write(Mutex::new(BlockingAsync::new(layout.bank2_region)));
+        let config = firmware_updater_config(flash_bank1, flash_bank2);
         let updater = FirmwareUpdater::new(config, &mut cx.local.aligned_buffer.0);
 
         // configuration store
-        let config = config::Config::new(flash);
+        let config = config::Config::new(flash_bank2);
 
         // can bus
         let mut can = can::CanConfigurator::new(p.FDCAN1, p.PA11, p.PA12, Irqs);
