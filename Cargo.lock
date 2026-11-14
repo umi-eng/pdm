@@ -2045,6 +2045,15 @@ version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e5a6c098c7a3b6547378093f5cc30bc54fd361ce711e05293a5cc589562739b"
 dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "object"
+version = "0.41.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11dbdb66876026054e4ffc8d757d862bdf5df5aebd5c0b95a41f17832a94f7d2"
+dependencies = [
  "flate2",
  "memchr",
  "ruzstd",
@@ -2328,7 +2337,7 @@ dependencies = [
  "jep106",
  "nix 0.31.3",
  "nusb",
- "object",
+ "object 0.39.1",
  "parking_lot",
  "probe-rs-target",
  "rmp-serde",
@@ -2609,9 +2618,9 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "ruzstd"
-version = "0.8.2"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5ff0cc5e135c8870a775d3320910cd9b564ec036b4dc0b8741629020be63f01"
+checksum = "69e4ce4a039f42bf25920b95667e4d789e98749ab11bbb8d2c2936f788421bb5"
 dependencies = [
  "twox-hash",
 ]
@@ -3886,7 +3895,7 @@ dependencies = [
  "facet",
  "facet-toml",
  "header",
- "object",
+ "object 0.41.0",
  "probe-rs",
  "rand",
  "salty",
