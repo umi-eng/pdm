@@ -1766,13 +1766,12 @@ checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
 
 [[package]]
 name = "loom"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "419e0dc8046cb947daa77eb95ae174acfbddb7673b4151f56d1eed8e93fbfaca"
+checksum = "f1611ddbf89dc6ae42cfbd51fc207836140130257646eab8d6d2fb16577db2d2"
 dependencies = [
  "cfg-if",
  "generator",
- "pin-utils",
  "scoped-tls",
  "tracing",
  "tracing-subscriber",
@@ -2503,9 +2502,9 @@ dependencies = [
 
 [[package]]
 name = "rtic-common"
-version = "1.1.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67caeecca87cb20e1101eb104b0f05604633b7ab1035cce777417c6fb7c8f9a0"
+checksum = "d0d902a2dd9170ab8b810ac510de57f55b14eeb14c5323898d4c874f4c7ed4e4"
 dependencies = [
  "critical-section",
  "portable-atomic",
@@ -2544,9 +2543,9 @@ dependencies = [
 
 [[package]]
 name = "rtic-sync"
-version = "1.6.0"
+version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32eda24d51c95fe3d2cce85a63296fea042b810f99073dda26aadf9f1f175cfa"
+checksum = "e88249f23b7b4d396501d91101e9a32945c5b0701aa069227aec51bbe9ddecea"
 dependencies = [
  "critical-section",
  "defmt 0.3.100",
