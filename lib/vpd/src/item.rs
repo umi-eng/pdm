@@ -66,24 +66,9 @@ impl Item for SerialNumber {
     }
 }
 
-/// Public key for signing firmware.
-#[derive(Debug, FromBytes, IntoBytes, Immutable, KnownLayout)]
-#[repr(C)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct PubKey {
-    pub key: [u8; 32],
-}
-
-impl Item for PubKey {
-    fn tag() -> [u8; 4] {
-        *b"PUBK"
-    }
-}
-
 /// Check type sizes at compile time.
 const _CHECK_SIZE: () = {
     assert!(size_of::<HardwareVersion>() == 3);
     assert!(size_of::<Board>() == 4);
     assert!(size_of::<SerialNumber>() == 4);
-    assert!(size_of::<PubKey>() == 32);
 };

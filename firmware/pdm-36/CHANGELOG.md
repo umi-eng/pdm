@@ -2,6 +2,8 @@
 
 # [Unreleased]
 
+- Embed firmware signing public key in the firmware instead of reading it from VPD.
+
 # v0.1.3
 
 - Fix possible underflow when calculating end of firmware position.

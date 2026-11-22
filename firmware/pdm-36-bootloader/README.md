@@ -4,7 +4,7 @@ The embassy-boot framework is used to provide a firmware update process that is 
 
 ## Signing
 
-For a firmware binary to be accepted by the application firmware update subsystem, it must end with a 64-byte signature which is created using an ed25519 private key. The public key to verify this signature is programmed into the OTP memory of the STM as part of the vital product data.
+For a firmware binary to be accepted by the application firmware update subsystem, it must end with a 64-byte signature which is created using an ed25519 private key. The public key to verify this signature is embedded in the application firmware.
 
 ## Rollback and Watchdog
 

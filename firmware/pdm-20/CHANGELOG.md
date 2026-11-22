@@ -2,6 +2,7 @@
 
 # [Unreleased]
 
+- Embed firmware signing public key in the firmware instead of reading it from VPD.
 - Stop economisation feeding output heartbeat.
 - Avoid panic on timer wraparound.
 - Prevent overflow when calculating source adress with offset.

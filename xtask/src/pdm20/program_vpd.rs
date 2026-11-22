@@ -1,15 +1,9 @@
 use crate::config::VitalProductData;
 use anyhow::{Result, anyhow};
-use base64::Engine;
-use base64::prelude::BASE64_STANDARD;
 use probe_rs::{Session, SessionConfig, config::Registry, flashing::DownloadOptions};
 use std::path::PathBuf;
 use tlvc_text::{Piece, Tag};
-use vpd::{
-    chunk,
-    item::{Board, PubKey},
-    pad_to_double_word,
-};
+use vpd::{chunk, item::Board, pad_to_double_word};
 
 #[derive(Debug, clap::Parser)]
 pub struct ProgramVpd {
@@ -23,14 +17,9 @@ pub struct ProgramVpd {
 
 impl ProgramVpd {
     pub fn run(self) -> Result<()> {
-        let pubkey = BASE64_STANDARD.decode(include_str!("../../pdm20.pub").trim())?;
-        let pubkey = pubkey
-            .try_into()
-            .map_err(|v: Vec<_>| anyhow!("Public key length: {} != 32", v.len()))?;
-
         let vpd_file = std::fs::read_to_string(self.vpd)?;
         let vpd: VitalProductData = facet_toml::from_str(&vpd_file)?;
-        let vpd = pack_vpd(&vpd, pubkey);
+        let vpd = pack_vpd(&vpd);
         println!("{:#?}", vpd);
 
         let mut otp_data = Vec::new();
@@ -68,14 +57,13 @@ impl ProgramVpd {
     }
 }
 
-pub fn pack_vpd(vpd: &VitalProductData, pubkey: [u8; 32]) -> Piece {
+pub fn pack_vpd(vpd: &VitalProductData) -> Piece {
     Piece::Chunk(
         Tag::new(*b"VPD0"),
         vec![
             chunk(&vpd.hardware_version),
             chunk(&Board(*b"PD20")),
             chunk(&vpd.serial_number),
-            chunk(&PubKey { key: pubkey }),
         ],
     )
 }
@@ -89,12 +77,9 @@ mod tests {
 
     #[test]
     fn vpd_packing() {
-        pack_vpd(
-            &VitalProductData {
-                serial_number: SerialNumber::new_zeroed(),
-                hardware_version: HardwareVersion::new_zeroed(),
-            },
-            [0; 32],
-        );
+        pack_vpd(&VitalProductData {
+            serial_number: SerialNumber::new_zeroed(),
+            hardware_version: HardwareVersion::new_zeroed(),
+        });
     }
 }

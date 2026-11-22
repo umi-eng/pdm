@@ -1,6 +1,5 @@
 use crate::Mono;
 use crate::app::*;
-use crate::config::otp_slice;
 use crate::hal;
 use embassy_boot::FirmwareUpdaterError;
 use embassy_stm32::can::CanTx;
@@ -11,19 +10,18 @@ use saelient::Pgn;
 use saelient::diagnostic::*;
 use saelient::transport::*;
 
+/// Public key used to verify firmware signatures.
+///
+/// Base64: `4VMkb9UKclt5aiBoaDyWiyvbScsz/SX2ygN7Q5LMH+M=`
+const FIRMWARE_PUBKEY: [u8; 32] = [
+    0xE1, 0x53, 0x24, 0x6F, 0xD5, 0x0A, 0x72, 0x5B, 0x79, 0x6A, 0x20, 0x68, 0x68, 0x3C, 0x96, 0x8B,
+    0x2B, 0xDB, 0x49, 0xCB, 0x33, 0xFD, 0x25, 0xF6, 0xCA, 0x03, 0x7B, 0x43, 0x92, 0xCC, 0x1F, 0xE3,
+];
+
 pub async fn updater(cx: updater::Context<'_>) {
     let updater = cx.local.updater;
     let can = cx.shared.can_tx;
     let source_address = *cx.shared.source_address;
-
-    let pubkey: vpd::item::PubKey = match vpd::read_from_slice(otp_slice()) {
-        Ok(key) => key,
-        Err(err) => {
-            defmt::error!("Failed to read public key from VPD: {}", err);
-            error::spawn().ok();
-            return;
-        }
-    };
 
     if let Err(err) = updater.mark_booted().await {
         defmt::error!("Failed to mark boot successful: {}", err);
@@ -95,7 +93,11 @@ pub async fn updater(cx: updater::Context<'_>) {
                             }
 
                             match updater
-                                .verify_and_mark_updated(&pubkey.key, signature, end_of_firmware)
+                                .verify_and_mark_updated(
+                                    &FIRMWARE_PUBKEY,
+                                    signature,
+                                    end_of_firmware,
+                                )
                                 .await
                             {
                                 Ok(_) => {}
