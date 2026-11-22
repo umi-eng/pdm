@@ -78,7 +78,7 @@ fn convert_to_celcius(sample: u16) -> f32 {
 ///
 /// This corrects for the voltage divider used to scale 32V to 2.5V.
 fn convert_to_bus_volts(sample: u16) -> f32 {
-    const R1: f32 = 118e3;
+    const R1: f32 = 100e3 + 10e3 + 10e3;
     const R2: f32 = 10e3;
     const OFFSET: f32 = 0.085; // measured offset
 
