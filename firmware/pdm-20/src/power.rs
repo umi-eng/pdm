@@ -91,8 +91,8 @@ fn convert_to_bus_volts(sample: u16) -> f32 {
 /// This corrects for the voltage divider used to scale the 3.3V output to 2.5V
 /// for the ADC and also the zero-offset of the current sensor.
 fn convert_to_bus_amps(sample: u16) -> f32 {
-    const R1: f32 = 47e3;
-    const R2: f32 = 118e3;
+    const R1: f32 = 32.4e3;
+    const R2: f32 = 100e3;
     const AVG_SLOPE: f32 = 26.4; // mV/A
     const OFFSET: f32 = -1650.0; // mV
 
