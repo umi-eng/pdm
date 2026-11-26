@@ -35,8 +35,8 @@ pub async fn current(mut cx: current::Context<'_>) {
         for (n, sense) in i_sense.iter_mut().enumerate() {
             let ch = n + 1;
             let (i_lim, slope) = match DriverKind::from_ch(ch) {
-                DriverKind::HighCurrent => (10.6, 245.5),
-                DriverKind::LowCurrent => (2.2, 660.0),
+                DriverKind::HighCurrent => (10.5, 238.0),
+                DriverKind::LowCurrent => (2.2, 703.0),
             };
 
             let reading = match sense {

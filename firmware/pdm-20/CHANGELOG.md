@@ -16,6 +16,7 @@
 - Use dual-bank flash mode.
 - Update Vbus resistor divider.
 - Update Ibus scaling resistor divider.
+- Adjust current measurement scaling and limits.
 
 ## v0.3.1
 
